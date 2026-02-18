@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\.github\\workflows",
+    "\\backend",
+    "\\backend\\Kapacitet.API",
+    "\\backend\\Kapacitet.API\\Controllers",
+    "\\infrastructure"
+  ],
+  "SelectedNode": "\\.gitignore",
+  "PreviewInSolutionExplorer": false
+}
