@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Frontend
 
-## Getting Started
+Next.js app for KapacitetNet.
 
-First, run the development server:
+## Auth Architecture
+
+- Keycloak OIDC Authorization Code Flow with PKCE (`/api/auth/login` + `/api/auth/callback`).
+- Redirect-based sign-in for enterprise/B2B identity workflows.
+- Email/password is verified on Keycloak's hosted login page (not handled by the app directly).
+- No auth tokens in `localStorage`.
+- Session is stored in encrypted `HttpOnly` cookies.
+- Dashboard route is server-protected.
+- Future MitID Erhverv support: configure MitID as an external IdP in Keycloak and (optionally) pass `idp_hint` to `/api/auth/login`.
+
+## Environment
+
+Copy `.env.example` to `.env.local` and set values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `OIDC_ISSUER_URL`
+- `OIDC_CLIENT_ID`
+- `AUTH_SESSION_SECRET`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Optional:
 
-## Learn More
+- `OIDC_CLIENT_SECRET` (recommended for confidential clients)
+- `OIDC_SCOPES`
+- `AUTH_COOKIE_SECURE`
 
-To learn more about Next.js, take a look at the following resources:
+## Keycloak Client Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Configure your Keycloak client with:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Standard Flow enabled (Authorization Code Flow)
+- PKCE enabled (`S256`)
+- Valid redirect URI: `https://<your-app>/api/auth/callback` (and local dev URL)
+- Valid post-logout redirect URI: `https://<your-app>/`
+- `openid profile email` scopes enabled (`offline_access` recommended for refresh)
 
-## Deploy on Vercel
+For MitID Erhverv later:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Add MitID as an external IdP (Identity Brokering) in Keycloak.
+- Keep app code unchanged; optionally send `idp_hint=<broker-alias>` to `/api/auth/login`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Run
+
+```bash
+npm install
+npm run dev
+```
+
+## Quality Checks
+
+```bash
+npm run check
+npm run build
+```
