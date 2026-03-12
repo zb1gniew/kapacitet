@@ -18,6 +18,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
 
   backend:
     build: ../backend
@@ -36,3 +38,4 @@ services:
 
 volumes:
   postgres_data:
+  keycloak_data:
