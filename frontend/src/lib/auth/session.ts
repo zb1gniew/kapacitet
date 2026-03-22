@@ -5,11 +5,15 @@ import {
   AUTH_SESSION_DEFAULT_MAX_AGE_SECONDS,
   AUTH_TRANSACTION_MAX_AGE_SECONDS,
 } from "@/constants/auth";
-import type { AuthSession, AuthTransaction } from "@/types/auth";
+import type { AuthTransaction } from "@/types/auth";
 import { getAuthConfig } from "./config";
 
+type AuthSessionReference = {
+  sessionId: string;
+};
+
 type TokenPayload<T> = {
-  type: "session" | "transaction";
+  type: "session_ref" | "transaction";
   data: T;
 };
 
@@ -53,23 +57,24 @@ async function decryptPayload<T>(
 }
 
 export async function createSessionCookieValue(
-  session: AuthSession,
+  sessionId: string,
+  maxAgeSeconds = AUTH_SESSION_DEFAULT_MAX_AGE_SECONDS,
 ): Promise<string> {
-  const sessionMaxAge =
-    session.refreshExpiresAt && session.refreshExpiresAt > 0
-      ? Math.max(
-          AUTH_SESSION_DEFAULT_MAX_AGE_SECONDS,
-          session.refreshExpiresAt - Math.floor(Date.now() / 1000),
-        )
-      : AUTH_SESSION_DEFAULT_MAX_AGE_SECONDS;
-
-  return encryptPayload({ type: "session", data: session }, sessionMaxAge);
+  return encryptPayload(
+    { type: "session_ref", data: { sessionId } },
+    maxAgeSeconds,
+  );
 }
 
 export async function parseSessionCookieValue(
   value: string,
-): Promise<AuthSession | null> {
-  return decryptPayload<AuthSession>(value, "session");
+): Promise<string | null> {
+  const sessionReference = await decryptPayload<AuthSessionReference>(
+    value,
+    "session_ref",
+  );
+
+  return sessionReference?.sessionId ?? null;
 }
 
 export async function createTransactionCookieValue(

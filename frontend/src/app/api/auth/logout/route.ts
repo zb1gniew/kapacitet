@@ -3,6 +3,10 @@ import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
 import { buildEndSessionUrl } from "@/lib/auth/oidc";
 import { parseSessionCookieValue } from "@/lib/auth/session";
+import {
+  deleteServerSession,
+  getServerSession,
+} from "@/lib/auth/session-store";
 
 function clearAuthCookies(response: NextResponse) {
   response.cookies.delete(AUTH_COOKIE_NAMES.session);
@@ -16,13 +20,18 @@ function defaultRedirectUrl(request: NextRequest): URL {
 export async function POST(request: NextRequest) {
   const localRedirectUrl = defaultRedirectUrl(request);
   const sessionCookie = request.cookies.get(AUTH_COOKIE_NAMES.session)?.value;
-  const session = sessionCookie
+  const sessionId = sessionCookie
     ? await parseSessionCookieValue(sessionCookie)
     : null;
+  const session = sessionId ? await getServerSession(sessionId) : null;
   const endSessionUrl = await buildEndSessionUrl({
     postLogoutRedirectUri: localRedirectUrl.toString(),
     idTokenHint: session?.idToken,
   });
+
+  if (sessionId) {
+    await deleteServerSession(sessionId);
+  }
 
   const response = NextResponse.redirect(endSessionUrl ?? localRedirectUrl);
   clearAuthCookies(response);

@@ -8,6 +8,11 @@ import {
   parseSessionCookieValue,
 } from "./session";
 import {
+  deleteServerSession,
+  getServerSession,
+  updateServerSession,
+} from "./session-store";
+import {
   isSessionExpired,
   refreshAuthSession,
   shouldRefreshSession,
@@ -21,7 +26,12 @@ export async function getServerAuthSession(): Promise<AuthSession | null> {
     return null;
   }
 
-  const parsedSession = await parseSessionCookieValue(value);
+  const sessionId = await parseSessionCookieValue(value);
+  if (!sessionId) {
+    return null;
+  }
+
+  const parsedSession = await getServerSession(sessionId);
   if (!parsedSession) {
     return null;
   }
@@ -31,19 +41,31 @@ export async function getServerAuthSession(): Promise<AuthSession | null> {
   if (shouldRefreshSession(session)) {
     const refreshed = await refreshAuthSession(session);
     if (!refreshed) {
+      await deleteServerSession(sessionId);
       return null;
     }
 
     session = refreshed;
+    await updateServerSession(sessionId, session);
 
     // In request contexts that allow cookie mutation, persist the refreshed session.
     try {
       const { cookieSecure } = getAuthConfig();
-      const cookieValue = await createSessionCookieValue(session);
+      const maxAgeSeconds =
+        session.refreshExpiresAt && session.refreshExpiresAt > 0
+          ? Math.max(
+              60 * 60,
+              session.refreshExpiresAt - Math.floor(Date.now() / 1000),
+            )
+          : 60 * 60;
+      const cookieValue = await createSessionCookieValue(
+        sessionId,
+        maxAgeSeconds,
+      );
       cookieStore.set(
         AUTH_COOKIE_NAMES.session,
         cookieValue,
-        getSessionCookieOptions(cookieSecure),
+        getSessionCookieOptions(cookieSecure, maxAgeSeconds),
       );
     } catch {
       // Server components may expose a read-only cookie store; the refreshed
@@ -52,6 +74,7 @@ export async function getServerAuthSession(): Promise<AuthSession | null> {
   }
 
   if (isSessionExpired(session)) {
+    await deleteServerSession(sessionId);
     return null;
   }
 

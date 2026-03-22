@@ -16,6 +16,7 @@ import {
   getSessionCookieOptions,
   parseTransactionCookieValue,
 } from "@/lib/auth/session";
+import { createServerSession } from "@/lib/auth/session-store";
 
 function buildRedirectUrl(request: NextRequest, path: string): URL {
   return new URL(path, request.nextUrl.origin);
@@ -79,7 +80,11 @@ export async function GET(request: NextRequest) {
 
     const userInfo = await fetchUserInfo(tokenResponse.access_token);
     const session = createAuthSession(tokenResponse, userInfo);
-    const sessionCookieValue = await createSessionCookieValue(session);
+    const sessionId = await createServerSession(session);
+    const sessionCookieValue = await createSessionCookieValue(
+      sessionId,
+      sessionMaxAgeSeconds(session.refreshExpiresAt ?? session.expiresAt),
+    );
     const { cookieSecure } = getAuthConfig();
 
     const response = NextResponse.redirect(
