@@ -63,4 +63,5 @@ Example local `BACKEND_API_URL`: `http://localhost:5000`
 ```bash
 npm run check
 npm run build
+npm run format
 ```

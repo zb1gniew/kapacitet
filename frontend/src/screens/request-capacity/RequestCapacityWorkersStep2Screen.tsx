@@ -38,7 +38,9 @@ export function RequestCapacityWorkersStep2Screen({
 }: RequestCapacityWorkersStep2ScreenProps) {
   const { t } = useLocalizedScreen();
 
-  const [selectedCertificates, setSelectedCertificates] = useState<string[]>([]);
+  const [selectedCertificates, setSelectedCertificates] = useState<string[]>(
+    [],
+  );
   const [selectedExperience, setSelectedExperience] = useState<string>("");
 
   const toggleCertificate = (certificateId: string) => {
@@ -114,7 +116,9 @@ export function RequestCapacityWorkersStep2Screen({
 
             <div className="grid gap-3 pt-1 md:grid-cols-2">
               {AVAILABILITY_CERTIFICATE_OPTIONS.map((certificate) => {
-                const isSelected = selectedCertificates.includes(certificate.id);
+                const isSelected = selectedCertificates.includes(
+                  certificate.id,
+                );
 
                 return (
                   <button

@@ -45,7 +45,9 @@ export function DashboardSidebar({ t, activeItemKey }: DashboardSidebarProps) {
             <p className="text-lg font-semibold leading-[22.5px] tracking-[-0.4395px] text-neutral-100">
               KapacitetNet
             </p>
-            <p className="text-xs text-[#90a1b9]">{t("Capacity coordination")}</p>
+            <p className="text-xs text-[#90a1b9]">
+              {t("Capacity coordination")}
+            </p>
           </div>
         </div>
       </div>
@@ -79,7 +81,9 @@ export function DashboardSidebar({ t, activeItemKey }: DashboardSidebarProps) {
 
       <div className="mt-auto border-t border-[#45556c80] px-6 py-4">
         <p className="text-xs text-[#62748e]">{t("Platform version")}</p>
-        <p className="mt-1 text-sm tracking-[-0.1504px] text-[#cad5e2]">2.4.1</p>
+        <p className="mt-1 text-sm tracking-[-0.1504px] text-[#cad5e2]">
+          2.4.1
+        </p>
       </div>
     </aside>
   );

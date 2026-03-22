@@ -1,7 +1,10 @@
 import { CircleCheckIcon } from "@/components/auth/icons";
 import { MATCHES_SUMMARY_CARDS } from "@/constants/matches";
 import type { TranslateFn } from "@/types/i18n";
-import type { MatchesSummaryCard, MatchesSummaryCardTone } from "@/types/matches";
+import type {
+  MatchesSummaryCard,
+  MatchesSummaryCardTone,
+} from "@/types/matches";
 import { HourglassIcon, TrendUpIcon } from "./icons";
 
 type MatchesSummaryCardsProps = {

@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
-import { ClockIcon, EyeIcon, InfoIcon, ShieldIcon } from "@/components/auth/icons";
+import {
+  ClockIcon,
+  EyeIcon,
+  InfoIcon,
+  ShieldIcon,
+} from "@/components/auth/icons";
 import type { TranslateFn } from "@/types/i18n";
 
 type SettingsPrivacyDataBoundariesCardProps = {
@@ -60,10 +65,14 @@ function BoundaryCard({
           {icon}
         </span>
         <div>
-          <h3 className={`text-sm font-semibold leading-5 tracking-[-0.1504px] ${toneClass.title}`}>
+          <h3
+            className={`text-sm font-semibold leading-5 tracking-[-0.1504px] ${toneClass.title}`}
+          >
             {t(titleKey)}
           </h3>
-          <p className={`mt-1 text-xs leading-[19.5px] tracking-[-0.1172px] ${toneClass.body}`}>
+          <p
+            className={`mt-1 text-xs leading-[19.5px] tracking-[-0.1172px] ${toneClass.body}`}
+          >
             {t(descriptionKey)}
           </p>
         </div>
@@ -123,10 +132,26 @@ export function SettingsPrivacyDataBoundariesCard({
             {t("Data retention and access")}
           </h3>
           <ul className="mt-2 space-y-1.5 text-xs leading-[19.5px] tracking-[-0.1172px] text-neutral-700">
-            <li>{t("Capacity declarations are stored only for the declared availability period plus 90 days")}</li>
-            <li>{t("Match history and cooperation records are retained for compliance and audit purposes")}</li>
-            <li>{t("You can request a full data export or account deletion by contacting platform support")}</li>
-            <li>{t("All data handling complies with GDPR and local data protection regulations")}</li>
+            <li>
+              {t(
+                "Capacity declarations are stored only for the declared availability period plus 90 days",
+              )}
+            </li>
+            <li>
+              {t(
+                "Match history and cooperation records are retained for compliance and audit purposes",
+              )}
+            </li>
+            <li>
+              {t(
+                "You can request a full data export or account deletion by contacting platform support",
+              )}
+            </li>
+            <li>
+              {t(
+                "All data handling complies with GDPR and local data protection regulations",
+              )}
+            </li>
           </ul>
         </article>
       </div>

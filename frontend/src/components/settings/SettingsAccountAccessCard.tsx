@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  ArrowRightIcon,
-  EmailIcon,
-  LockIcon,
-} from "@/components/auth/icons";
+import { ArrowRightIcon, EmailIcon, LockIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
 import type { TranslateFn } from "@/types/i18n";
 
@@ -174,7 +170,9 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
   );
 }
 
-export function SettingsAccountAccessCard({ t }: SettingsAccountAccessCardProps) {
+export function SettingsAccountAccessCard({
+  t,
+}: SettingsAccountAccessCardProps) {
   return (
     <div className="space-y-4">
       <AccountPanel t={t} />

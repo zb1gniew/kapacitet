@@ -56,7 +56,10 @@ export function MatchesContent({ t }: MatchesContentProps) {
           </p>
         </div>
 
-        <MatchesAwaitingConfirmationCard offer={MATCHES_AWAITING_CONFIRMATION_OFFER} t={t} />
+        <MatchesAwaitingConfirmationCard
+          offer={MATCHES_AWAITING_CONFIRMATION_OFFER}
+          t={t}
+        />
       </section>
     </div>
   );

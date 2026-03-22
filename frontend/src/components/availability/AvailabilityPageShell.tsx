@@ -4,7 +4,10 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { DashboardNavItemKey } from "@/types/dashboard";
-import type { AvailabilityStepDefinition, AvailabilityStepId } from "@/types/availability";
+import type {
+  AvailabilityStepDefinition,
+  AvailabilityStepId,
+} from "@/types/availability";
 import type { TranslateFn } from "@/types/i18n";
 import { AvailabilityStepProgress } from "./AvailabilityStepProgress";
 
@@ -34,7 +37,11 @@ export function AvailabilityPageShell({
   steps = AVAILABILITY_STEPS,
 }: AvailabilityPageShellProps) {
   return (
-    <main className="min-h-screen bg-[#f5f5f5]" data-name={dataName} data-node-id={dataNodeId}>
+    <main
+      className="min-h-screen bg-[#f5f5f5]"
+      data-name={dataName}
+      data-node-id={dataNodeId}
+    >
       <div className="flex min-h-screen flex-col lg:flex-row">
         <DashboardSidebar t={t} activeItemKey={activeItemKey} />
 
@@ -51,7 +58,11 @@ export function AvailabilityPageShell({
               </p>
             </header>
 
-            <AvailabilityStepProgress currentStep={currentStep} t={t} steps={steps} />
+            <AvailabilityStepProgress
+              currentStep={currentStep}
+              t={t}
+              steps={steps}
+            />
 
             <div className="mt-8">{children}</div>
           </div>

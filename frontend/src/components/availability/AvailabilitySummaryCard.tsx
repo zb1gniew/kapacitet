@@ -18,7 +18,9 @@ function SummaryIcon({ section }: { section: AvailabilitySummarySection }) {
     case "period":
       return <PeriodSummaryIcon className="h-[18px] w-[18px] text-blue-600" />;
     default:
-      return <ResourceSummaryIcon className="h-[18px] w-[18px] text-blue-600" />;
+      return (
+        <ResourceSummaryIcon className="h-[18px] w-[18px] text-blue-600" />
+      );
   }
 }
 
@@ -37,7 +39,10 @@ export function AvailabilitySummaryCard({
 
       <div className="mt-3 space-y-2 pl-6">
         {section.rows.map((row) => (
-          <div key={row.labelKey} className="flex gap-2 text-sm leading-5 tracking-[-0.1504px]">
+          <div
+            key={row.labelKey}
+            className="flex gap-2 text-sm leading-5 tracking-[-0.1504px]"
+          >
             {row.labelKey ? (
               <p className="min-w-[128px] font-medium text-neutral-600">
                 {t(row.labelKey)}

@@ -1,4 +1,9 @@
-import { CircleCheckIcon, EmailIcon, InfoIcon, MapPinIcon } from "@/components/auth/icons";
+import {
+  CircleCheckIcon,
+  EmailIcon,
+  InfoIcon,
+  MapPinIcon,
+} from "@/components/auth/icons";
 import type { TranslateFn } from "@/types/i18n";
 
 type SettingsCompanyInformationCardProps = {
@@ -84,7 +89,11 @@ export function SettingsCompanyInformationCard({
 
         <div className="space-y-2">
           <Label label={t("Contact email")} />
-          <Input value={t("admin@danskbyggefirma.dk")} icon="email" type="email" />
+          <Input
+            value={t("admin@danskbyggefirma.dk")}
+            icon="email"
+            type="email"
+          />
           <p className="text-[11px] leading-4 text-neutral-500">
             {t("Primary contact for platform communications")}
           </p>

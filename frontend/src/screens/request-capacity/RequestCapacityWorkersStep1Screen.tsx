@@ -44,7 +44,9 @@ export function RequestCapacityWorkersStep1Screen({
   const [selectedResource, setSelectedResource] =
     useState<AvailabilityResourceType | null>(null);
 
-  const nextHref = selectedResource ? getStep2Href(selectedResource) : undefined;
+  const nextHref = selectedResource
+    ? getStep2Href(selectedResource)
+    : undefined;
 
   return (
     <AvailabilityPageShell

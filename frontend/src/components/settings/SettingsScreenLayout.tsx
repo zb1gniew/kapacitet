@@ -24,7 +24,11 @@ export function SettingsScreenLayout({
   dataName = "Settings",
 }: SettingsScreenLayoutProps) {
   return (
-    <main className="min-h-screen bg-[#f5f5f5]" data-name={dataName} data-node-id={dataNodeId}>
+    <main
+      className="min-h-screen bg-[#f5f5f5]"
+      data-name={dataName}
+      data-node-id={dataNodeId}
+    >
       <div className="flex min-h-screen flex-col lg:flex-row">
         <DashboardSidebar t={t} activeItemKey="Settings" />
 

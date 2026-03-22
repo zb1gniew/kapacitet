@@ -25,7 +25,9 @@ export function RemindersSection({ t }: RemindersSectionProps) {
     <article className="rounded-[10px] border border-neutral-200 bg-white p-4 shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
       <div className="mb-3 flex items-center gap-2">
         <EyeIcon className="h-4 w-4 text-neutral-500" />
-        <h3 className="text-sm font-semibold text-neutral-900">{t("Reminders")}</h3>
+        <h3 className="text-sm font-semibold text-neutral-900">
+          {t("Reminders")}
+        </h3>
       </div>
       <div className="space-y-3">
         {DASHBOARD_REMINDERS.map((reminder) => (

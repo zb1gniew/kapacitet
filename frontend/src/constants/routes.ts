@@ -2,10 +2,14 @@ export const APP_ROUTES = {
   home: "/",
   dashboard: "/dashboard",
   matches: "/dashboard/matches",
-  declareAvailabilityWorkersStep1: "/dashboard/declare-availability/workers/step-1",
-  declareAvailabilityWorkersStep2: "/dashboard/declare-availability/workers/step-2",
-  declareAvailabilityWorkersStep3: "/dashboard/declare-availability/workers/step-3",
-  declareAvailabilityWorkersStep4: "/dashboard/declare-availability/workers/step-4",
+  declareAvailabilityWorkersStep1:
+    "/dashboard/declare-availability/workers/step-1",
+  declareAvailabilityWorkersStep2:
+    "/dashboard/declare-availability/workers/step-2",
+  declareAvailabilityWorkersStep3:
+    "/dashboard/declare-availability/workers/step-3",
+  declareAvailabilityWorkersStep4:
+    "/dashboard/declare-availability/workers/step-4",
   declareAvailabilityEquipmentStep2:
     "/dashboard/declare-availability/equipment/step-2",
   declareAvailabilityEquipmentStep3:
@@ -20,7 +24,8 @@ export const APP_ROUTES = {
   requestCapacityEquipmentStep3: "/dashboard/request-capacity/equipment/step-3",
   requestCapacityEquipmentStep4: "/dashboard/request-capacity/equipment/step-4",
   settings: "/dashboard/settings",
-  settingsParticipationVisibility: "/dashboard/settings/participation-visibility",
+  settingsParticipationVisibility:
+    "/dashboard/settings/participation-visibility",
   settingsPrivacyDataBoundaries: "/dashboard/settings/privacy-data-boundaries",
   settingsNotifications: "/dashboard/settings/notifications",
   settingsAccountAccess: "/dashboard/settings/account-access",

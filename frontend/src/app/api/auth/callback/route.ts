@@ -49,7 +49,9 @@ export async function GET(request: NextRequest) {
     return redirectResponse;
   }
 
-  const transactionCookie = request.cookies.get(AUTH_COOKIE_NAMES.transaction)?.value;
+  const transactionCookie = request.cookies.get(
+    AUTH_COOKIE_NAMES.transaction,
+  )?.value;
   if (!transactionCookie) {
     return NextResponse.redirect(buildRedirectUrl(request, APP_ROUTES.home));
   }

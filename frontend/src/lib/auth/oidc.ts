@@ -137,7 +137,9 @@ export async function refreshOidcToken(
   return performTokenRequest(params);
 }
 
-export async function fetchUserInfo(accessToken: string): Promise<OidcUserInfo> {
+export async function fetchUserInfo(
+  accessToken: string,
+): Promise<OidcUserInfo> {
   const discovery = await fetchDiscoveryDocument();
   const response = await fetch(discovery.userinfo_endpoint, {
     method: "GET",

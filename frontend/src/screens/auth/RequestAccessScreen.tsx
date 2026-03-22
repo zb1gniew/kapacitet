@@ -57,7 +57,9 @@ export function RequestAccessScreen() {
               <ul className="mt-3 space-y-1.5 text-xs leading-4">
                 {[
                   t("Typical review time: 2-3 business days"),
-                  t("You'll receive notification when your request is reviewed"),
+                  t(
+                    "You'll receive notification when your request is reviewed",
+                  ),
                   t(
                     "Platform administrator may contact you for additional information",
                   ),

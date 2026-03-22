@@ -8,13 +8,7 @@ type SettingsNotificationsCardProps = {
   t: TranslateFn;
 };
 
-function GroupLabel({
-  icon,
-  label,
-}: {
-  icon: ReactNode;
-  label: string;
-}) {
+function GroupLabel({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-neutral-500">{icon}</span>
@@ -25,7 +19,9 @@ function GroupLabel({
   );
 }
 
-export function SettingsNotificationsCard({ t }: SettingsNotificationsCardProps) {
+export function SettingsNotificationsCard({
+  t,
+}: SettingsNotificationsCardProps) {
   return (
     <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
       <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
@@ -87,7 +83,9 @@ export function SettingsNotificationsCard({ t }: SettingsNotificationsCardProps)
             />
             <SettingsPreferenceCard
               title={t("Actions required")}
-              description={t("Alert when responses or confirmations are needed")}
+              description={t(
+                "Alert when responses or confirmations are needed",
+              )}
               checked
               t={t}
             />

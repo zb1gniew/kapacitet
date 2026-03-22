@@ -163,7 +163,9 @@ export function DeclareAvailabilityEquipmentStep3Screen({
                 <BulletCheckIcon className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>
                   <strong>{t("You approve every match:")}</strong>{" "}
-                  {t("No agreements are made without your explicit confirmation")}
+                  {t(
+                    "No agreements are made without your explicit confirmation",
+                  )}
                 </span>
               </li>
             </ul>

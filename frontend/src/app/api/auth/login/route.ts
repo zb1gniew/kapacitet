@@ -3,7 +3,11 @@ import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
 import { getAuthConfig } from "@/lib/auth/config";
 import { buildAuthorizationUrl } from "@/lib/auth/oidc";
-import { createCodeChallenge, createCodeVerifier, createRandomState } from "@/lib/auth/pkce";
+import {
+  createCodeChallenge,
+  createCodeVerifier,
+  createRandomState,
+} from "@/lib/auth/pkce";
 import {
   createTransactionCookieValue,
   getTransactionCookieOptions,
@@ -70,7 +74,9 @@ function createLoginResponse(
 }
 
 export async function GET(request: NextRequest) {
-  const returnTo = sanitizeReturnTo(request.nextUrl.searchParams.get("return_to"));
+  const returnTo = sanitizeReturnTo(
+    request.nextUrl.searchParams.get("return_to"),
+  );
   const loginHint = request.nextUrl.searchParams.get("login_hint") ?? undefined;
   const idpHint = request.nextUrl.searchParams.get("idp_hint") ?? undefined;
 

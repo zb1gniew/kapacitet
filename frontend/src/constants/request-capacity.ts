@@ -28,70 +28,72 @@ export const REQUEST_CAPACITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
   },
 ];
 
-export const REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[] = [
-  {
-    id: "resource",
-    titleKey: "Resource type",
-    icon: "resource",
-    rows: [{ labelKey: "", valueKey: "Workers" }],
-  },
-  {
-    id: "details",
-    titleKey: "Requirements",
-    icon: "details",
-    rows: [
-      { labelKey: "Number of workers:", valueKey: "Not specified" },
-      { labelKey: "Trade/Skill:", valueKey: "Not specified" },
-      { labelKey: "Certificates:", valueKey: "Not specified" },
-    ],
-  },
-  {
-    id: "period",
-    titleKey: "Period and location",
-    icon: "period",
-    rows: [
-      { labelKey: "Start date:", valueKey: "Not specified" },
-      { labelKey: "End date:", valueKey: "Not specified" },
-      { labelKey: "Location:", valueKey: "Not specified" },
-      { labelKey: "Radius:", valueKey: "50 km" },
-      { labelKey: "Urgency:", valueKey: "Normal" },
-    ],
-  },
-];
+export const REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[] =
+  [
+    {
+      id: "resource",
+      titleKey: "Resource type",
+      icon: "resource",
+      rows: [{ labelKey: "", valueKey: "Workers" }],
+    },
+    {
+      id: "details",
+      titleKey: "Requirements",
+      icon: "details",
+      rows: [
+        { labelKey: "Number of workers:", valueKey: "Not specified" },
+        { labelKey: "Trade/Skill:", valueKey: "Not specified" },
+        { labelKey: "Certificates:", valueKey: "Not specified" },
+      ],
+    },
+    {
+      id: "period",
+      titleKey: "Period and location",
+      icon: "period",
+      rows: [
+        { labelKey: "Start date:", valueKey: "Not specified" },
+        { labelKey: "End date:", valueKey: "Not specified" },
+        { labelKey: "Location:", valueKey: "Not specified" },
+        { labelKey: "Radius:", valueKey: "50 km" },
+        { labelKey: "Urgency:", valueKey: "Normal" },
+      ],
+    },
+  ];
 
 export const REQUEST_CAPACITY_SUMMARY_SECTIONS =
   REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS;
 
-export const REQUEST_CAPACITY_EQUIPMENT_SUMMARY_SECTIONS: AvailabilitySummarySection[] = [
-  {
-    id: "resource",
-    titleKey: "Resource type",
-    icon: "resource",
-    rows: [{ labelKey: "", valueKey: "Equipment" }],
-  },
-  {
-    id: "details",
-    titleKey: "Requirements",
-    icon: "details",
-    rows: [
-      { labelKey: "Number of units:", valueKey: "Not specified" },
-      { labelKey: "Type:", valueKey: "Not specified" },
-      { labelKey: "Preference:", valueKey: "Very good" },
-    ],
-  },
-  {
-    id: "period",
-    titleKey: "Period and location",
-    icon: "period",
-    rows: [
-      { labelKey: "Start date:", valueKey: "Not specified" },
-      { labelKey: "End date:", valueKey: "Not specified" },
-      { labelKey: "Location:", valueKey: "Not specified" },
-      { labelKey: "Radius:", valueKey: "50 km" },
-      { labelKey: "Urgency:", valueKey: "Urgent" },
-    ],
-  },
-];
+export const REQUEST_CAPACITY_EQUIPMENT_SUMMARY_SECTIONS: AvailabilitySummarySection[] =
+  [
+    {
+      id: "resource",
+      titleKey: "Resource type",
+      icon: "resource",
+      rows: [{ labelKey: "", valueKey: "Equipment" }],
+    },
+    {
+      id: "details",
+      titleKey: "Requirements",
+      icon: "details",
+      rows: [
+        { labelKey: "Number of units:", valueKey: "Not specified" },
+        { labelKey: "Type:", valueKey: "Not specified" },
+        { labelKey: "Preference:", valueKey: "Very good" },
+      ],
+    },
+    {
+      id: "period",
+      titleKey: "Period and location",
+      icon: "period",
+      rows: [
+        { labelKey: "Start date:", valueKey: "Not specified" },
+        { labelKey: "End date:", valueKey: "Not specified" },
+        { labelKey: "Location:", valueKey: "Not specified" },
+        { labelKey: "Radius:", valueKey: "50 km" },
+        { labelKey: "Urgency:", valueKey: "Urgent" },
+      ],
+    },
+  ];
 
 export const REQUEST_CAPACITY_NEXT_STEPS = [
   {

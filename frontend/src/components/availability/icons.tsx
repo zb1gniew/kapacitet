@@ -85,7 +85,13 @@ export function LocationIcon(props: IconProps) {
         strokeLinejoin="round"
         strokeWidth="1.5"
       />
-      <circle cx="10" cy="8.75" r="1.667" stroke="currentColor" strokeWidth="1.5" />
+      <circle
+        cx="10"
+        cy="8.75"
+        r="1.667"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
     </svg>
   );
 }

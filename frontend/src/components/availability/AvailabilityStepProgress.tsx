@@ -1,5 +1,11 @@
-import { AVAILABILITY_STEPS, getAvailabilityStepState } from "@/constants/availability";
-import type { AvailabilityStepDefinition, AvailabilityStepId } from "@/types/availability";
+import {
+  AVAILABILITY_STEPS,
+  getAvailabilityStepState,
+} from "@/constants/availability";
+import type {
+  AvailabilityStepDefinition,
+  AvailabilityStepId,
+} from "@/types/availability";
 import type { TranslateFn } from "@/types/i18n";
 import { StepCompletedIcon } from "./icons";
 
@@ -9,7 +15,9 @@ type AvailabilityStepProgressProps = {
   steps?: AvailabilityStepDefinition[];
 };
 
-function getStepNumberClass(stepState: ReturnType<typeof getAvailabilityStepState>) {
+function getStepNumberClass(
+  stepState: ReturnType<typeof getAvailabilityStepState>,
+) {
   switch (stepState) {
     case "completed":
       return "border border-emerald-200 bg-emerald-100 text-emerald-600";
@@ -20,7 +28,9 @@ function getStepNumberClass(stepState: ReturnType<typeof getAvailabilityStepStat
   }
 }
 
-function getStepTitleClass(stepState: ReturnType<typeof getAvailabilityStepState>) {
+function getStepTitleClass(
+  stepState: ReturnType<typeof getAvailabilityStepState>,
+) {
   switch (stepState) {
     case "active":
       return "text-blue-600";
@@ -44,7 +54,10 @@ export function AvailabilityStepProgress({
           const isLineComplete = currentStep > step.id;
 
           return (
-            <li key={step.id} className="flex min-w-[180px] flex-1 items-center">
+            <li
+              key={step.id}
+              className="flex min-w-[180px] flex-1 items-center"
+            >
               <div className="flex items-center gap-3">
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-[10px] text-sm font-bold tracking-[-0.1504px] ${getStepNumberClass(stepState)}`}

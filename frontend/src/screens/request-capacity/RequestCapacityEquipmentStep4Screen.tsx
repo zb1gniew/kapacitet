@@ -5,7 +5,11 @@ import { useState } from "react";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySummaryCard } from "@/components/availability/AvailabilitySummaryCard";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
-import { ArrowLeftIcon, PublishIcon, ResourceSummaryIcon } from "@/components/availability/icons";
+import {
+  ArrowLeftIcon,
+  PublishIcon,
+  ResourceSummaryIcon,
+} from "@/components/availability/icons";
 import {
   REQUEST_CAPACITY_EQUIPMENT_SUMMARY_SECTIONS,
   REQUEST_CAPACITY_NEXT_STEPS,

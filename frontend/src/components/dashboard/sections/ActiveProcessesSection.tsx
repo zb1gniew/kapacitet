@@ -47,7 +47,9 @@ function ProcessItem({ process, t }: ProcessItemProps) {
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h4 className="text-sm font-bold text-neutral-900">{t(process.titleKey)}</h4>
+          <h4 className="text-sm font-bold text-neutral-900">
+            {t(process.titleKey)}
+          </h4>
           <p className="mt-1 text-[11px] text-neutral-500">
             {t(process.subtitleKey)}
           </p>
@@ -76,7 +78,9 @@ export function ActiveProcessesSection({ t }: ActiveProcessesSectionProps) {
   return (
     <article className="rounded-[10px] border border-neutral-200 bg-white p-4 shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-neutral-900">{t("Active processes")}</h3>
+        <h3 className="text-sm font-semibold text-neutral-900">
+          {t("Active processes")}
+        </h3>
         <span className="text-xs text-neutral-500">{t("5 ongoing")}</span>
       </div>
       <div className="space-y-3">

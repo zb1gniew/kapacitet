@@ -26,7 +26,9 @@ export function DashboardHeader({
             KapacitetNet
           </h1>
           <span className="text-base text-[#62748e]">·</span>
-          <span className="text-sm text-[#90a1b9]">{t("Capacity coordination")}</span>
+          <span className="text-sm text-[#90a1b9]">
+            {t("Capacity coordination")}
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -35,7 +37,9 @@ export function DashboardHeader({
               {t("Logged in as")}
             </p>
             <div className="mt-1 flex items-center gap-2">
-              <p className="text-sm font-medium text-[#f5f5f5]">{getDisplayName(user)}</p>
+              <p className="text-sm font-medium text-[#f5f5f5]">
+                {getDisplayName(user)}
+              </p>
               <span className="rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
                 {t("Administrator")}
               </span>

@@ -14,7 +14,11 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
   const { t } = useLocalizedScreen();
 
   return (
-    <main className="min-h-screen bg-[#f5f5f5]" data-name="Matches" data-node-id="1:4605">
+    <main
+      className="min-h-screen bg-[#f5f5f5]"
+      data-name="Matches"
+      data-node-id="1:4605"
+    >
       <div className="flex min-h-screen flex-col lg:flex-row">
         <DashboardSidebar t={t} activeItemKey="Matches" />
 

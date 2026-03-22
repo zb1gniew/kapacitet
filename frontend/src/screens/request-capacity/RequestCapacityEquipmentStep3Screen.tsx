@@ -4,7 +4,11 @@ import { useMemo, useState } from "react";
 import { AvailabilityActionBar } from "@/components/availability/AvailabilityActionBar";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
-import { AlertIcon, CalendarIcon, LocationIcon } from "@/components/availability/icons";
+import {
+  AlertIcon,
+  CalendarIcon,
+  LocationIcon,
+} from "@/components/availability/icons";
 import {
   AVAILABILITY_DEFAULT_RADIUS_KM,
   AVAILABILITY_RADIUS_MAX_KM,

@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { EyeIcon, BuildingIcon, ShieldIcon, ArrowRightIcon } from "@/components/auth/icons";
+import {
+  EyeIcon,
+  BuildingIcon,
+  ShieldIcon,
+  ArrowRightIcon,
+} from "@/components/auth/icons";
 import { BellIcon, UserGearIcon } from "@/components/dashboard/icons";
 import { SETTINGS_SECTIONS } from "@/constants/settings";
 import type { SettingsSection, SettingsSectionKey } from "@/types/settings";
@@ -39,8 +44,7 @@ export function SettingsSectionNavigation({
 }: SettingsSectionNavigationProps) {
   return (
     <aside className="rounded-[14px] border border-neutral-200 bg-white p-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-      <nav className="space-y-1" aria-label={t("Settings sections")}
-      >
+      <nav className="space-y-1" aria-label={t("Settings sections")}>
         {SETTINGS_SECTIONS.map((section) => {
           const isActive = section.key === activeSection;
 

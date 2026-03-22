@@ -52,7 +52,9 @@ export function MatchesOfferCard({
           <p className="text-3xl font-bold leading-8 tracking-[0.0703px] text-[#00a63e]">
             {t(offer.scoreKey)}
           </p>
-          <p className="text-xs font-medium text-neutral-500">{t("Match score")}</p>
+          <p className="text-xs font-medium text-neutral-500">
+            {t("Match score")}
+          </p>
         </div>
       </div>
 

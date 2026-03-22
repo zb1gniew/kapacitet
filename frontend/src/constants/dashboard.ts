@@ -27,7 +27,8 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
 export const DASHBOARD_ACTION_BANNER: DashboardActionBanner = {
   badgeKey: "Action required",
   timingKey: "Starts in 5 days",
-  titleKey: "Scaffolding equipment request starts Feb 15 - No confirmed match yet",
+  titleKey:
+    "Scaffolding equipment request starts Feb 15 - No confirmed match yet",
   descriptionKey:
     "Your capacity request begins soon but matching is still in progress. Consider expanding search criteria or contacting network companies directly.",
   ctaKey: "View and take action",
