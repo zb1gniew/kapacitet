@@ -4,7 +4,7 @@ import Link from "next/link";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { AuthInput } from "@/components/auth/AuthInput";
-import { BrandIcon, EmailIcon, InfoIcon, LockIcon } from "@/components/auth/icons";
+import { BrandIcon, EmailIcon, InfoIcon } from "@/components/auth/icons";
 
 export function LoginScreen() {
   const { t } = useLocalizedScreen();
@@ -65,29 +65,11 @@ export function LoginScreen() {
               autoComplete="email"
               icon={<EmailIcon className="h-[18px] w-[18px]" />}
             />
-            <AuthInput
-              id="password"
-              label={t("Password")}
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              icon={<LockIcon className="h-[18px] w-[18px]" />}
-              required={false}
-            />
             <p className="text-xs tracking-[-0.1504px] text-neutral-500">
               {t(
-                "Secure sign-in is handled by your identity provider after redirect.",
+                "Continue with your email and complete sign-in on your organization's hosted identity page.",
               )}
             </p>
-
-            <div className="flex justify-end">
-              <a
-                href="#"
-                className="text-sm font-medium tracking-[-0.1504px] text-blue-600 hover:underline"
-              >
-                {t("Forgot password?")}
-              </a>
-            </div>
 
             <button
               type="submit"

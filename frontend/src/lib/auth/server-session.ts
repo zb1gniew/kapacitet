@@ -1,8 +1,17 @@
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import type { AuthSession } from "@/types/auth";
-import { isSessionExpired } from "./service";
-import { parseSessionCookieValue } from "./session";
+import { getAuthConfig } from "./config";
+import {
+  createSessionCookieValue,
+  getSessionCookieOptions,
+  parseSessionCookieValue,
+} from "./session";
+import {
+  isSessionExpired,
+  refreshAuthSession,
+  shouldRefreshSession,
+} from "./service";
 
 export async function getServerAuthSession(): Promise<AuthSession | null> {
   const cookieStore = await cookies();
@@ -12,8 +21,37 @@ export async function getServerAuthSession(): Promise<AuthSession | null> {
     return null;
   }
 
-  const session = await parseSessionCookieValue(value);
-  if (!session || isSessionExpired(session)) {
+  const parsedSession = await parseSessionCookieValue(value);
+  if (!parsedSession) {
+    return null;
+  }
+
+  let session = parsedSession;
+
+  if (shouldRefreshSession(session)) {
+    const refreshed = await refreshAuthSession(session);
+    if (!refreshed) {
+      return null;
+    }
+
+    session = refreshed;
+
+    // In request contexts that allow cookie mutation, persist the refreshed session.
+    try {
+      const { cookieSecure } = getAuthConfig();
+      const cookieValue = await createSessionCookieValue(session);
+      cookieStore.set(
+        AUTH_COOKIE_NAMES.session,
+        cookieValue,
+        getSessionCookieOptions(cookieSecure),
+      );
+    } catch {
+      // Server components may expose a read-only cookie store; the refreshed
+      // session is still valid for the current request.
+    }
+  }
+
+  if (isSessionExpired(session)) {
     return null;
   }
 

@@ -8,6 +8,9 @@ export type AuthenticatedUser = {
 
 export type AuthSession = {
   user: AuthenticatedUser;
+  accessToken: string;
+  idToken?: string;
+  tokenType?: string;
   refreshToken?: string;
   expiresAt: number;
   refreshExpiresAt?: number;

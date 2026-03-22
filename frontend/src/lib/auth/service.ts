@@ -24,16 +24,20 @@ function toUserProfile(userInfo: OidcUserInfo): AuthenticatedUser {
 export function createAuthSession(
   tokenResponse: OidcTokenResponse,
   userInfo: OidcUserInfo,
+  previousSession?: AuthSession,
 ): AuthSession {
   const now = nowInSeconds();
 
   return {
     user: toUserProfile(userInfo),
-    refreshToken: tokenResponse.refresh_token,
+    accessToken: tokenResponse.access_token,
+    idToken: tokenResponse.id_token ?? previousSession?.idToken,
+    tokenType: tokenResponse.token_type ?? previousSession?.tokenType,
+    refreshToken: tokenResponse.refresh_token ?? previousSession?.refreshToken,
     expiresAt: now + tokenResponse.expires_in,
     refreshExpiresAt: tokenResponse.refresh_expires_in
       ? now + tokenResponse.refresh_expires_in
-      : undefined,
+      : previousSession?.refreshExpiresAt,
   };
 }
 
@@ -58,7 +62,7 @@ export async function refreshAuthSession(
   try {
     const tokenResponse = await refreshOidcToken(session.refreshToken);
     const userInfo = await fetchUserInfo(tokenResponse.access_token);
-    return createAuthSession(tokenResponse, userInfo);
+    return createAuthSession(tokenResponse, userInfo, session);
   } catch {
     return null;
   }

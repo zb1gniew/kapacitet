@@ -8,8 +8,9 @@ Next.js app for KapacitetNet.
 - Redirect-based sign-in for enterprise/B2B identity workflows.
 - Email/password is verified on Keycloak's hosted login page (not handled by the app directly).
 - No auth tokens in `localStorage`.
-- Session is stored in encrypted `HttpOnly` cookies.
+- Full BFF/server-session model: tokens stay server-side in encrypted `HttpOnly` cookies and browser code never handles bearer tokens.
 - Dashboard route is server-protected.
+- Server-side API calls should go through `src/lib/backend/server-client.ts`, which forwards the user's access token to the backend API.
 - Future MitID Erhverv support: configure MitID as an external IdP in Keycloak and (optionally) pass `idp_hint` to `/api/auth/login`.
 
 ## Environment
@@ -25,6 +26,7 @@ Required:
 - `OIDC_ISSUER_URL`
 - `OIDC_CLIENT_ID`
 - `AUTH_SESSION_SECRET`
+- `BACKEND_API_URL`
 
 Optional:
 
@@ -53,6 +55,8 @@ For MitID Erhverv later:
 npm install
 npm run dev
 ```
+
+Example local `BACKEND_API_URL`: `http://localhost:5000`
 
 ## Quality Checks
 
