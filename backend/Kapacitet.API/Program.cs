@@ -6,6 +6,7 @@ using Kapacitet.Application.Features.AccessRequests.Services;
 using Kapacitet.Application.Features.AvailabilityDeclarations.Services;
 using Kapacitet.Infrastructure.Persistence.Seed;
 using Kapacitet.Application.Features.Common.Services;
+using Kapacitet.Application.Features.CapacityRequests.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +72,9 @@ builder.Services.AddScoped<AccessRequestService>();
 
 // Current User Service
 builder.Services.AddScoped<CurrentUserService>();
+
+// Capacity Request Service
+builder.Services.AddScoped<CapacityRequestService>();
 
 // Availability Declarations Service
 builder.Services.AddScoped<AvailabilityDeclarationService>();
