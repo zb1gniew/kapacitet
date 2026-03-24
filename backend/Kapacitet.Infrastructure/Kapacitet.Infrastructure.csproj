@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Kapacitet.Application\Kapacitet.Application.csproj" />
     <ProjectReference Include="..\Kapacitet.Domain\Kapacitet.Domain.csproj" />
   </ItemGroup>
 

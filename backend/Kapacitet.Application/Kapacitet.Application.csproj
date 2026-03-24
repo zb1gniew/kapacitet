@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kapacitet.Domain\Kapacitet.Domain.csproj" />
+    <ProjectReference Include="..\Kapacitet.Infrastructure\Kapacitet.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,0 +1,17 @@
+using Kapacitet.Domain.Enums;
+
+namespace Kapacitet.Domain.Entities;
+
+public class AccessRequest
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string Industry { get; set; } = null!;
+    public string Location { get; set; } = null!;
+    public string ContactEmail { get; set; } = null!;
+    public string? Message { get; set; }
+    public AccessRequestStatus Status { get; set; } = AccessRequestStatus.Pending;
+    public string? ReviewedBy { get; set; }
+    public DateTime? ReviewedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
