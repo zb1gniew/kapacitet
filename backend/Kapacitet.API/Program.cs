@@ -3,6 +3,9 @@ using Microsoft.IdentityModel.Tokens;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Kapacitet.Application.Features.AccessRequests.Services;
+using Kapacitet.Application.Features.AvailabilityDeclarations.Services;
+using Kapacitet.Infrastructure.Persistence.Seed;
+using Kapacitet.Application.Features.Common.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,10 +30,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 Console.WriteLine("TOKEN VALIDATED OK");
 
-                // Map roles with Keycloak claims
                 var identity = ctx.Principal?.Identity as System.Security.Claims.ClaimsIdentity;
-                var realmAccess = ctx.Principal?.FindFirst("realm_access")?.Value;
 
+                // Map roles with Keycloak
+                var realmAccess = ctx.Principal?.FindFirst("realm_access")?.Value;
                 if (realmAccess != null)
                 {
                     var parsed = System.Text.Json.JsonDocument.Parse(realmAccess);
@@ -42,6 +45,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         }
                     }
                 }
+
+                // Map email
+                var email = ctx.Principal?.FindFirst("email")?.Value
+                    ?? ctx.Principal?.FindFirst("preferred_username")?.Value;
+                if (email != null)
+                    identity?.AddClaim(new System.Security.Claims.Claim("email", email));
 
                 return Task.CompletedTask;
             },
@@ -60,8 +69,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Access Request Service
 builder.Services.AddScoped<AccessRequestService>();
 
+// Current User Service
+builder.Services.AddScoped<CurrentUserService>();
+
+// Availability Declarations Service
+builder.Services.AddScoped<AvailabilityDeclarationService>();
+
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
@@ -81,6 +100,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db);
 }
 
 await app.RunAsync();
