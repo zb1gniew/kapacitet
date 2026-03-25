@@ -14,6 +14,7 @@ public class AvailabilityDeclaration
     public int Quantity { get; set; }
     public ListingStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? PublishedAt { get; set; }
 
     public Company Company { get; set; } = null!;
     public ICollection<Skill> Skills { get; set; } = [];

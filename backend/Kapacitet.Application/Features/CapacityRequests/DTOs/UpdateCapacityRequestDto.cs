@@ -38,5 +38,10 @@ public class UpdateCapacityRequestDto : IValidatableObject
             yield return new ValidationResult(
                 "EndDate must be after StartDate",
                 [nameof(EndDate)]);
+
+        if (Quantity <= 0)
+            yield return new ValidationResult(
+                "Quantity must be greater than zero",
+                [nameof(Quantity)]);
     }
 }

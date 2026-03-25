@@ -15,6 +15,7 @@ public class CapacityRequestDto
     public ListingStatus Status { get; set; }
     public UrgencyLevel Urgency { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? PublishedAt { get; set; }
     public List<string> Skills { get; set; } = [];
     public List<string> Certificates { get; set; } = [];
 }

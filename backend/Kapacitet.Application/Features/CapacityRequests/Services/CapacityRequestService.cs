@@ -1,4 +1,5 @@
 using Kapacitet.Application.Features.CapacityRequests.DTOs;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
@@ -9,10 +10,12 @@ namespace Kapacitet.Application.Features.CapacityRequests.Services;
 public class CapacityRequestService
 {
     private readonly AppDbContext _db;
+    private readonly MatchingService _matchingService;
 
-    public CapacityRequestService(AppDbContext db)
+    public CapacityRequestService(AppDbContext db, MatchingService matchingService)
     {
         _db = db;
+        _matchingService = matchingService;
     }
 
     public async Task<CapacityRequestDto> CreateAsync(CreateCapacityRequestDto dto, int companyId)
@@ -39,6 +42,7 @@ public class CapacityRequestService
             Urgency = dto.Urgency,
             Status = ListingStatus.Draft,
             CreatedAt = DateTime.UtcNow,
+            PublishedAt = null,
             Skills = skills,
             Certificates = certificates
         };
@@ -120,6 +124,24 @@ public class CapacityRequestService
         return MapToDto(request);
     }
 
+    public async Task<CapacityRequestDto> PublishAsync(int id, int companyId)
+    {
+        var request = await _db.CapacityRequests
+            .FirstOrDefaultAsync(r => r.Id == id && r.CompanyId == companyId)
+            ?? throw new KeyNotFoundException($"CapacityRequest {id} not found");
+
+        if (request.Status != ListingStatus.Draft)
+            throw new InvalidOperationException("Only draft requests can be published");
+
+        request.Status = ListingStatus.Active;
+        request.PublishedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        await _matchingService.GenerateMatchesForRequestAsync(request.Id);
+
+        return MapToDto(request);
+    }
+
     private static CapacityRequestDto MapToDto(CapacityRequest entity) => new()
     {
         Id = entity.Id,
@@ -133,6 +155,7 @@ public class CapacityRequestService
         Status = entity.Status,
         Urgency = entity.Urgency,
         CreatedAt = entity.CreatedAt,
+        PublishedAt = entity.PublishedAt,
         Skills = entity.Skills.Select(s => s.Name).ToList(),
         Certificates = entity.Certificates.Select(c => c.Name).ToList()
     };

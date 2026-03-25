@@ -31,6 +31,7 @@ public class AvailabilityDeclarationConfiguration : IEntityTypeConfiguration<Ava
             .IsRequired();
 
         builder.Property(a => a.CreatedAt).IsRequired();
+        builder.Property(a => a.PublishedAt);
 
         builder.HasOne(a => a.Company)
             .WithMany(c => c.AvailabilityDeclarations)

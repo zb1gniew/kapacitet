@@ -14,6 +14,7 @@ public class AvailabilityDeclarationDto
     public int Quantity { get; set; }
     public ListingStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? PublishedAt { get; set; }
     public List<string> Skills { get; set; } = [];
     public List<string> Certificates { get; set; } = [];
 }
