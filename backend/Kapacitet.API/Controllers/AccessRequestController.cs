@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.AccessRequests.DTOs;
 using Kapacitet.Application.Features.AccessRequests.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +29,7 @@ public class AccessRequestController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "OperatorAdmin")]
+    [Authorize(Policy = AuthorizationRoles.PlatformAdminPolicy)]
     public async Task<IActionResult> GetAll()
     {
         var result = await _service.GetAllAsync();
@@ -36,7 +37,7 @@ public class AccessRequestController : ControllerBase
     }
 
     [HttpPost("{id}/review")]
-    [Authorize(Roles = "OperatorAdmin")]
+    [Authorize(Policy = AuthorizationRoles.PlatformAdminPolicy)]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewAccessRequestDto dto)
     {
         if (!ModelState.IsValid)
