@@ -7,6 +7,8 @@ using Kapacitet.Application.Features.AvailabilityDeclarations.Services;
 using Kapacitet.Infrastructure.Persistence.Seed;
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.CapacityRequests.Services;
+using Kapacitet.Application.Features.Matching.Services;
+using Kapacitet.API.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -79,7 +81,20 @@ builder.Services.AddScoped<CapacityRequestService>();
 // Availability Declarations Service
 builder.Services.AddScoped<AvailabilityDeclarationService>();
 
-builder.Services.AddAuthorization();
+// Matching and agreements
+builder.Services.AddScoped<MatchingService>();
+builder.Services.AddScoped<MatchingAllocationService>();
+builder.Services.AddScoped<MatchingEscalationService>();
+builder.Services.AddScoped<MatchingGenerationService>();
+builder.Services.AddScoped<MatchingQueryService>();
+builder.Services.AddSingleton<MatchEvaluationService>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        AuthorizationRoles.PlatformAdminPolicy,
+        policy => policy.RequireRole(AuthorizationRoles.Admin, AuthorizationRoles.LegacyOperatorAdmin));
+});
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
