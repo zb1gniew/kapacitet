@@ -1,4 +1,5 @@
 using Kapacitet.Application.Features.AvailabilityDeclarations.DTOs;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
@@ -9,10 +10,12 @@ namespace Kapacitet.Application.Features.AvailabilityDeclarations.Services;
 public class AvailabilityDeclarationService
 {
     private readonly AppDbContext _db;
+    private readonly MatchingService _matchingService;
 
-    public AvailabilityDeclarationService(AppDbContext db)
+    public AvailabilityDeclarationService(AppDbContext db, MatchingService matchingService)
     {
         _db = db;
+        _matchingService = matchingService;
     }
 
     public async Task<AvailabilityDeclarationDto> CreateAsync(CreateAvailabilityDeclarationDto dto, int companyId)
@@ -36,6 +39,7 @@ public class AvailabilityDeclarationService
             Quantity = dto.Quantity,
             Status = ListingStatus.Draft,
             CreatedAt = DateTime.UtcNow,
+            PublishedAt = null,
             Skills = skills,
             Certificates = certificates
         };
@@ -111,7 +115,9 @@ public class AvailabilityDeclarationService
             throw new InvalidOperationException("Only draft declarations can be published");
 
         declaration.Status = ListingStatus.Active;
+        declaration.PublishedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+        await _matchingService.RefreshMatchesForAvailabilityAsync(id);
 
         return MapToDto(declaration);
     }
@@ -143,6 +149,7 @@ public class AvailabilityDeclarationService
         Quantity = entity.Quantity,
         Status = entity.Status,
         CreatedAt = entity.CreatedAt,
+        PublishedAt = entity.PublishedAt,
         Skills = entity.Skills.Select(s => s.Name).ToList(),
         Certificates = entity.Certificates.Select(c => c.Name).ToList()
     };

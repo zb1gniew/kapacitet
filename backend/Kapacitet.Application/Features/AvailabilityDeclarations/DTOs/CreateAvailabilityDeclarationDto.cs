@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Kapacitet.Application.Features.AvailabilityDeclarations.DTOs;
 
-public class CreateAvailabilityDeclarationDto
+public class CreateAvailabilityDeclarationDto : IValidatableObject
 {
     [Required]
     public DateTime StartDate { get; set; }
@@ -22,4 +22,22 @@ public class CreateAvailabilityDeclarationDto
 
     public List<int> SkillIds { get; set; } = [];
     public List<int> CertificateIds { get; set; } = [];
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (EndDate <= StartDate)
+            yield return new ValidationResult(
+                "EndDate must be after StartDate",
+                [nameof(EndDate)]);
+
+        if (Quantity <= 0)
+            yield return new ValidationResult(
+                "Quantity must be greater than zero",
+                [nameof(Quantity)]);
+
+        if (SkillIds.Count == 0 && CertificateIds.Count == 0)
+            yield return new ValidationResult(
+                "At least one skill or certificate is required",
+                [nameof(SkillIds), nameof(CertificateIds)]);
+    }
 }

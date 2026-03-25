@@ -12,6 +12,7 @@ public class CooperationAgreementConfiguration : IEntityTypeConfiguration<Cooper
 
         builder.HasKey(a => a.Id);
 
+        builder.Property(a => a.MatchOfferId).IsRequired();
         builder.Property(a => a.StartDate).IsRequired();
         builder.Property(a => a.EndDate).IsRequired();
         builder.Property(a => a.Quantity).IsRequired();
@@ -21,6 +22,12 @@ public class CooperationAgreementConfiguration : IEntityTypeConfiguration<Cooper
             .IsRequired();
 
         builder.Property(a => a.CreatedAt).IsRequired();
+        builder.Property(a => a.ConfirmedAt).IsRequired();
+
+        builder.HasOne(a => a.MatchOffer)
+            .WithOne(m => m.CooperationAgreement)
+            .HasForeignKey<CooperationAgreement>(a => a.MatchOfferId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.Request)
             .WithMany()
@@ -41,5 +48,7 @@ public class CooperationAgreementConfiguration : IEntityTypeConfiguration<Cooper
             .WithMany()
             .HasForeignKey(a => a.RequesterCompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => a.MatchOfferId).IsUnique();
     }
 }

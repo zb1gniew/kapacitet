@@ -71,4 +71,12 @@ public class CapacityRequestController : ControllerBase
         var result = await _service.CancelAsync(id, companyId);
         return Ok(result);
     }
+
+    [HttpPost("{id}/publish")]
+    public async Task<IActionResult> Publish(int id)
+    {
+        var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
+        var result = await _service.PublishAsync(id, companyId);
+        return Ok(result);
+    }
 }

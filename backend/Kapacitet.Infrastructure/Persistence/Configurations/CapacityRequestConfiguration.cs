@@ -35,6 +35,7 @@ public class CapacityRequestConfiguration : IEntityTypeConfiguration<CapacityReq
             .IsRequired();
 
         builder.Property(r => r.CreatedAt).IsRequired();
+        builder.Property(r => r.PublishedAt);
 
         builder.HasOne(r => r.Company)
             .WithMany(c => c.CapacityRequests)
