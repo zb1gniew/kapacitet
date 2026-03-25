@@ -5,7 +5,7 @@ import type {
 } from "@/types/availability";
 
 export const REQUEST_CAPACITY_STEPS: AvailabilityStepDefinition[] = [
-  { id: 1, labelKey: "Step 1", titleKey: "Resource type" },
+  { id: 1, labelKey: "Step 1", titleKey: "Workers" },
   { id: 2, labelKey: "Step 2", titleKey: "Requirements" },
   { id: 3, labelKey: "Step 3", titleKey: "Period & location" },
   { id: 4, labelKey: "Step 4", titleKey: "Review & submit" },
@@ -19,20 +19,13 @@ export const REQUEST_CAPACITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
     descriptionKey:
       "Request temporary skilled workers or craftsmen for a specific period when you have additional capacity needs.",
   },
-  {
-    id: "equipment",
-    icon: "equipment",
-    titleKey: "Equipment",
-    descriptionKey:
-      "Request machinery, tools, or equipment temporarily from network companies when you need additional resources.",
-  },
 ];
 
 export const REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[] =
   [
     {
       id: "resource",
-      titleKey: "Resource type",
+      titleKey: "Workers",
       icon: "resource",
       rows: [{ labelKey: "", valueKey: "Workers" }],
     },
@@ -62,38 +55,6 @@ export const REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySecti
 
 export const REQUEST_CAPACITY_SUMMARY_SECTIONS =
   REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS;
-
-export const REQUEST_CAPACITY_EQUIPMENT_SUMMARY_SECTIONS: AvailabilitySummarySection[] =
-  [
-    {
-      id: "resource",
-      titleKey: "Resource type",
-      icon: "resource",
-      rows: [{ labelKey: "", valueKey: "Equipment" }],
-    },
-    {
-      id: "details",
-      titleKey: "Requirements",
-      icon: "details",
-      rows: [
-        { labelKey: "Number of units:", valueKey: "Not specified" },
-        { labelKey: "Type:", valueKey: "Not specified" },
-        { labelKey: "Preference:", valueKey: "Very good" },
-      ],
-    },
-    {
-      id: "period",
-      titleKey: "Period and location",
-      icon: "period",
-      rows: [
-        { labelKey: "Start date:", valueKey: "Not specified" },
-        { labelKey: "End date:", valueKey: "Not specified" },
-        { labelKey: "Location:", valueKey: "Not specified" },
-        { labelKey: "Radius:", valueKey: "50 km" },
-        { labelKey: "Urgency:", valueKey: "Urgent" },
-      ],
-    },
-  ];
 
 export const REQUEST_CAPACITY_NEXT_STEPS = [
   {

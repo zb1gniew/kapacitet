@@ -8,11 +8,11 @@ export type AvailabilityStepDefinition = {
   titleKey: string;
 };
 
-export type AvailabilityResourceType = "workers" | "equipment";
+export type AvailabilityResourceType = "workers";
 
 export type AvailabilityResourceOption = {
   id: AvailabilityResourceType;
-  icon: "workers" | "equipment";
+  icon: "workers";
   titleKey: string;
   descriptionKey: string;
 };

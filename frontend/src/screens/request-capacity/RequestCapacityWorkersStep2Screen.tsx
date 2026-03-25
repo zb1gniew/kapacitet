@@ -60,7 +60,7 @@ export function RequestCapacityWorkersStep2Screen({
       currentStep={2}
       activeItemKey="Request capacity"
       titleKey="Request capacity"
-      descriptionKey="Request temporary workers or equipment from your trusted network. The platform will match your needs with declared availability anonymously."
+      descriptionKey="Request temporary workers from your trusted network. The platform will match your needs with declared availability anonymously."
       steps={REQUEST_CAPACITY_STEPS}
       dataName="Request Capacity Step 2"
       dataNodeId="1:2356"

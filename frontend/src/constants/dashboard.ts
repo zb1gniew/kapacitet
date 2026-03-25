@@ -28,7 +28,7 @@ export const DASHBOARD_ACTION_BANNER: DashboardActionBanner = {
   badgeKey: "Action required",
   timingKey: "Starts in 5 days",
   titleKey:
-    "Scaffolding equipment request starts Feb 15 - No confirmed match yet",
+    "Welding specialists request starts Feb 15 - No confirmed match yet",
   descriptionKey:
     "Your capacity request begins soon but matching is still in progress. Consider expanding search criteria or contacting network companies directly.",
   ctaKey: "View and take action",
@@ -60,7 +60,7 @@ export const DASHBOARD_QUICK_ACTIONS: DashboardQuickAction[] = [
   {
     titleKey: "Declare availability",
     descriptionKey:
-      "Share temporary workers or equipment capacity with your trusted network for specific time periods.",
+      "Share temporary worker capacity with your trusted network for specific time periods.",
     ctaKey: "Declare new availability",
     icon: "upload",
     href: APP_ROUTES.declareAvailabilityWorkersStep1,
@@ -68,7 +68,7 @@ export const DASHBOARD_QUICK_ACTIONS: DashboardQuickAction[] = [
   {
     titleKey: "Request capacity",
     descriptionKey:
-      "Request temporary workers or equipment when you need additional capacity for a specific period.",
+      "Request temporary workers when you need additional capacity for a specific period.",
     ctaKey: "Create new request",
     icon: "search",
     href: APP_ROUTES.requestCapacityWorkersStep1,
@@ -93,7 +93,7 @@ export const DASHBOARD_PROCESSES: DashboardProcess[] = [
     ctaKey: "View details",
   },
   {
-    titleKey: "Mobile crane",
+    titleKey: "Certified welders",
     subtitleKey: "Request shared with 8 network companies",
     metaKey: "Sent yesterday",
     statusKey: "Network request sent",
@@ -111,7 +111,7 @@ export const DASHBOARD_REMINDERS: DashboardReminder[] = [
   },
   {
     titleKey: "Request start date",
-    descriptionKey: "Scaffolding equipment needed period begins",
+    descriptionKey: "Welding specialists needed period begins",
     dateKey: "Feb 15, 2026",
     tone: "primary",
   },

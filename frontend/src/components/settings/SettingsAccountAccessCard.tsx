@@ -24,7 +24,7 @@ const RECENT_ACTIVITY_ITEMS: ReadonlyArray<ActivityItem> = [
   {
     id: 2,
     titleKey: "Created capacity request",
-    descriptionKey: "Mobile crane equipment",
+    descriptionKey: "Certified welders",
     timeKey: "6 hours ago",
   },
   {

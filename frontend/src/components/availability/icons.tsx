@@ -35,32 +35,6 @@ export function WorkersIcon(props: IconProps) {
   );
 }
 
-export function EquipmentIcon(props: IconProps) {
-  return (
-    <svg fill="none" viewBox="0 0 20 20" aria-hidden="true" {...props}>
-      <path
-        d="m10 2.917 6.25 3.125L10 9.167 3.75 6.042 10 2.917Z"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M3.75 6.042v6.25L10 15.417l6.25-3.125v-6.25"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M10 9.167v6.25"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
 export function CalendarIcon(props: IconProps) {
   return (
     <svg fill="none" viewBox="0 0 20 20" aria-hidden="true" {...props}>

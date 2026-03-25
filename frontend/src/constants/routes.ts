@@ -10,19 +10,10 @@ export const APP_ROUTES = {
     "/dashboard/declare-availability/workers/step-3",
   declareAvailabilityWorkersStep4:
     "/dashboard/declare-availability/workers/step-4",
-  declareAvailabilityEquipmentStep2:
-    "/dashboard/declare-availability/equipment/step-2",
-  declareAvailabilityEquipmentStep3:
-    "/dashboard/declare-availability/equipment/step-3",
-  declareAvailabilityEquipmentStep4:
-    "/dashboard/declare-availability/equipment/step-4",
   requestCapacityWorkersStep1: "/dashboard/request-capacity/workers/step-1",
   requestCapacityWorkersStep2: "/dashboard/request-capacity/workers/step-2",
   requestCapacityWorkersStep3: "/dashboard/request-capacity/workers/step-3",
   requestCapacityWorkersStep4: "/dashboard/request-capacity/workers/step-4",
-  requestCapacityEquipmentStep2: "/dashboard/request-capacity/equipment/step-2",
-  requestCapacityEquipmentStep3: "/dashboard/request-capacity/equipment/step-3",
-  requestCapacityEquipmentStep4: "/dashboard/request-capacity/equipment/step-4",
   settings: "/dashboard/settings",
   settingsParticipationVisibility:
     "/dashboard/settings/participation-visibility",

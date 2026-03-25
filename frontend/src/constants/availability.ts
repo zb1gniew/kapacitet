@@ -8,7 +8,7 @@ import type {
 } from "@/types/availability";
 
 export const AVAILABILITY_STEPS: AvailabilityStepDefinition[] = [
-  { id: 1, labelKey: "Step 1", titleKey: "Resource type" },
+  { id: 1, labelKey: "Step 1", titleKey: "Workers" },
   { id: 2, labelKey: "Step 2", titleKey: "Details" },
   { id: 3, labelKey: "Step 3", titleKey: "Period & control" },
   { id: 4, labelKey: "Step 4", titleKey: "Review" },
@@ -21,13 +21,6 @@ export const AVAILABILITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
     titleKey: "Workers",
     descriptionKey:
       "Temporarily share skilled workers or craftsmen who have available capacity during specific periods.",
-  },
-  {
-    id: "equipment",
-    icon: "equipment",
-    titleKey: "Equipment",
-    descriptionKey:
-      "Share machinery, tools, or equipment that's available for temporary use by network companies.",
   },
 ];
 
@@ -55,7 +48,7 @@ export const AVAILABILITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[]
   [
     {
       id: "resource",
-      titleKey: "Resource type",
+      titleKey: "Workers",
       icon: "resource",
       rows: [{ labelKey: "", valueKey: "Workers" }],
     },
@@ -84,37 +77,6 @@ export const AVAILABILITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[]
 
 export const AVAILABILITY_SUMMARY_SECTIONS =
   AVAILABILITY_WORKERS_SUMMARY_SECTIONS;
-
-export const AVAILABILITY_EQUIPMENT_SUMMARY_SECTIONS: AvailabilitySummarySection[] =
-  [
-    {
-      id: "resource",
-      titleKey: "Resource type",
-      icon: "resource",
-      rows: [{ labelKey: "", valueKey: "Equipment" }],
-    },
-    {
-      id: "details",
-      titleKey: "Details",
-      icon: "details",
-      rows: [
-        { labelKey: "Quantity:", valueKey: "Not specified" },
-        { labelKey: "Type:", valueKey: "Not specified" },
-        { labelKey: "Condition:", valueKey: "Not specified" },
-      ],
-    },
-    {
-      id: "period",
-      titleKey: "Period and location",
-      icon: "period",
-      rows: [
-        { labelKey: "Start date:", valueKey: "Not specified" },
-        { labelKey: "End date:", valueKey: "Not specified" },
-        { labelKey: "Location:", valueKey: "Not specified" },
-        { labelKey: "Radius:", valueKey: "50 km" },
-      ],
-    },
-  ];
 
 export function getAvailabilityStepState(
   currentStep: AvailabilityStepId,

@@ -29,7 +29,7 @@ export function FirstActionScreen() {
           <OnboardingActionCard
             title={t("Declare availability")}
             description={t(
-              "Share workers or equipment that your company can temporarily provide to network partners during specific time periods.",
+              "Share workers that your company can temporarily provide to network partners during specific time periods.",
             )}
             ctaLabel={t("Start declaring")}
             href={APP_ROUTES.declareAvailabilityWorkersStep1}
@@ -39,7 +39,7 @@ export function FirstActionScreen() {
           <OnboardingActionCard
             title={t("Request capacity")}
             description={t(
-              "Request temporary workers or equipment when your company needs additional capacity for a project or time period.",
+              "Request temporary workers when your company needs additional capacity for a project or time period.",
             )}
             ctaLabel={t("Start requesting")}
             href={APP_ROUTES.requestCapacityWorkersStep1}
