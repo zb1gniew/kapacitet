@@ -8,6 +8,7 @@ import { getAuthConfig } from "@/lib/auth/config";
 import {
   exchangeAuthorizationCode,
   fetchUserInfo,
+  getUserInfoFromIdToken,
   hasExpectedNonce,
 } from "@/lib/auth/oidc";
 import { createAuthSession } from "@/lib/auth/service";
@@ -78,7 +79,15 @@ export async function GET(request: NextRequest) {
       throw new Error("Invalid ID token nonce");
     }
 
-    const userInfo = await fetchUserInfo(tokenResponse.access_token);
+    let userInfo;
+    try {
+      userInfo = await fetchUserInfo(tokenResponse.access_token);
+    } catch (error) {
+      userInfo = await getUserInfoFromIdToken(tokenResponse.id_token);
+      if (!userInfo) {
+        throw error;
+      }
+    }
     const session = createAuthSession(tokenResponse, userInfo);
     const sessionId = await createServerSession(session);
     const sessionCookieValue = await createSessionCookieValue(
@@ -102,7 +111,8 @@ export async function GET(request: NextRequest) {
     clearTransactionCookie(response);
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error("Auth callback failed", error);
     const redirectResponse = NextResponse.redirect(
       buildRedirectUrl(request, APP_ROUTES.home),
     );
