@@ -88,7 +88,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Failed to start login", error);
-    return NextResponse.redirect(new URL(APP_ROUTES.home, request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL(APP_ROUTES.home, request.nextUrl.origin),
+    );
   }
 }
 
@@ -109,6 +111,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Failed to start login", error);
-    return NextResponse.redirect(new URL(APP_ROUTES.home, request.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL(APP_ROUTES.home, request.nextUrl.origin),
+    );
   }
 }
