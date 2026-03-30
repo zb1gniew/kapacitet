@@ -41,6 +41,11 @@ ScaffoldingReadMe.txt
 *~
 CodeCoverage/
 
+# Local environment files
+.env
+.env.*
+!.env.example
+
 # MSBuild Binary and Structured Log
 *.binlog
 

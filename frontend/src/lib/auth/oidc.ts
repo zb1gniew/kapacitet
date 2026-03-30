@@ -14,8 +14,8 @@ async function fetchDiscoveryDocument(): Promise<OidcDiscoveryDocument> {
     return cachedDiscovery;
   }
 
-  const { issuerUrl } = getAuthConfig();
-  const discoveryUrl = `${issuerUrl}/.well-known/openid-configuration`;
+  const { serverIssuerUrl } = getAuthConfig();
+  const discoveryUrl = `${serverIssuerUrl}/.well-known/openid-configuration`;
 
   const response = await fetch(discoveryUrl, {
     method: "GET",
@@ -30,6 +30,51 @@ async function fetchDiscoveryDocument(): Promise<OidcDiscoveryDocument> {
   const body = (await response.json()) as OidcDiscoveryDocument;
   cachedDiscovery = body;
   return body;
+}
+
+function mapEndpointToBrowserOrigin(endpoint: string): string {
+  const { issuerUrl } = getAuthConfig();
+  const browserIssuer = new URL(issuerUrl);
+  const mapped = new URL(endpoint);
+  mapped.protocol = browserIssuer.protocol;
+  mapped.host = browserIssuer.host;
+  return mapped.toString();
+}
+
+type VerifiedIdTokenPayload = {
+  sub?: string;
+  nonce?: string;
+  email?: string;
+  name?: string;
+  preferred_username?: string;
+  email_verified?: boolean;
+};
+
+async function verifyIdToken(
+  idToken: string | undefined,
+): Promise<VerifiedIdTokenPayload | null> {
+  if (!idToken) {
+    return null;
+  }
+
+  try {
+    const discovery = await fetchDiscoveryDocument();
+    const { clientId, issuerUrl } = getAuthConfig();
+
+    if (!cachedJwks) {
+      cachedJwks = createRemoteJWKSet(new URL(discovery.jwks_uri));
+    }
+
+    const verification = await jwtVerify(idToken, cachedJwks, {
+      issuer: issuerUrl,
+      audience: clientId,
+      clockTolerance: 5,
+    });
+
+    return verification.payload as VerifiedIdTokenPayload;
+  } catch {
+    return null;
+  }
 }
 
 type AuthorizationUrlInput = {
@@ -65,7 +110,7 @@ export async function buildAuthorizationUrl(
     params.set("kc_idp_hint", input.idpHint);
   }
 
-  return `${discovery.authorization_endpoint}?${params.toString()}`;
+  return `${mapEndpointToBrowserOrigin(discovery.authorization_endpoint)}?${params.toString()}`;
 }
 
 function createTokenRequestHeaders(clientId: string, clientSecret?: string) {
@@ -174,33 +219,30 @@ export async function buildEndSessionUrl(input: {
     params.set("id_token_hint", input.idTokenHint);
   }
 
-  return `${discovery.end_session_endpoint}?${params.toString()}`;
+  return `${mapEndpointToBrowserOrigin(discovery.end_session_endpoint)}?${params.toString()}`;
 }
 
 export async function hasExpectedNonce(
   idToken: string | undefined,
   expectedNonce: string,
 ): Promise<boolean> {
-  if (!idToken) {
-    return false;
+  const payload = await verifyIdToken(idToken);
+  return payload?.nonce === expectedNonce;
+}
+
+export async function getUserInfoFromIdToken(
+  idToken: string | undefined,
+): Promise<OidcUserInfo | null> {
+  const payload = await verifyIdToken(idToken);
+  if (!payload?.sub) {
+    return null;
   }
 
-  try {
-    const discovery = await fetchDiscoveryDocument();
-    const { clientId } = getAuthConfig();
-
-    if (!cachedJwks) {
-      cachedJwks = createRemoteJWKSet(new URL(discovery.jwks_uri));
-    }
-
-    const verification = await jwtVerify(idToken, cachedJwks, {
-      issuer: discovery.issuer,
-      audience: clientId,
-      clockTolerance: 5,
-    });
-
-    return verification.payload.nonce === expectedNonce;
-  } catch {
-    return false;
-  }
+  return {
+    sub: payload.sub,
+    email: payload.email,
+    name: payload.name,
+    preferred_username: payload.preferred_username,
+    email_verified: payload.email_verified,
+  };
 }

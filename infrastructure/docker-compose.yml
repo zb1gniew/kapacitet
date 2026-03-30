@@ -23,14 +23,28 @@ services:
 
   backend:
     build: ../backend
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=kapacitetdb;Username=appuser;Password=strongpassword
+      Keycloak__Authority: http://localhost:8080/realms/kapacitet
+      Keycloak__MetadataAddress: http://host.docker.internal:8080/realms/kapacitet/.well-known/openid-configuration
+      Keycloak__ClientId: kapacitet-app
     ports:
-      - "5000:8080"
+      - "5051:8080"
     depends_on:
       - postgres
       - keycloak
 
   frontend:
     build: ../frontend
+    environment:
+      BACKEND_API_URL: http://backend:8080
+      OIDC_ISSUER_URL: http://localhost:8080/realms/kapacitet
+      OIDC_SERVER_ISSUER_URL: http://host.docker.internal:8080/realms/kapacitet
+      OIDC_CLIENT_ID: kapacitet-app
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_SCOPES: openid profile email offline_access
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET}
     ports:
       - "3000:3000"
     depends_on:

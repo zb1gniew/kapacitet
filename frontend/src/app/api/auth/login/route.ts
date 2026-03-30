@@ -80,11 +80,16 @@ export async function GET(request: NextRequest) {
   const loginHint = request.nextUrl.searchParams.get("login_hint") ?? undefined;
   const idpHint = request.nextUrl.searchParams.get("idp_hint") ?? undefined;
 
-  return createLoginResponse(request, {
-    returnTo,
-    loginHint,
-    idpHint,
-  });
+  try {
+    return await createLoginResponse(request, {
+      returnTo,
+      loginHint,
+      idpHint,
+    });
+  } catch (error) {
+    console.error("Failed to start login", error);
+    return NextResponse.redirect(new URL(APP_ROUTES.home, request.nextUrl.origin));
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -93,12 +98,17 @@ export async function POST(request: NextRequest) {
   const returnToField = formData.get("return_to");
   const idpHintField = formData.get("idp_hint");
 
-  return createLoginResponse(request, {
-    returnTo:
-      typeof returnToField === "string"
-        ? sanitizeReturnTo(returnToField)
-        : APP_ROUTES.dashboard,
-    loginHint: typeof emailField === "string" ? emailField : undefined,
-    idpHint: typeof idpHintField === "string" ? idpHintField : undefined,
-  });
+  try {
+    return await createLoginResponse(request, {
+      returnTo:
+        typeof returnToField === "string"
+          ? sanitizeReturnTo(returnToField)
+          : APP_ROUTES.dashboard,
+      loginHint: typeof emailField === "string" ? emailField : undefined,
+      idpHint: typeof idpHintField === "string" ? idpHintField : undefined,
+    });
+  } catch (error) {
+    console.error("Failed to start login", error);
+    return NextResponse.redirect(new URL(APP_ROUTES.home, request.nextUrl.origin));
+  }
 }

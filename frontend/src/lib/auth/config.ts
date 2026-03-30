@@ -2,6 +2,7 @@ import { OIDC_SCOPES_DEFAULT } from "@/constants/auth";
 
 export type AuthConfig = {
   issuerUrl: string;
+  serverIssuerUrl: string;
   clientId: string;
   clientSecret?: string;
   scopes: string;
@@ -45,9 +46,14 @@ export function getAuthConfig(): AuthConfig {
   }
 
   const secureFromEnv = parseBooleanEnv(process.env.AUTH_COOKIE_SECURE);
+  const issuerUrl = normalizeUrl(getRequiredEnv("OIDC_ISSUER_URL"));
+  const serverIssuerUrl = normalizeUrl(
+    process.env.OIDC_SERVER_ISSUER_URL || issuerUrl,
+  );
 
   cachedConfig = {
-    issuerUrl: normalizeUrl(getRequiredEnv("OIDC_ISSUER_URL")),
+    issuerUrl,
+    serverIssuerUrl,
     clientId: getRequiredEnv("OIDC_CLIENT_ID"),
     clientSecret: process.env.OIDC_CLIENT_SECRET,
     scopes: process.env.OIDC_SCOPES || OIDC_SCOPES_DEFAULT,
