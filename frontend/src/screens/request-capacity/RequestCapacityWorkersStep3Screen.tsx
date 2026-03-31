@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AvailabilityActionBar } from "@/components/availability/AvailabilityActionBar";
+import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFieldLabel";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
 import {
@@ -10,29 +12,23 @@ import {
   LocationIcon,
 } from "@/components/availability/icons";
 import {
-  AVAILABILITY_DEFAULT_RADIUS_KM,
   AVAILABILITY_RADIUS_MAX_KM,
   AVAILABILITY_RADIUS_MIN_KM,
 } from "@/constants/availability";
 import { REQUEST_CAPACITY_STEPS } from "@/constants/request-capacity";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { useStoredWorkflowDraft } from "@/hooks/useStoredWorkflowDraft";
+import {
+  DEFAULT_CAPACITY_REQUEST_DRAFT,
+  getCapacityRequestDraftStorageKey,
+  getWorkerPeriodStepErrors,
+} from "@/lib/workflows/payloads";
 import type { AuthenticatedUser } from "@/types/auth";
 
-type RequestCapacityWorkersStep3ScreenProps = {
-  user: AuthenticatedUser;
-};
+type RequestCapacityWorkersStep3ScreenProps = { user: AuthenticatedUser };
 
 type RequestUrgency = "normal" | "urgent";
-
-function Label({ label }: { label: string }) {
-  return (
-    <label className="text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
-      {label}
-      <span className="text-red-600">*</span>
-    </label>
-  );
-}
 
 function UrgencyCard({
   title,
@@ -82,10 +78,16 @@ function UrgencyCard({
 export function RequestCapacityWorkersStep3Screen({
   user,
 }: RequestCapacityWorkersStep3ScreenProps) {
+  const router = useRouter();
   const { t } = useLocalizedScreen();
-
-  const [radiusKm, setRadiusKm] = useState(AVAILABILITY_DEFAULT_RADIUS_KM);
-  const [urgency, setUrgency] = useState<RequestUrgency>("normal");
+  const { draft, setField } = useStoredWorkflowDraft(
+    getCapacityRequestDraftStorageKey(user.sub),
+    DEFAULT_CAPACITY_REQUEST_DRAFT,
+  );
+  const [showValidationMessage, setShowValidationMessage] = useState(false);
+  const radiusKm = draft.locationRadiusKm;
+  const urgency = draft.urgency as RequestUrgency;
+  const stepErrors = getWorkerPeriodStepErrors(draft);
 
   const sliderProgress = useMemo(() => {
     return (
@@ -94,6 +96,16 @@ export function RequestCapacityWorkersStep3Screen({
       100
     );
   }, [radiusKm]);
+
+  function handleContinue() {
+    if (stepErrors.length > 0) {
+      setShowValidationMessage(true);
+      return;
+    }
+
+    setShowValidationMessage(false);
+    router.push(APP_ROUTES.requestCapacityWorkersStep4);
+  }
 
   return (
     <AvailabilityPageShell
@@ -120,22 +132,28 @@ export function RequestCapacityWorkersStep3Screen({
         <form className="mt-6 space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label label={t("Start date")} />
+              <AvailabilityFieldLabel label={t("Start date")} />
               <div className="relative">
                 <CalendarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400" />
                 <input
                   type="date"
+                  value={draft.startDate}
+                  onChange={(event) =>
+                    setField("startDate", event.target.value)
+                  }
                   className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label label={t("End date")} />
+              <AvailabilityFieldLabel label={t("End date")} />
               <div className="relative">
                 <CalendarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400" />
                 <input
                   type="date"
+                  value={draft.endDate}
+                  onChange={(event) => setField("endDate", event.target.value)}
                   className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] focus:border-blue-600 focus:outline-none"
                 />
               </div>
@@ -143,11 +161,15 @@ export function RequestCapacityWorkersStep3Screen({
           </div>
 
           <div className="space-y-2">
-            <Label label={t("Location")} />
+            <AvailabilityFieldLabel label={t("Location")} />
             <div className="relative">
               <LocationIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
+                value={draft.locationCity}
+                onChange={(event) =>
+                  setField("locationCity", event.target.value)
+                }
                 placeholder={t("e.g., Sønderborg, Aabenraa, Syddanmark")}
                 className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none"
               />
@@ -163,7 +185,9 @@ export function RequestCapacityWorkersStep3Screen({
               min={AVAILABILITY_RADIUS_MIN_KM}
               max={AVAILABILITY_RADIUS_MAX_KM}
               value={radiusKm}
-              onChange={(event) => setRadiusKm(Number(event.target.value))}
+              onChange={(event) =>
+                setField("locationRadiusKm", Number(event.target.value))
+              }
               className="availability-range"
               style={{
                 background: `linear-gradient(to right, #2563eb ${sliderProgress}%, #e5e5e5 ${sliderProgress}%)`,
@@ -176,7 +200,7 @@ export function RequestCapacityWorkersStep3Screen({
           </div>
 
           <div className="space-y-2">
-            <Label label={t("Request urgency")} />
+            <AvailabilityFieldLabel label={t("Request urgency")} />
             <div className="grid gap-4 md:grid-cols-2">
               <UrgencyCard
                 title={t("Normal")}
@@ -185,7 +209,7 @@ export function RequestCapacityWorkersStep3Screen({
                 )}
                 selected={urgency === "normal"}
                 tone="primary"
-                onSelect={() => setUrgency("normal")}
+                onSelect={() => setField("urgency", "normal")}
               />
               <UrgencyCard
                 title={t("Urgent")}
@@ -194,7 +218,7 @@ export function RequestCapacityWorkersStep3Screen({
                 )}
                 selected={urgency === "urgent"}
                 tone="warning"
-                onSelect={() => setUrgency("urgent")}
+                onSelect={() => setField("urgency", "urgent")}
               />
             </div>
 
@@ -216,15 +240,23 @@ export function RequestCapacityWorkersStep3Screen({
               </div>
             ) : null}
           </div>
+
+          {showValidationMessage && stepErrors.length > 0 ? (
+            <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">
+              {stepErrors.map((message) => (
+                <p key={message}>{t(message)}</p>
+              ))}
+            </div>
+          ) : null}
         </form>
       </AvailabilitySurfaceCard>
 
       <AvailabilityActionBar
         t={t}
         backHref={APP_ROUTES.requestCapacityWorkersStep2}
-        nextHref={APP_ROUTES.requestCapacityWorkersStep4}
         nextLabelKey="Continue"
         nextVariant="primary"
+        onNextClick={handleContinue}
       />
     </AvailabilityPageShell>
   );

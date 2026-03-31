@@ -12,6 +12,9 @@ public class AvailabilityDeclarationConfiguration : IEntityTypeConfiguration<Ava
 
         builder.HasKey(a => a.Id);
 
+        builder.Property(a => a.ClientDraftKey)
+            .HasMaxLength(64);
+
         builder.Property(a => a.ResourceType)
             .HasConversion<string>()
             .IsRequired();
@@ -25,6 +28,8 @@ public class AvailabilityDeclarationConfiguration : IEntityTypeConfiguration<Ava
 
         builder.Property(a => a.LocationRadiusKm).IsRequired();
         builder.Property(a => a.Quantity).IsRequired();
+        builder.Property(a => a.ExperienceLevel)
+            .HasMaxLength(16);
 
         builder.Property(a => a.Status)
             .HasConversion<string>()
@@ -37,6 +42,10 @@ public class AvailabilityDeclarationConfiguration : IEntityTypeConfiguration<Ava
             .WithMany(c => c.AvailabilityDeclarations)
             .HasForeignKey(a => a.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => new { a.CompanyId, a.ClientDraftKey })
+            .IsUnique()
+            .HasFilter("\"ClientDraftKey\" IS NOT NULL");
 
         // Many-to-many Skills
         builder.HasMany(a => a.Skills)

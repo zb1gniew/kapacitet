@@ -6,12 +6,14 @@ public class CapacityRequest
 {
     public int Id { get; set; }
     public int CompanyId { get; set; }
+    public string? ClientDraftKey { get; set; }
     public ResourceType ResourceType { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string LocationCity { get; set; } = null!;
     public int LocationRadiusKm { get; set; }
     public int Quantity { get; set; }
+    public string? ExperienceLevel { get; set; }
     public ListingStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }

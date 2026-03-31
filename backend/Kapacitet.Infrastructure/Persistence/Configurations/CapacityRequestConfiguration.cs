@@ -12,6 +12,9 @@ public class CapacityRequestConfiguration : IEntityTypeConfiguration<CapacityReq
 
         builder.HasKey(r => r.Id);
 
+        builder.Property(r => r.ClientDraftKey)
+            .HasMaxLength(64);
+
         builder.Property(r => r.ResourceType)
             .HasConversion<string>()
             .IsRequired();
@@ -25,6 +28,8 @@ public class CapacityRequestConfiguration : IEntityTypeConfiguration<CapacityReq
 
         builder.Property(r => r.LocationRadiusKm).IsRequired();
         builder.Property(r => r.Quantity).IsRequired();
+        builder.Property(r => r.ExperienceLevel)
+            .HasMaxLength(16);
 
         builder.Property(r => r.Status)
             .HasConversion<string>()
@@ -41,6 +46,10 @@ public class CapacityRequestConfiguration : IEntityTypeConfiguration<CapacityReq
             .WithMany(c => c.CapacityRequests)
             .HasForeignKey(r => r.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(r => new { r.CompanyId, r.ClientDraftKey })
+            .IsUnique()
+            .HasFilter("\"ClientDraftKey\" IS NOT NULL");
 
         // Many-to-many Skills
         builder.HasMany(r => r.Skills)

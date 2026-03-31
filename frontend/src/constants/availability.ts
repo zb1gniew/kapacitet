@@ -1,6 +1,4 @@
 import type {
-  AvailabilityCertificateOption,
-  AvailabilityExperienceOption,
   AvailabilityResourceOption,
   AvailabilityStepDefinition,
   AvailabilityStepId,
@@ -24,22 +22,6 @@ export const AVAILABILITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
   },
 ];
 
-export const AVAILABILITY_CERTIFICATE_OPTIONS: AvailabilityCertificateOption[] =
-  [
-    { id: "hot-work", labelKey: "Hot work certification" },
-    { id: "bas-u", labelKey: "Safety training (BAS-U)" },
-    { id: "forklift", labelKey: "Forklift license" },
-    { id: "crane", labelKey: "Crane operator license" },
-    { id: "electrical", labelKey: "Electrical certification" },
-    { id: "heights", labelKey: "Working at heights" },
-  ];
-
-export const AVAILABILITY_EXPERIENCE_OPTIONS: AvailabilityExperienceOption[] = [
-  { id: "junior", labelKey: "Junior (0-3 years)" },
-  { id: "mid", labelKey: "Mid-level (3-7 years)" },
-  { id: "senior", labelKey: "Senior (7+ years)" },
-];
-
 export const AVAILABILITY_DEFAULT_RADIUS_KM = 50;
 export const AVAILABILITY_RADIUS_MIN_KM = 10;
 export const AVAILABILITY_RADIUS_MAX_KM = 200;
@@ -59,7 +41,7 @@ export const AVAILABILITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[]
       rows: [
         { labelKey: "Quantity:", valueKey: "Not specified" },
         { labelKey: "Skill/Trade:", valueKey: "Not specified" },
-        { labelKey: "Experience:", valueKey: "Not specified" },
+        { labelKey: "Certificates:", valueKey: "Not specified" },
       ],
     },
     {

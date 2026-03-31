@@ -8,7 +8,9 @@ using Kapacitet.Infrastructure.Persistence.Seed;
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.CapacityRequests.Services;
 using Kapacitet.Application.Features.Matching.Services;
+using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,6 +95,8 @@ builder.Services.AddScoped<MatchingEscalationService>();
 builder.Services.AddScoped<MatchingGenerationService>();
 builder.Services.AddScoped<MatchingQueryService>();
 builder.Services.AddSingleton<MatchEvaluationService>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -105,6 +109,33 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var fieldErrors = context.ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .ToDictionary(
+                entry => ToCamelCase(entry.Key),
+                entry => entry.Value!.Errors
+                    .Select(error => error.ErrorMessage)
+                    .ToArray());
+
+        var problemDetails = new ProblemDetails
+        {
+            Status = StatusCodes.Status422UnprocessableEntity,
+            Title = "Validation failed",
+            Type = "validation-error",
+            Detail = "One or more validation errors occurred."
+        };
+        problemDetails.Extensions["fieldErrors"] = fieldErrors;
+
+        return new ObjectResult(problemDetails)
+        {
+            StatusCode = StatusCodes.Status422UnprocessableEntity
+        };
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
@@ -115,6 +146,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -128,3 +160,15 @@ using (var scope = app.Services.CreateScope())
 }
 
 await app.RunAsync();
+
+static string ToCamelCase(string value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return "general";
+    }
+
+    return value.Length == 1
+        ? value.ToLowerInvariant()
+        : char.ToLowerInvariant(value[0]) + value[1..];
+}

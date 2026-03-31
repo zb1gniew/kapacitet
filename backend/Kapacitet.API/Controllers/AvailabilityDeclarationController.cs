@@ -29,12 +29,20 @@ public class AvailabilityDeclarationController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAvailabilityDeclarationDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
         var result = await _service.CreateAsync(dto, companyId);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [HttpPost("publish")]
+    public async Task<IActionResult> PublishNew([FromBody] CreateAvailabilityDeclarationDto dto)
+    {
+        var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
+        var (result, created) = await _service.PublishNewAsync(dto, companyId);
+
+        return created
+            ? CreatedAtAction(nameof(GetById), new { id = result.Id }, result)
+            : Ok(result);
     }
 
     [HttpGet]
@@ -56,9 +64,6 @@ public class AvailabilityDeclarationController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAvailabilityDeclarationDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
         var result = await _service.UpdateAsync(id, dto, companyId);
         return Ok(result);

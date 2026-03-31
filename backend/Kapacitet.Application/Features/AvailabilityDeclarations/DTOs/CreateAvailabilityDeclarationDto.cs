@@ -20,6 +20,12 @@ public class CreateAvailabilityDeclarationDto : IValidatableObject
     [Required]
     public int Quantity { get; set; }
 
+    [MaxLength(16)]
+    public string? ExperienceLevel { get; set; }
+
+    [MaxLength(64)]
+    public string? ClientDraftKey { get; set; }
+
     public List<int> SkillIds { get; set; } = [];
     public List<int> CertificateIds { get; set; } = [];
 
@@ -35,9 +41,20 @@ public class CreateAvailabilityDeclarationDto : IValidatableObject
                 "Quantity must be greater than zero",
                 [nameof(Quantity)]);
 
-        if (SkillIds.Count == 0 && CertificateIds.Count == 0)
+        if (SkillIds.Count == 0)
             yield return new ValidationResult(
-                "At least one skill or certificate is required",
-                [nameof(SkillIds), nameof(CertificateIds)]);
+                "At least one skill is required",
+                [nameof(SkillIds)]);
+
+        if (CertificateIds.Count == 0)
+            yield return new ValidationResult(
+                "At least one certificate is required",
+                [nameof(CertificateIds)]);
+
+        if (!string.IsNullOrWhiteSpace(ExperienceLevel) &&
+            ExperienceLevel is not ("junior" or "mid" or "senior"))
+            yield return new ValidationResult(
+                "ExperienceLevel must be one of: junior, mid, senior",
+                [nameof(ExperienceLevel)]);
     }
 }

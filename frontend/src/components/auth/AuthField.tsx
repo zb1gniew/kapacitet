@@ -64,6 +64,7 @@ export function AuthField({
             rows={rows}
             placeholder={placeholder}
             defaultValue={value}
+            required={required}
             className={`${sharedInputClassName} resize-none px-4 py-3 leading-6`}
           />
         )
@@ -92,6 +93,7 @@ export function AuthField({
               type="text"
               placeholder={placeholder}
               defaultValue={value}
+              required={required}
               className={`${sharedInputClassName} h-[50px] ${
                 icon ? "pl-12 pr-4" : "px-4"
               }`}

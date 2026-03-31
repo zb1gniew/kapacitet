@@ -12,8 +12,18 @@ public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
 
         builder.HasKey(c => c.Id);
 
+        builder.Property(c => c.Code)
+            .HasMaxLength(64);
+
+        builder.Property(c => c.Category)
+            .HasMaxLength(32);
+
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(64);
+
+        builder.HasIndex(c => c.Code)
+            .IsUnique()
+            .HasFilter("\"Code\" IS NOT NULL");
     }
 }

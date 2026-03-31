@@ -140,6 +140,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ClientDraftKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("integer");
 
@@ -148,6 +152,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExperienceLevel")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("LocationCity")
                         .IsRequired()
@@ -175,6 +183,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CompanyId", "ClientDraftKey")
+                        .IsUnique()
+                        .HasFilter("\"ClientDraftKey\" IS NOT NULL");
+
                     b.ToTable("availability_declarations", (string)null);
                 });
 
@@ -186,6 +198,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ClientDraftKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("integer");
 
@@ -194,6 +210,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExperienceLevel")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("LocationCity")
                         .IsRequired()
@@ -225,6 +245,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
+                    b.HasIndex("CompanyId", "ClientDraftKey")
+                        .IsUnique()
+                        .HasFilter("\"ClientDraftKey\" IS NOT NULL");
+
                     b.ToTable("capacity_requests", (string)null);
                 });
 
@@ -236,12 +260,24 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("\"Code\" IS NOT NULL");
 
                     b.ToTable("certificates", (string)null);
                 });
@@ -435,12 +471,24 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Category")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("\"Code\" IS NOT NULL");
 
                     b.ToTable("skills", (string)null);
                 });

@@ -12,8 +12,18 @@ public class SkillConfiguration : IEntityTypeConfiguration<Skill>
 
         builder.HasKey(s => s.Id);
 
+        builder.Property(s => s.Code)
+            .HasMaxLength(64);
+
+        builder.Property(s => s.Category)
+            .HasMaxLength(32);
+
         builder.Property(s => s.Name)
             .IsRequired()
             .HasMaxLength(64);
+
+        builder.HasIndex(s => s.Code)
+            .IsUnique()
+            .HasFilter("\"Code\" IS NOT NULL");
     }
 }

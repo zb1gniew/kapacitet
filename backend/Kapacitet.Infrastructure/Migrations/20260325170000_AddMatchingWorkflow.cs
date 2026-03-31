@@ -1,10 +1,14 @@
 using System;
+using Kapacitet.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Kapacitet.Infrastructure.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260325170000_AddMatchingWorkflow")]
     public partial class AddMatchingWorkflow : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

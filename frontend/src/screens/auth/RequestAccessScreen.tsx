@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { type FormEvent, useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { APP_ROUTES } from "@/constants/routes";
@@ -18,6 +19,64 @@ import {
 
 export function RequestAccessScreen() {
   const { t } = useLocalizedScreen();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(
+    null,
+  );
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const payload = {
+      name: String(formData.get("companyName") ?? "").trim(),
+      industry: String(formData.get("industry") ?? "").trim(),
+      location: String(formData.get("location") ?? "").trim(),
+      contactEmail: String(formData.get("contactEmail") ?? "").trim(),
+      message: String(formData.get("message") ?? "").trim() || undefined,
+    };
+
+    if (
+      !payload.name ||
+      !payload.industry ||
+      !payload.location ||
+      !payload.contactEmail
+    ) {
+      setErrorMessage("Fill in all required fields before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/access-requests", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        setErrorMessage(
+          "We couldn't submit the access request. Check the form values and try again.",
+        );
+        return;
+      }
+
+      const result = (await response.json()) as { id: number };
+      setSubmittedRequestId(result.id);
+      event.currentTarget.reset();
+    } catch {
+      setErrorMessage(
+        "We couldn't reach the backend. Please try again in a moment.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <AuthShell
@@ -74,7 +133,20 @@ export function RequestAccessScreen() {
           </div>
         </aside>
 
-        <form className="mt-5 space-y-5">
+        {submittedRequestId ? (
+          <aside className="mt-5 rounded-[10px] border border-[#bbf7d0] bg-[#f0fdf4] p-4 text-[#166534]">
+            <h3 className="text-base font-semibold leading-6 tracking-[-0.3125px]">
+              {t("Access request submitted")}
+            </h3>
+            <p className="mt-1 text-sm leading-[22.75px] tracking-[-0.1504px]">
+              {t(
+                `Your request has been recorded and is awaiting platform review. Reference ID: ${submittedRequestId}.`,
+              )}
+            </p>
+          </aside>
+        ) : null}
+
+        <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
           <AuthField
             id="companyName"
             label={t("Company name")}
@@ -117,6 +189,12 @@ export function RequestAccessScreen() {
             rows={4}
           />
 
+          {errorMessage ? (
+            <p className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">
+              {t(errorMessage)}
+            </p>
+          ) : null}
+
           <div className="flex flex-col gap-3 pt-2 sm:flex-row">
             <Link
               href={APP_ROUTES.home}
@@ -124,13 +202,16 @@ export function RequestAccessScreen() {
             >
               {t("Back to sign in")}
             </Link>
-            <Link
-              href={APP_ROUTES.onboardingWelcome}
+            <button
+              type="submit"
+              disabled={isSubmitting}
               className="inline-flex h-[50px] w-full items-center justify-center gap-2 rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 sm:flex-1"
             >
-              <span>{t("Submit request")}</span>
+              <span>
+                {t(isSubmitting ? "Submitting..." : "Submit request")}
+              </span>
               <ArrowRightIcon className="h-[18px] w-[18px]" />
-            </Link>
+            </button>
           </div>
         </form>
       </section>
