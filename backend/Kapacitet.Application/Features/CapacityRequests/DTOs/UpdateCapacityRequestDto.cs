@@ -24,15 +24,23 @@ public class UpdateCapacityRequestDto : IValidatableObject
     [Required]
     public UrgencyLevel Urgency { get; set; }
 
+    [MaxLength(16)]
+    public string? ExperienceLevel { get; set; }
+
     public List<int> SkillIds { get; set; } = [];
     public List<int> CertificateIds { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (SkillIds.Count == 0 && CertificateIds.Count == 0)
+        if (SkillIds.Count == 0)
             yield return new ValidationResult(
-                "At least one skill or certificate is required",
-                [nameof(SkillIds), nameof(CertificateIds)]);
+                "At least one skill is required",
+                [nameof(SkillIds)]);
+
+        if (CertificateIds.Count == 0)
+            yield return new ValidationResult(
+                "At least one certificate is required",
+                [nameof(CertificateIds)]);
 
         if (EndDate <= StartDate)
             yield return new ValidationResult(
@@ -43,5 +51,11 @@ public class UpdateCapacityRequestDto : IValidatableObject
             yield return new ValidationResult(
                 "Quantity must be greater than zero",
                 [nameof(Quantity)]);
+
+        if (!string.IsNullOrWhiteSpace(ExperienceLevel) &&
+            ExperienceLevel is not ("junior" or "mid" or "senior"))
+            yield return new ValidationResult(
+                "ExperienceLevel must be one of: junior, mid, senior",
+                [nameof(ExperienceLevel)]);
     }
 }

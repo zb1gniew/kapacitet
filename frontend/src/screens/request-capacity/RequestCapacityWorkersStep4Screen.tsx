@@ -5,12 +5,18 @@ import { AvailabilityPageShell } from "@/components/availability/AvailabilityPag
 import { AvailabilitySummaryCard } from "@/components/availability/AvailabilitySummaryCard";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
 import { ShieldIcon } from "@/components/availability/icons";
-import {
-  REQUEST_CAPACITY_STEPS,
-  REQUEST_CAPACITY_SUMMARY_SECTIONS,
-} from "@/constants/request-capacity";
+import { REQUEST_CAPACITY_STEPS } from "@/constants/request-capacity";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { useStoredWorkflowDraft } from "@/hooks/useStoredWorkflowDraft";
+import { useWorkflowCatalog } from "@/hooks/useWorkflowCatalog";
+import { useWorkflowPublish } from "@/hooks/useWorkflowPublish";
+import {
+  buildCapacityRequestCreatePayload,
+  DEFAULT_CAPACITY_REQUEST_DRAFT,
+  getCapacityRequestDraftStorageKey,
+} from "@/lib/workflows/payloads";
+import { buildCapacityRequestSummarySections } from "@/lib/workflows/summary";
 import type { AuthenticatedUser } from "@/types/auth";
 
 type RequestCapacityWorkersStep4ScreenProps = {
@@ -21,6 +27,46 @@ export function RequestCapacityWorkersStep4Screen({
   user,
 }: RequestCapacityWorkersStep4ScreenProps) {
   const { t } = useLocalizedScreen();
+  const { catalog, errorMessage: catalogError } = useWorkflowCatalog();
+  const { draft, clientKey, clearDraft } = useStoredWorkflowDraft(
+    getCapacityRequestDraftStorageKey(user.sub),
+    DEFAULT_CAPACITY_REQUEST_DRAFT,
+  );
+  const payloadResult = catalog
+    ? buildCapacityRequestCreatePayload(draft, catalog, clientKey)
+    : {
+        ok: false as const,
+        errors: [
+          catalogError || "Loading the worker catalog before publishing.",
+        ],
+      };
+  const { errorMessage, fieldErrors, isSubmitting, publish } =
+    useWorkflowPublish({
+      clearDraft,
+      getPayload: () =>
+        catalog
+          ? buildCapacityRequestCreatePayload(draft, catalog, clientKey)
+          : {
+              ok: false as const,
+              errors: [
+                catalogError || "Loading the worker catalog before publishing.",
+              ],
+            },
+      endpoint: "/api/requests/publish",
+      successRoute: APP_ROUTES.dashboard,
+      submitErrorMessage:
+        "We couldn't publish the capacity request. Please check the entered data and try again.",
+      networkErrorMessage:
+        "We couldn't reach the backend to publish the capacity request.",
+    });
+  const summarySections = buildCapacityRequestSummarySections(
+    payloadResult.ok ? payloadResult.value : null,
+    catalog,
+  );
+  const publishErrors = [
+    ...Object.values(fieldErrors).flat(),
+    ...(errorMessage ? [errorMessage] : []),
+  ];
 
   return (
     <AvailabilityPageShell
@@ -45,9 +91,17 @@ export function RequestCapacityWorkersStep4Screen({
         </p>
 
         <div className="mt-6 space-y-4">
-          {REQUEST_CAPACITY_SUMMARY_SECTIONS.map((section) => (
+          {summarySections.map((section) => (
             <AvailabilitySummaryCard key={section.id} section={section} t={t} />
           ))}
+
+          {publishErrors.length > 0 ? (
+            <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">
+              {publishErrors.map((message) => (
+                <p key={message}>{t(message)}</p>
+              ))}
+            </div>
+          ) : null}
 
           <article className="rounded-[10px] border border-[#bedbff] bg-[#eff6ff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]">
             <div className="flex items-start gap-3 text-[#1c398e]">
@@ -65,9 +119,10 @@ export function RequestCapacityWorkersStep4Screen({
       <AvailabilityActionBar
         t={t}
         backHref={APP_ROUTES.requestCapacityWorkersStep3}
-        nextHref={APP_ROUTES.dashboard}
-        nextLabelKey="Publish request"
+        nextLabelKey={isSubmitting ? "Publishing..." : "Publish request"}
         nextVariant="success"
+        nextDisabled={isSubmitting}
+        onNextClick={publish}
       />
     </AvailabilityPageShell>
   );

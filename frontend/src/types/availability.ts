@@ -17,16 +17,6 @@ export type AvailabilityResourceOption = {
   descriptionKey: string;
 };
 
-export type AvailabilityCertificateOption = {
-  id: string;
-  labelKey: string;
-};
-
-export type AvailabilityExperienceOption = {
-  id: string;
-  labelKey: string;
-};
-
 export type AvailabilitySummaryRow = {
   labelKey: string;
   valueKey: string;

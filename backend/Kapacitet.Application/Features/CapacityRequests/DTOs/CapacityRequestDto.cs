@@ -12,6 +12,7 @@ public class CapacityRequestDto
     public string LocationCity { get; set; } = null!;
     public int LocationRadiusKm { get; set; }
     public int Quantity { get; set; }
+    public string? ExperienceLevel { get; set; }
     public ListingStatus Status { get; set; }
     public UrgencyLevel Urgency { get; set; }
     public DateTime CreatedAt { get; set; }

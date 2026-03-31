@@ -11,6 +11,8 @@ type AvailabilityActionBarProps = {
   nextHref?: string;
   nextLabelKey: string;
   nextVariant?: NextButtonVariant;
+  nextDisabled?: boolean;
+  onNextClick?: () => void;
 };
 
 function getNextButtonClass(variant: NextButtonVariant) {
@@ -39,8 +41,12 @@ export function AvailabilityActionBar({
   nextHref,
   nextLabelKey,
   nextVariant = "primary",
+  nextDisabled = false,
+  onNextClick,
 }: AvailabilityActionBarProps) {
-  const nextDisabled = isNextDisabled(nextVariant, nextHref);
+  const isDisabled = onNextClick
+    ? nextDisabled
+    : nextDisabled || isNextDisabled(nextVariant, nextHref);
 
   return (
     <div className="mt-8 flex items-center justify-between">
@@ -63,7 +69,22 @@ export function AvailabilityActionBar({
         </button>
       )}
 
-      {nextDisabled || !nextHref ? (
+      {onNextClick ? (
+        <button
+          type="button"
+          onClick={onNextClick}
+          disabled={isDisabled}
+          className={`inline-flex h-12 items-center gap-2 rounded-[10px] px-6 text-base font-semibold tracking-[-0.3125px] ${getNextButtonClass(nextVariant)}`}
+        >
+          {nextVariant === "success" ? (
+            <PublishIcon className="h-[18px] w-[18px]" />
+          ) : null}
+          {t(nextLabelKey)}
+          {nextVariant === "success" ? null : (
+            <ArrowRightIcon className="h-[18px] w-[18px]" />
+          )}
+        </button>
+      ) : isDisabled || !nextHref ? (
         <button
           type="button"
           disabled
