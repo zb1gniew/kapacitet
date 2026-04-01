@@ -4,6 +4,7 @@ export type AuthenticatedUser = {
   name?: string;
   preferredUsername?: string;
   emailVerified?: boolean;
+  roles?: string[];
 };
 
 export type AuthSession = {

@@ -20,6 +20,7 @@ export const APP_ROUTES = {
   settingsPrivacyDataBoundaries: "/dashboard/settings/privacy-data-boundaries",
   settingsNotifications: "/dashboard/settings/notifications",
   settingsAccountAccess: "/dashboard/settings/account-access",
+  adminAccessRequests: "/dashboard/admin/access-requests",
   requestAccess: "/request-access",
   onboardingWelcome: "/onboarding/welcome",
   onboardingCompanyDetails: "/onboarding/company-details",

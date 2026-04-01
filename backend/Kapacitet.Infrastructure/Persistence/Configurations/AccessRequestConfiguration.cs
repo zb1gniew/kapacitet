@@ -40,5 +40,13 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
 
         builder.Property(a => a.ReviewedAt);
         builder.Property(a => a.CreatedAt).IsRequired();
+
+        builder.Property(a => a.RejectionReason).HasMaxLength(1000);
+
+        builder.HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(a => a.ProvisionedCompanyId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

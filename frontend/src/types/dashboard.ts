@@ -3,14 +3,16 @@ export type DashboardNavIconKey =
   | "upload"
   | "search"
   | "matches"
-  | "settings";
+  | "settings"
+  | "admin";
 
 export type DashboardNavItemKey =
   | "Home"
   | "Declare availability"
   | "Request capacity"
   | "Matches"
-  | "Settings";
+  | "Settings"
+  | "Access requests";
 
 export type DashboardMetricIconKey = "users" | "search" | "warning";
 export type DashboardActionIconKey = "upload" | "search";

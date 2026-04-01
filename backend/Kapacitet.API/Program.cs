@@ -11,6 +11,7 @@ using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.Services;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
+using Kapacitet.Infrastructure.Keycloak;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -84,6 +85,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
         .ConfigureWarnings(warnings =>
             warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+
+// Keycloak Admin Client
+builder.Services.Configure<KeycloakAdminOptions>(builder.Configuration.GetSection("KeycloakAdmin"));
+builder.Services.AddHttpClient<KeycloakAdminClient>();
 
 // Access Request Service
 builder.Services.AddScoped<AccessRequestService>();
