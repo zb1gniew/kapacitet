@@ -22,6 +22,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .IsRequired();
 
+        builder.Property(u => u.OnboardingCompletedAt)
+            .IsRequired(false);
+
         builder.HasOne(u => u.Company)
             .WithMany(c => c.Users)
             .HasForeignKey(u => u.CompanyId)

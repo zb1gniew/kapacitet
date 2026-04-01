@@ -16,11 +16,35 @@ import {
   InfoIcon,
   MapPinIcon,
 } from "@/components/auth/icons";
+import type { AccessRequestSuccess } from "@/types/workflows";
+import {
+  type AccessRequestFieldErrors,
+  validateAccessRequest,
+  hasErrors,
+} from "@/lib/validation/access-request";
+
+function getApiErrorMessage(responseText: string): string {
+  if (!responseText) {
+    return "We couldn't submit the access request. Please try again.";
+  }
+
+  try {
+    const parsed = JSON.parse(responseText) as { message?: string };
+    if (typeof parsed.message === "string" && parsed.message.trim()) {
+      return parsed.message;
+    }
+  } catch {
+    // Fall back to a generic message when the error body isn't JSON.
+  }
+
+  return "We couldn't submit the access request. Check the form values and try again.";
+}
 
 export function RequestAccessScreen() {
   const { t } = useLocalizedScreen();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<AccessRequestFieldErrors>({});
   const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(
     null,
   );
@@ -37,19 +61,19 @@ export function RequestAccessScreen() {
       message: String(formData.get("message") ?? "").trim() || undefined,
     };
 
-    if (
-      !payload.name ||
-      !payload.industry ||
-      !payload.location ||
-      !payload.contactEmail
-    ) {
-      setErrorMessage("Fill in all required fields before submitting.");
+    const errors = validateAccessRequest(payload);
+    setFieldErrors(errors);
+
+    if (hasErrors(errors)) {
+      setErrorMessage("");
       return;
     }
 
     setIsSubmitting(true);
     setErrorMessage("");
+    setSubmittedRequestId(null);
 
+    let succeeded = false;
     try {
       const response = await fetch("/api/access-requests", {
         method: "POST",
@@ -58,21 +82,26 @@ export function RequestAccessScreen() {
         },
         body: JSON.stringify(payload),
       });
+      const responseText = await response.text();
 
       if (!response.ok) {
-        setErrorMessage(
-          "We couldn't submit the access request. Check the form values and try again.",
-        );
+        setErrorMessage(getApiErrorMessage(responseText));
         return;
       }
 
-      const result = (await response.json()) as { id: number };
+      const result = JSON.parse(responseText) as Partial<AccessRequestSuccess>;
+      if (typeof result.id !== "number") {
+        throw new Error("Access request response did not include an ID");
+      }
+
+      succeeded = true;
       setSubmittedRequestId(result.id);
-      event.currentTarget.reset();
     } catch {
-      setErrorMessage(
-        "We couldn't reach the backend. Please try again in a moment.",
-      );
+      if (!succeeded) {
+        setErrorMessage(
+          "We couldn't reach the backend. Please try again in a moment.",
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -153,6 +182,7 @@ export function RequestAccessScreen() {
             required
             placeholder={t("Your company's legal name")}
             icon={<BuildingIcon className="h-[18px] w-[18px]" />}
+            error={fieldErrors.companyName}
           />
           <AuthField
             id="industry"
@@ -160,6 +190,7 @@ export function RequestAccessScreen() {
             required
             placeholder={t("e.g., Construction, Engineering, Manufacturing")}
             icon={<BriefcaseIcon className="h-[18px] w-[18px]" />}
+            error={fieldErrors.industry}
           />
           <AuthField
             id="location"
@@ -167,6 +198,7 @@ export function RequestAccessScreen() {
             required
             placeholder={t("City or region")}
             icon={<MapPinIcon className="h-[18px] w-[18px]" />}
+            error={fieldErrors.location}
           />
           <AuthField
             id="contactEmail"
@@ -177,6 +209,7 @@ export function RequestAccessScreen() {
             helperText={t(
               "We'll use this email to notify you about your access request status",
             )}
+            error={fieldErrors.contactEmail}
           />
           <AuthField
             id="message"
@@ -187,6 +220,7 @@ export function RequestAccessScreen() {
             )}
             multiline
             rows={4}
+            error={fieldErrors.message}
           />
 
           {errorMessage ? (

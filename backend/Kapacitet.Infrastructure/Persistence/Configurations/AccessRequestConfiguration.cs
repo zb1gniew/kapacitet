@@ -14,29 +14,29 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
 
         builder.Property(a => a.Name)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(150);
 
         builder.Property(a => a.Industry)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(100);
 
         builder.Property(a => a.Location)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(100);
 
         builder.Property(a => a.ContactEmail)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(254);
 
         builder.Property(a => a.Message)
-            .HasColumnType("text");
+            .HasMaxLength(2000);
 
         builder.Property(a => a.Status)
             .HasConversion<string>()
             .IsRequired();
 
         builder.Property(a => a.ReviewedBy)
-            .HasMaxLength(32);
+            .HasMaxLength(254);
 
         builder.Property(a => a.ReviewedAt);
         builder.Property(a => a.CreatedAt).IsRequired();

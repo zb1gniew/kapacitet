@@ -21,16 +21,24 @@ function createProxyResponse(
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.text();
+  try {
+    const body = await request.text();
 
-  const response = await fetch(buildBackendUrl("/api/AccessRequest"), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    body,
-    cache: "no-store",
-  });
+    const response = await fetch(buildBackendUrl("/api/AccessRequest"), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body,
+      cache: "no-store",
+    });
 
-  return createProxyResponse(response, await response.text());
+    return createProxyResponse(response, await response.text());
+  } catch (error) {
+    console.error("Access request proxy failed", error);
+    return NextResponse.json(
+      { message: "Unable to reach backend access request service." },
+      { status: 502 },
+    );
+  }
 }

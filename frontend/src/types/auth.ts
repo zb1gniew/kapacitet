@@ -14,6 +14,7 @@ export type AuthSession = {
   refreshToken?: string;
   expiresAt: number;
   refreshExpiresAt?: number;
+  onboardingCompleted?: boolean;
 };
 
 export type AuthTransaction = {

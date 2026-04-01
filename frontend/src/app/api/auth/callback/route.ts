@@ -18,6 +18,7 @@ import {
   parseTransactionCookieValue,
 } from "@/lib/auth/session";
 import { createServerSession } from "@/lib/auth/session-store";
+import { getBackendApiBaseUrl } from "@/lib/backend/config";
 
 function buildRedirectUrl(request: NextRequest, path: string): URL {
   return new URL(path, request.nextUrl.origin);
@@ -89,6 +90,30 @@ export async function GET(request: NextRequest) {
       }
     }
     const session = createAuthSession(tokenResponse, userInfo);
+
+    // Check onboarding status before persisting session
+    let onboardingCompleted = false;
+    try {
+      const backendUrl = getBackendApiBaseUrl();
+      const onboardingResponse = await fetch(
+        `${backendUrl}/api/onboarding/status`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+          cache: "no-store",
+        },
+      );
+      if (onboardingResponse.ok) {
+        const status = await onboardingResponse.json();
+        onboardingCompleted = status.isOnboardingCompleted === true;
+      }
+    } catch {
+      // If the check fails, treat as not onboarded
+    }
+
+    session.onboardingCompleted = onboardingCompleted;
+
     const sessionId = await createServerSession(session);
     const sessionCookieValue = await createSessionCookieValue(
       sessionId,
@@ -96,8 +121,12 @@ export async function GET(request: NextRequest) {
     );
     const { cookieSecure } = getAuthConfig();
 
+    const redirectTo = onboardingCompleted
+      ? transaction.returnTo || APP_ROUTES.dashboard
+      : APP_ROUTES.onboardingWelcome;
+
     const response = NextResponse.redirect(
-      buildRedirectUrl(request, transaction.returnTo || APP_ROUTES.dashboard),
+      buildRedirectUrl(request, redirectTo),
     );
 
     response.cookies.set(

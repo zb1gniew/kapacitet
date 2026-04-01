@@ -1,15 +1,75 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { OnboardingProgressDots } from "@/components/auth/OnboardingProgressDots";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { completeOnboarding } from "@/lib/onboarding/complete-onboarding";
+import type { CompanyDetails } from "@/types/onboarding";
+import {
+  type OnboardingFieldErrors,
+  validateOnboardingDetails,
+  hasErrors,
+} from "@/lib/validation/onboarding";
 
-export function ConfirmCompanyDetailsScreen() {
+type Props = {
+  company: CompanyDetails;
+};
+
+export function ConfirmCompanyDetailsScreen({ company }: Props) {
   const { t } = useLocalizedScreen();
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({});
+
+  async function handleConfirm() {
+    setErrorMessage("");
+    setFieldErrors({});
+
+    const formData = formRef.current ? new FormData(formRef.current) : null;
+    const industry = (formData?.get("industry") as string | null)?.trim();
+    const location = (formData?.get("location") as string | null)?.trim();
+
+    const errors = validateOnboardingDetails({
+      industry: industry ?? undefined,
+      location: location ?? undefined,
+    });
+    if (hasErrors(errors)) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await completeOnboarding({
+      industry: industry || undefined,
+      defaultLocation: location || undefined,
+    });
+
+    if (result.ok) {
+      router.push(APP_ROUTES.onboardingFirstAction);
+    } else {
+      setErrorMessage(result.message);
+      setSubmitting(false);
+    }
+  }
+
+  async function handleSkip() {
+    setErrorMessage("");
+    setSubmitting(true);
+    const result = await completeOnboarding();
+    if (result.ok) {
+      router.push(APP_ROUTES.onboardingFirstAction);
+    } else {
+      setErrorMessage(result.message);
+      setSubmitting(false);
+    }
+  }
 
   return (
     <AuthShell
@@ -29,49 +89,58 @@ export function ConfirmCompanyDetailsScreen() {
           </p>
         </header>
 
-        <div className="mt-8 space-y-5">
+        <form ref={formRef} className="mt-8 space-y-5">
           <AuthField
-            id="readonlyCompanyName"
+            id="companyName"
             label={t("Company name")}
-            value={t("Dansk Byggefirma A/S")}
+            value={company.name}
             readOnly
             helperText={t("Contact platform support to change company name")}
           />
           <AuthField
-            id="readonlyIndustry"
+            id="industry"
             label={t("Industry")}
-            value={t("Bygge & Anlæg")}
-            readOnly
+            value={company.industry}
+            error={fieldErrors.industry}
           />
           <AuthField
-            id="readonlyLocation"
+            id="location"
             label={t("Primary location")}
-            value={t("Sønderborg, Danmark")}
-            readOnly
+            value={company.defaultLocation}
+            error={fieldErrors.location}
           />
           <AuthField
-            id="readonlyEmail"
+            id="contactEmail"
             label={t("Contact email")}
-            value={t("admin@danskbyggefirma.dk")}
+            value={company.contactEmail}
             readOnly
           />
-        </div>
+        </form>
 
         <div className="mt-6 border-t border-neutral-200 pt-6">
+          {errorMessage && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {t(errorMessage)}
+            </div>
+          )}
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={APP_ROUTES.onboardingFirstAction}
-              className="inline-flex h-[54px] w-full items-center justify-center rounded-[10px] border border-neutral-300 text-base font-semibold tracking-[-0.3125px] text-neutral-700 transition hover:bg-neutral-50 sm:flex-1"
+            <button
+              type="button"
+              onClick={handleSkip}
+              disabled={submitting}
+              className="inline-flex h-[54px] w-full items-center justify-center rounded-[10px] border border-neutral-300 text-base font-semibold tracking-[-0.3125px] text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50 sm:flex-1"
             >
               {t("Skip for now")}
-            </Link>
-            <Link
-              href={APP_ROUTES.onboardingFirstAction}
-              className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 sm:flex-1"
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={submitting}
+              className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 disabled:opacity-50 sm:flex-1"
             >
               <span>{t("Confirm and continue")}</span>
               <ArrowRightIcon className="h-[18px] w-[18px]" />
-            </Link>
+            </button>
           </div>
         </div>
       </section>
