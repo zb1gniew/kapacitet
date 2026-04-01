@@ -8,6 +8,7 @@ using Kapacitet.Infrastructure.Persistence.Seed;
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.CapacityRequests.Services;
 using Kapacitet.Application.Features.Matching.Services;
+using Kapacitet.Application.Features.Onboarding.Services;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +21,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = builder.Configuration["Keycloak:Authority"];
-        options.MetadataAddress = builder.Configuration["Keycloak:MetadataAddress"];
-        options.Audience = builder.Configuration["Keycloak:Audience"];
+        var metadataAddress = builder.Configuration["Keycloak:MetadataAddress"];
+        if (!string.IsNullOrWhiteSpace(metadataAddress))
+        {
+            options.MetadataAddress = metadataAddress;
+        }
+        var audience = builder.Configuration["Keycloak:Audience"];
+        if (!string.IsNullOrWhiteSpace(audience))
+        {
+            options.Audience = audience;
+        }
         options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
@@ -87,6 +96,9 @@ builder.Services.AddScoped<CapacityRequestService>();
 
 // Availability Declarations Service
 builder.Services.AddScoped<AvailabilityDeclarationService>();
+
+// Onboarding Service
+builder.Services.AddScoped<OnboardingService>();
 
 // Matching and agreements
 builder.Services.AddScoped<MatchingService>();

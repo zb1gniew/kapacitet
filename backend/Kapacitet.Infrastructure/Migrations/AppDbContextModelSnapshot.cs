@@ -92,36 +92,37 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<string>("ContactEmail")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Industry")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Message")
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReviewedBy")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -165,6 +166,9 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<int>("LocationRadiusKm")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -180,8 +184,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CompanyId", "ClientDraftKey")
                         .IsUnique()
@@ -223,6 +225,9 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<int>("LocationRadiusKm")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -242,8 +247,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CompanyId", "ClientDraftKey")
                         .IsUnique()
@@ -331,11 +334,17 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<int>("AvailabilityId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MatchOfferId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -360,6 +369,9 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.HasIndex("AvailabilityId");
 
+                    b.HasIndex("MatchOfferId")
+                        .IsUnique();
+
                     b.HasIndex("RequestId");
 
                     b.HasIndex("RequesterCompanyId");
@@ -380,29 +392,73 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<int>("AvailabilityId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("CooperationAgreementId")
+                    b.Property<int>("CertificateScore")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("CoversFullPeriod")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DateScore")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPartial")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LocationScore")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MatchScore")
                         .HasColumnType("integer");
 
+                    b.Property<int>("MatchedCertificateCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MatchedSkillCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OfferedQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuantityScore")
+                        .HasColumnType("integer");
+
                     b.Property<int>("RequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("RequesterReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RequiredCertificateCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequiredSkillCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkillScore")
                         .HasColumnType("integer");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("SupplierReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AvailabilityId");
 
-                    b.HasIndex("CooperationAgreementId");
-
-                    b.HasIndex("RequestId");
+                    b.HasIndex("RequestId", "AvailabilityId");
 
                     b.ToTable("match_offers", (string)null);
                 });
@@ -512,6 +568,9 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<DateTime?>("OnboardingCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
@@ -613,6 +672,12 @@ namespace Kapacitet.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Kapacitet.Domain.Entities.MatchOffer", "MatchOffer")
+                        .WithOne("CooperationAgreement")
+                        .HasForeignKey("Kapacitet.Domain.Entities.CooperationAgreement", "MatchOfferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Kapacitet.Domain.Entities.CapacityRequest", "Request")
                         .WithMany()
                         .HasForeignKey("RequestId")
@@ -633,6 +698,8 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Navigation("Availability");
 
+                    b.Navigation("MatchOffer");
+
                     b.Navigation("Request");
 
                     b.Navigation("RequesterCompany");
@@ -648,10 +715,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Kapacitet.Domain.Entities.CooperationAgreement", "CooperationAgreement")
-                        .WithMany()
-                        .HasForeignKey("CooperationAgreementId");
-
                     b.HasOne("Kapacitet.Domain.Entities.CapacityRequest", "Request")
                         .WithMany("MatchOffers")
                         .HasForeignKey("RequestId")
@@ -659,8 +722,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Availability");
-
-                    b.Navigation("CooperationAgreement");
 
                     b.Navigation("Request");
                 });
@@ -727,6 +788,11 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("NetworkResponses");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.MatchOffer", b =>
+                {
+                    b.Navigation("CooperationAgreement");
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.NetworkEscalation", b =>

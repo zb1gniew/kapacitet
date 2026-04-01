@@ -5,21 +5,22 @@ namespace Kapacitet.Application.Features.AccessRequests.DTOs;
 public class SubmitAccessRequestDto
 {
     [Required]
-    [MaxLength(32)]
+    [MaxLength(150)]
     public string Name { get; set; } = null!;
 
     [Required]
-    [MaxLength(32)]
+    [MaxLength(100)]
     public string Industry { get; set; } = null!;
 
     [Required]
-    [MaxLength(32)]
+    [MaxLength(100)]
     public string Location { get; set; } = null!;
 
     [Required]
     [EmailAddress]
-    [MaxLength(32)]
+    [MaxLength(254)]
     public string ContactEmail { get; set; } = null!;
 
+    [MaxLength(2000)]
     public string? Message { get; set; }
 }

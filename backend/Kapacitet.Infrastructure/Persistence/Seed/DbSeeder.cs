@@ -41,14 +41,16 @@ public static class DbSeeder
                 CompanyId = requesterCompany.Id,
                 Email = "testuser@kapacitet.net",
                 Role = UserRole.Admin,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                OnboardingCompletedAt = DateTime.UtcNow
             },
             new User
             {
                 CompanyId = supplierCompany.Id,
                 Email = "supplier@kapacitet.net",
                 Role = UserRole.Admin,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                OnboardingCompletedAt = DateTime.UtcNow
             }
         };
 

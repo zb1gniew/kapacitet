@@ -9,6 +9,7 @@ type AuthFieldProps = {
   placeholder?: string;
   value?: string;
   helperText?: string;
+  error?: string;
   multiline?: boolean;
   rows?: number;
   readOnly?: boolean;
@@ -23,12 +24,14 @@ export function AuthField({
   placeholder,
   value,
   helperText,
+  error,
   multiline,
   rows = 4,
   readOnly = false,
 }: AuthFieldProps) {
   const sharedInputClassName = [
-    "w-full rounded-[10px] border border-neutral-300 shadow-[0_1px_3px_rgba(0,0,0,0.10),0_1px_2px_rgba(0,0,0,0.10)]",
+    "w-full rounded-[10px] border shadow-[0_1px_3px_rgba(0,0,0,0.10),0_1px_2px_rgba(0,0,0,0.10)]",
+    error ? "border-red-400" : "border-neutral-300",
     "text-base tracking-[-0.3125px] text-neutral-950",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
     readOnly ? "bg-neutral-50" : "bg-white",
@@ -105,6 +108,11 @@ export function AuthField({
       {helperText ? (
         <p className="text-xs leading-4 tracking-[-0.15px] text-neutral-500">
           {helperText}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+          {error}
         </p>
       ) : null}
     </div>

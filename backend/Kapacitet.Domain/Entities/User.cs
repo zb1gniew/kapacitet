@@ -9,6 +9,7 @@ public class User
     public string Email { get; set; } = null!;
     public UserRole Role { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? OnboardingCompletedAt { get; set; }
 
     public Company Company { get; set; } = null!;
 }
