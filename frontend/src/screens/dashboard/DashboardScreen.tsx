@@ -4,6 +4,7 @@ import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 
 type DashboardScreenProps = {
@@ -12,6 +13,7 @@ type DashboardScreenProps = {
 
 export function DashboardScreen({ user }: DashboardScreenProps) {
   const { t } = useLocalizedScreen();
+  const showAdminTab = isPlatformAdmin(user);
 
   return (
     <main
@@ -20,7 +22,11 @@ export function DashboardScreen({ user }: DashboardScreenProps) {
       data-node-id="1:321"
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey="Home" />
+        <DashboardSidebar
+          t={t}
+          activeItemKey="Home"
+          showAdminTab={showAdminTab}
+        />
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} />
           <DashboardContent t={t} />

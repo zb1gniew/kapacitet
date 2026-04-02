@@ -14,18 +14,18 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
 
         builder.Property(c => c.Name)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(150);
 
         builder.Property(c => c.LogoUrl)
             .HasColumnType("text");
 
         builder.Property(c => c.Industry)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(100);
 
         builder.Property(c => c.DefaultLocation)
             .IsRequired()
-            .HasMaxLength(32);
+            .HasMaxLength(100);
 
         builder.Property(c => c.Status)
             .HasConversion<string>();

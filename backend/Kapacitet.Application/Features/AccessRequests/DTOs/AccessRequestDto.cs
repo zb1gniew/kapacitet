@@ -14,4 +14,6 @@ public class AccessRequestDto
     public string? ReviewedBy { get; set; }
     public DateTime? ReviewedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int? ProvisionedCompanyId { get; set; }
+    public string? RejectionReason { get; set; }
 }

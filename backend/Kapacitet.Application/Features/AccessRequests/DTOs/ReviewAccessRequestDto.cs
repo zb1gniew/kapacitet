@@ -7,4 +7,7 @@ public class ReviewAccessRequestDto
 {
     [Required]
     public AccessRequestStatus Decision { get; set; }
+
+    [MaxLength(1000)]
+    public string? RejectionReason { get; set; }
 }

@@ -8,7 +8,7 @@ import type {
 } from "@/types/dashboard";
 import { APP_ROUTES } from "./routes";
 
-export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+const BASE_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { key: "Home", icon: "home", href: APP_ROUTES.dashboard },
   {
     key: "Declare availability",
@@ -23,6 +23,18 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { key: "Matches", icon: "matches", href: APP_ROUTES.matches },
   { key: "Settings", icon: "settings", href: APP_ROUTES.settings },
 ];
+
+const ADMIN_DASHBOARD_NAV_ITEM: DashboardNavItem = {
+  key: "Access requests",
+  icon: "admin",
+  href: APP_ROUTES.adminAccessRequests,
+};
+
+export function getDashboardNavItems(showAdminTab = false): DashboardNavItem[] {
+  return showAdminTab
+    ? [...BASE_DASHBOARD_NAV_ITEMS, ADMIN_DASHBOARD_NAV_ITEM]
+    : BASE_DASHBOARD_NAV_ITEMS;
+}
 
 export const DASHBOARD_ACTION_BANNER: DashboardActionBanner = {
   badgeKey: "Action required",

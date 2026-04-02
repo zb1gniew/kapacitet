@@ -117,6 +117,13 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<int?>("ProvisionedCompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -129,6 +136,8 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProvisionedCompanyId");
 
                     b.ToTable("access_requests", (string)null);
                 });
@@ -298,21 +307,21 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<string>("DefaultLocation")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Industry")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -565,8 +574,8 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
 
                     b.Property<DateTime?>("OnboardingCompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -640,6 +649,14 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasForeignKey("SkillsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.AccessRequest", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("ProvisionedCompanyId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.AvailabilityDeclaration", b =>
