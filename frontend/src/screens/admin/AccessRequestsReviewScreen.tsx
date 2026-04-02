@@ -21,6 +21,17 @@ type AccessRequestsReviewScreenProps = {
   user: AuthenticatedUser;
 };
 
+function getReviewToastMessage(
+  request: AccessRequest,
+  decision: "Approved" | "Rejected",
+): string {
+  if (decision === "Approved") {
+    return `Approved access request from ${request.name}. They can sign in using their email address as the initial password.`;
+  }
+
+  return `Rejected access request from ${request.name}.`;
+}
+
 export function AccessRequestsReviewScreen({
   user,
 }: AccessRequestsReviewScreenProps) {
@@ -125,11 +136,7 @@ export function AccessRequestsReviewScreen({
 
       setDialog({ type: "none" });
       setRejectionReason("");
-      setToastMessage(
-        decision === "Approved"
-          ? `Approved access request from ${request.name}.`
-          : `Rejected access request from ${request.name}.`,
-      );
+      setToastMessage(getReviewToastMessage(request, decision));
       await fetchRequests();
     } catch (error) {
       setErrorMessage(
@@ -152,7 +159,7 @@ export function AccessRequestsReviewScreen({
         <DashboardSidebar t={t} activeItemKey="Access requests" showAdminTab />
 
         <div className="min-w-0 flex-1">
-          <DashboardHeader t={t} user={user} showSignOut={false} />
+          <DashboardHeader t={t} user={user} />
 
           <div className="mx-auto w-full max-w-[1248px] p-4 sm:p-6 lg:p-8">
             <section className="rounded-[18px] border border-neutral-200 bg-white p-6 shadow-[0_25px_50px_rgba(0,0,0,0.18)]">
