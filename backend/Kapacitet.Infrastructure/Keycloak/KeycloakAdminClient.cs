@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,9 @@ namespace Kapacitet.Infrastructure.Keycloak;
 
 public class KeycloakAdminClient
 {
+    private const string PasswordCredentialType = "password";
+    private const string UpdatePasswordAction = "UPDATE_PASSWORD";
+
     private readonly HttpClient _httpClient;
     private readonly KeycloakAdminOptions _options;
     private readonly ILogger<KeycloakAdminClient> _logger;
@@ -42,22 +46,10 @@ public class KeycloakAdminClient
 
     public async Task<string?> FindUserByEmailAsync(string email)
     {
-        var token = await GetAdminTokenAsync();
-        var url = $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users?email={Uri.EscapeDataString(email)}&exact=true";
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var users = await response.Content.ReadFromJsonAsync<JsonElement[]>();
-        if (users is { Length: > 0 })
-        {
-            return users[0].GetProperty("id").GetString();
-        }
-
-        return null;
+        var users = await GetUsersByEmailAsync(email);
+        return users is { Length: > 0 }
+            ? users[0].GetProperty("id").GetString()
+            : null;
     }
 
     public async Task<string> CreateUserAsync(string email)
@@ -98,6 +90,31 @@ public class KeycloakAdminClient
         return keycloakUserId;
     }
 
+    public async Task SetTemporaryPasswordAsync(string keycloakUserId, string password)
+    {
+        await ResetPasswordAsync(keycloakUserId, password, temporary: true);
+
+        _logger.LogInformation(
+            "Set temporary password for Keycloak user {KeycloakUserId}",
+            keycloakUserId);
+    }
+
+    public async Task<bool> IsFirstTimeUserAsync(string email)
+    {
+        var users = await GetUsersByEmailAsync(email);
+        return users is { Length: > 0 } && HasRequiredAction(users[0], UpdatePasswordAction);
+    }
+
+    public async Task SetPermanentPasswordAsync(string email, string password)
+    {
+        var keycloakUserId = await FindUserByEmailAsync(email)
+            ?? throw new InvalidOperationException($"Keycloak user with email {email} not found");
+
+        await ResetPasswordAsync(keycloakUserId, password, temporary: false);
+
+        _logger.LogInformation("Set permanent password for Keycloak user {Email}", email);
+    }
+
     public async Task SendRequiredActionsEmailAsync(string keycloakUserId, List<string> actions)
     {
         var token = await GetAdminTokenAsync();
@@ -113,5 +130,63 @@ public class KeycloakAdminClient
         _logger.LogInformation(
             "Sent required actions email to Keycloak user {KeycloakUserId} with actions {Actions}",
             keycloakUserId, string.Join(", ", actions));
+    }
+
+    private async Task<JsonElement[]> GetUsersByEmailAsync(string email)
+    {
+        var token = await GetAdminTokenAsync();
+        var url = $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users?email={Uri.EscapeDataString(email)}&exact=true";
+
+        using var request = CreateAuthorizedRequest(HttpMethod.Get, url, token);
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<JsonElement[]>() ?? [];
+    }
+
+    private async Task ResetPasswordAsync(string keycloakUserId, string password, bool temporary)
+    {
+        var token = await GetAdminTokenAsync();
+        var url = $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users/{keycloakUserId}/reset-password";
+
+        var payload = new
+        {
+            type = PasswordCredentialType,
+            value = password,
+            temporary,
+        };
+
+        using var request = CreateAuthorizedRequest(HttpMethod.Put, url, token);
+        request.Content = JsonContent.Create(payload);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    private static HttpRequestMessage CreateAuthorizedRequest(
+        HttpMethod method,
+        string url,
+        string token)
+    {
+        var request = new HttpRequestMessage(method, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return request;
+    }
+
+    private static bool HasRequiredAction(JsonElement user, string action)
+    {
+        if (!user.TryGetProperty("requiredActions", out var requiredActions) ||
+            requiredActions.ValueKind != JsonValueKind.Array)
+        {
+            return false;
+        }
+
+        foreach (var requiredAction in requiredActions.EnumerateArray())
+        {
+            if (requiredAction.GetString() == action)
+                return true;
+        }
+
+        return false;
     }
 }

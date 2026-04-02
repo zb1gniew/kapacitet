@@ -1,13 +1,307 @@
 "use client";
 
 import Link from "next/link";
+import { useState, type FormEvent } from "react";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { AuthInput } from "@/components/auth/AuthInput";
-import { BrandIcon, EmailIcon, InfoIcon } from "@/components/auth/icons";
+import {
+  BrandIcon,
+  EmailIcon,
+  InfoIcon,
+  LockIcon,
+} from "@/components/auth/icons";
+
+type ScreenState =
+  | { step: "email" }
+  | { step: "set-password"; email: string }
+  | { step: "password-set"; email: string };
+
+type CheckNewUserResponse = {
+  isFirstTimeUser?: boolean;
+};
+
+type MessageResponse = {
+  message?: string;
+};
+
+const primaryButtonClassName =
+  "h-[52px] w-full rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:opacity-60";
+
+const secondaryLinkClassName =
+  "inline-flex h-[50px] w-full items-center justify-center rounded-[10px] border border-neutral-300 text-base font-semibold tracking-[-0.3125px] text-neutral-700 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300";
+
+function getTrimmedFormValue(formData: FormData, key: string): string {
+  return String(formData.get(key) ?? "").trim();
+}
+
+function getRawFormValue(formData: FormData, key: string): string {
+  return String(formData.get(key) ?? "");
+}
+
+function redirectToKeycloak(email: string) {
+  const loginUrl = new URL(APP_ROUTES.authLoginApi, window.location.origin);
+  loginUrl.searchParams.set("return_to", APP_ROUTES.dashboard);
+  loginUrl.searchParams.set("login_hint", email);
+  window.location.assign(loginUrl.toString());
+}
+
+async function checkIfFirstTimeUser(email: string): Promise<boolean> {
+  const response = await fetch(
+    `/api/account/check-new?email=${encodeURIComponent(email)}`,
+  );
+  const data = (await response.json()) as CheckNewUserResponse;
+
+  return Boolean(data.isFirstTimeUser);
+}
+
+async function getResponseMessage(
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> {
+  const body = (await response
+    .json()
+    .catch(() => null)) as MessageResponse | null;
+  return body?.message ?? fallbackMessage;
+}
+
+function PasswordSetSuccessIcon() {
+  return (
+    <svg
+      className="h-7 w-7 text-[#16a34a]"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2.5}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
 
 export function LoginScreen() {
   const { t } = useLocalizedScreen();
+  const [state, setState] = useState<ScreenState>({ step: "email" });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  function resetToEmailStep() {
+    setState({ step: "email" });
+    setErrorMessage("");
+  }
+
+  async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage("");
+
+    const formData = new FormData(event.currentTarget);
+    const email = getTrimmedFormValue(formData, "email");
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      if (await checkIfFirstTimeUser(email)) {
+        setState({ step: "set-password", email });
+      } else {
+        redirectToKeycloak(email);
+      }
+    } catch {
+      redirectToKeycloak(email);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (state.step !== "set-password") return;
+
+    setErrorMessage("");
+    const formData = new FormData(event.currentTarget);
+    const password = getRawFormValue(formData, "password");
+    const confirmPassword = getRawFormValue(formData, "confirmPassword");
+
+    if (password.length < 8) {
+      setErrorMessage(t("Password must be at least 8 characters."));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage(t("Passwords do not match."));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/account/set-initial-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: state.email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await getResponseMessage(response, "Unable to set password."),
+        );
+      }
+
+      setState({ step: "password-set", email: state.email });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to set password.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderEmailStep() {
+    return (
+      <>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Sign in to your account")}
+        </h2>
+        <p className="mt-2 max-w-[310px] text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t("Access your company's capacity coordination dashboard")}
+        </p>
+
+        <form
+          className="mt-6 space-y-5"
+          aria-label={t("Sign in form")}
+          onSubmit={handleEmailSubmit}
+        >
+          <AuthInput
+            id="email"
+            label={t("Email address")}
+            type="email"
+            placeholder="admin@company.com"
+            autoComplete="email"
+            icon={<EmailIcon className="h-[18px] w-[18px]" />}
+          />
+          <p className="text-xs tracking-[-0.1504px] text-neutral-500">
+            {t(
+              "Continue with your email and complete sign-in on your organization's hosted identity page.",
+            )}
+          </p>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={primaryButtonClassName}
+          >
+            {loading ? t("Checking...") : t("Sign in")}
+          </button>
+        </form>
+
+        <div className="relative my-6">
+          <div className="border-t border-neutral-300" />
+          <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm tracking-[-0.1504px] text-neutral-500">
+            {t("or")}
+          </span>
+        </div>
+
+        <Link
+          href={APP_ROUTES.requestAccess}
+          className={secondaryLinkClassName}
+        >
+          {t("Request platform access")}
+        </Link>
+      </>
+    );
+  }
+
+  function renderSetPasswordStep(email: string) {
+    return (
+      <>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Set your password")}
+        </h2>
+        <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t(
+            "Welcome! Your account has been approved. Set a password to get started.",
+          )}
+        </p>
+
+        <div className="mt-4 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-4 py-3 text-xs leading-[19.5px] text-[#193cb8]">
+          {t("Setting password for")}{" "}
+          <span className="font-semibold">{email}</span>
+        </div>
+
+        {errorMessage ? (
+          <div className="mt-4 rounded-[10px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-xs text-[#b91c1c]">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <form
+          className="mt-6 space-y-5"
+          aria-label={t("Set password form")}
+          onSubmit={handleSetPassword}
+        >
+          <AuthInput
+            id="password"
+            label={t("New password")}
+            type="password"
+            placeholder="Min. 8 characters"
+            autoComplete="new-password"
+            icon={<LockIcon className="h-[18px] w-[18px]" />}
+          />
+          <AuthInput
+            id="confirmPassword"
+            label={t("Confirm password")}
+            type="password"
+            placeholder="Repeat your password"
+            autoComplete="new-password"
+            icon={<LockIcon className="h-[18px] w-[18px]" />}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={primaryButtonClassName}
+          >
+            {loading ? t("Setting password...") : t("Set password")}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onClick={resetToEmailStep}
+          className="mt-4 w-full text-center text-sm text-neutral-500 hover:text-neutral-700"
+        >
+          {t("Back to sign in")}
+        </button>
+      </>
+    );
+  }
+
+  function renderPasswordSetStep(email: string) {
+    return (
+      <>
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dcfce7]">
+            <PasswordSetSuccessIcon />
+          </div>
+          <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+            {t("Password set successfully")}
+          </h2>
+          <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+            {t(
+              "Your password has been set. Click below to sign in with your new credentials.",
+            )}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => redirectToKeycloak(email)}
+          className="mt-6 h-[52px] w-full rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        >
+          {t("Sign in now")}
+        </button>
+      </>
+    );
+  }
 
   return (
     <main
@@ -29,69 +323,13 @@ export function LoginScreen() {
         </header>
 
         <section className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
-          <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
-            {t("Sign in to your account")}
-          </h2>
-          <p className="mt-2 max-w-[310px] text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
-            {t("Access your company's capacity coordination dashboard")}
-          </p>
-
-          <form
-            className="mt-6 space-y-5"
-            aria-label={t("Sign in form")}
-            onSubmit={(event) => {
-              event.preventDefault();
-              const formData = new FormData(event.currentTarget);
-              const email = formData.get("email");
-              const loginUrl = new URL(
-                APP_ROUTES.authLoginApi,
-                window.location.origin,
-              );
-
-              loginUrl.searchParams.set("return_to", APP_ROUTES.dashboard);
-
-              if (typeof email === "string" && email.trim().length > 0) {
-                loginUrl.searchParams.set("login_hint", email.trim());
-              }
-
-              window.location.assign(loginUrl.toString());
-            }}
-          >
-            <AuthInput
-              id="email"
-              label={t("Email address")}
-              type="email"
-              placeholder="admin@company.com"
-              autoComplete="email"
-              icon={<EmailIcon className="h-[18px] w-[18px]" />}
-            />
-            <p className="text-xs tracking-[-0.1504px] text-neutral-500">
-              {t(
-                "Continue with your email and complete sign-in on your organization's hosted identity page.",
-              )}
-            </p>
-
-            <button
-              type="submit"
-              className="h-[52px] w-full rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-            >
-              {t("Sign in")}
-            </button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="border-t border-neutral-300" />
-            <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm tracking-[-0.1504px] text-neutral-500">
-              {t("or")}
-            </span>
-          </div>
-
-          <Link
-            href={APP_ROUTES.requestAccess}
-            className="inline-flex h-[50px] w-full items-center justify-center rounded-[10px] border border-neutral-300 text-base font-semibold tracking-[-0.3125px] text-neutral-700 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-          >
-            {t("Request platform access")}
-          </Link>
+          {state.step === "email" ? renderEmailStep() : null}
+          {state.step === "set-password"
+            ? renderSetPasswordStep(state.email)
+            : null}
+          {state.step === "password-set"
+            ? renderPasswordSetStep(state.email)
+            : null}
         </section>
 
         <aside className="mt-4 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] p-4 text-[#193cb8]">

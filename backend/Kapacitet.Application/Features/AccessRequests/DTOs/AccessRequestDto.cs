@@ -16,4 +16,5 @@ public class AccessRequestDto
     public DateTime CreatedAt { get; set; }
     public int? ProvisionedCompanyId { get; set; }
     public string? RejectionReason { get; set; }
+    public string? TemporaryPassword { get; set; }
 }

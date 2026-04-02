@@ -95,22 +95,12 @@ public class AccessRequestService
 
         await _db.SaveChangesAsync();
 
-        if (dto.Decision == AccessRequestStatus.Approved)
-        {
-            _logger.LogInformation(
-                "Access request approved: RequestId={RequestId}, ReviewedBy={ReviewedBy}, CompanyId={CompanyId}",
-                request.Id, reviewedBy, request.ProvisionedCompanyId);
+        var temporaryPassword = await HandleReviewCompletionAsync(
+            request,
+            dto.Decision,
+            reviewedBy);
 
-            await ProvisionKeycloakUserAsync(request);
-        }
-        else if (dto.Decision == AccessRequestStatus.Rejected)
-        {
-            _logger.LogInformation(
-                "Access request rejected: RequestId={RequestId}, ReviewedBy={ReviewedBy}, Email={Email}, Reason={Reason}",
-                request.Id, reviewedBy, request.ContactEmail, request.RejectionReason);
-        }
-
-        return MapToDto(request);
+        return CreateReviewResult(request, temporaryPassword);
     }
 
     private async Task ProvisionCompanyAndUserAsync(AccessRequest request)
@@ -147,7 +137,7 @@ public class AccessRequestService
             company.Id, company.Name, request.ContactEmail, request.Id);
     }
 
-    private async Task ProvisionKeycloakUserAsync(AccessRequest request)
+    private async Task<string?> ProvisionKeycloakUserAsync(AccessRequest request)
     {
         try
         {
@@ -166,7 +156,9 @@ public class AccessRequestService
                 keycloakUserId = await _keycloakClient.CreateUserAsync(request.ContactEmail);
             }
 
-            await _keycloakClient.SendRequiredActionsEmailAsync(keycloakUserId, ["UPDATE_PASSWORD"]);
+            await _keycloakClient.SetTemporaryPasswordAsync(keycloakUserId, request.ContactEmail);
+
+            return request.ContactEmail;
         }
         catch (Exception ex)
         {
@@ -174,7 +166,41 @@ public class AccessRequestService
                 "Failed to provision Keycloak user for AccessRequest {RequestId}, Email={Email}. " +
                 "DB entities were created successfully. Manual Keycloak intervention may be needed.",
                 request.Id, request.ContactEmail);
+            return null;
         }
+    }
+
+    private async Task<string?> HandleReviewCompletionAsync(
+        AccessRequest request,
+        AccessRequestStatus decision,
+        string reviewedBy)
+    {
+        if (decision == AccessRequestStatus.Approved)
+        {
+            _logger.LogInformation(
+                "Access request approved: RequestId={RequestId}, ReviewedBy={ReviewedBy}, CompanyId={CompanyId}",
+                request.Id, reviewedBy, request.ProvisionedCompanyId);
+
+            return await ProvisionKeycloakUserAsync(request);
+        }
+
+        if (decision == AccessRequestStatus.Rejected)
+        {
+            _logger.LogInformation(
+                "Access request rejected: RequestId={RequestId}, ReviewedBy={ReviewedBy}, Email={Email}, Reason={Reason}",
+                request.Id, reviewedBy, request.ContactEmail, request.RejectionReason);
+        }
+
+        return null;
+    }
+
+    private static AccessRequestDto CreateReviewResult(
+        AccessRequest entity,
+        string? temporaryPassword)
+    {
+        var result = MapToDto(entity);
+        result.TemporaryPassword = temporaryPassword;
+        return result;
     }
 
     private static AccessRequestDto MapToDto(AccessRequest entity) => new()

@@ -11,6 +11,7 @@ export type AccessRequest = {
   createdAt: string;
   provisionedCompanyId?: number;
   rejectionReason?: string;
+  temporaryPassword?: string;
 };
 
 export type AccessRequestFilterTab =

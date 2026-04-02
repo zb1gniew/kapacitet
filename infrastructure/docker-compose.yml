@@ -28,6 +28,7 @@ services:
       Keycloak__Authority: http://localhost:8080/realms/kapacitet
       Keycloak__MetadataAddress: http://host.docker.internal:8080/realms/kapacitet/.well-known/openid-configuration
       Keycloak__ClientId: kapacitet-app
+      KeycloakAdmin__BaseUrl: http://host.docker.internal:8080
     ports:
       - "5051:8080"
     depends_on:
