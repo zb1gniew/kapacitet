@@ -5,10 +5,11 @@ import type {
   DashboardProcess,
   DashboardQuickAction,
   DashboardReminder,
+  DashboardWorkspace,
 } from "@/types/dashboard";
 import { APP_ROUTES } from "./routes";
 
-const BASE_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+const COMPANY_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { key: "Home", icon: "home", href: APP_ROUTES.dashboard },
   {
     key: "Declare availability",
@@ -24,16 +25,32 @@ const BASE_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { key: "Settings", icon: "settings", href: APP_ROUTES.settings },
 ];
 
-const ADMIN_DASHBOARD_NAV_ITEM: DashboardNavItem = {
-  key: "Access requests",
-  icon: "admin",
-  href: APP_ROUTES.adminAccessRequests,
-};
+const PLATFORM_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+  { key: "Platform overview", icon: "home", href: APP_ROUTES.adminOverview },
+  {
+    key: "Access requests",
+    icon: "admin",
+    href: APP_ROUTES.adminAccessRequests,
+  },
+  {
+    key: "Companies",
+    icon: "companies",
+    href: APP_ROUTES.adminCompanies,
+  },
+  { key: "Audit log", icon: "audit", href: APP_ROUTES.adminAudit },
+  {
+    key: "Platform settings",
+    icon: "platform-settings",
+    href: APP_ROUTES.adminPlatformSettings,
+  },
+];
 
-export function getDashboardNavItems(showAdminTab = false): DashboardNavItem[] {
-  return showAdminTab
-    ? [...BASE_DASHBOARD_NAV_ITEMS, ADMIN_DASHBOARD_NAV_ITEM]
-    : BASE_DASHBOARD_NAV_ITEMS;
+export function getDashboardNavItems(
+  workspace: DashboardWorkspace = "company",
+): DashboardNavItem[] {
+  return workspace === "platform"
+    ? PLATFORM_DASHBOARD_NAV_ITEMS
+    : COMPANY_DASHBOARD_NAV_ITEMS;
 }
 
 export const DASHBOARD_ACTION_BANNER: DashboardActionBanner = {

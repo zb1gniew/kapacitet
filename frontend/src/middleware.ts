@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
+import { isPlatformAdmin } from "@/lib/auth/roles";
 import { parseSessionCookieValue } from "@/lib/auth/session";
 import { getServerSession } from "@/lib/auth/session-store";
 
@@ -31,6 +32,10 @@ export async function middleware(request: NextRequest) {
   const isOnboarded = session.onboardingCompleted === true;
   const isOnboardingRoute = request.nextUrl.pathname.startsWith("/onboarding");
   const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard");
+  const isAdminDashboardRoute =
+    request.nextUrl.pathname === APP_ROUTES.adminOverview ||
+    request.nextUrl.pathname.startsWith("/dashboard/admin");
+  const userIsPlatformAdmin = isPlatformAdmin(session.user);
 
   // Already onboarded user trying to access onboarding → redirect to dashboard
   if (isOnboardingRoute && isOnboarded) {
@@ -42,6 +47,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(
       new URL(APP_ROUTES.onboardingWelcome, request.url),
     );
+  }
+
+  if (isDashboardRoute && userIsPlatformAdmin && !isAdminDashboardRoute) {
+    return NextResponse.redirect(
+      new URL(APP_ROUTES.adminOverview, request.url),
+    );
+  }
+
+  if (isAdminDashboardRoute && !userIsPlatformAdmin) {
+    return NextResponse.redirect(new URL(APP_ROUTES.dashboard, request.url));
   }
 
   return NextResponse.next();

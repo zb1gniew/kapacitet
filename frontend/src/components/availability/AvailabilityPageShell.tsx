@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { AVAILABILITY_STEPS } from "@/constants/availability";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { DashboardNavItemKey } from "@/types/dashboard";
 import type {
@@ -37,8 +36,6 @@ export function AvailabilityPageShell({
   descriptionKey = "Share temporary capacity with your trusted network. Your declaration will be matched anonymously with companies requesting similar resources.",
   steps = AVAILABILITY_STEPS,
 }: AvailabilityPageShellProps) {
-  const showAdminTab = isPlatformAdmin(user);
-
   return (
     <main
       className="min-h-screen bg-[#f5f5f5]"
@@ -46,11 +43,7 @@ export function AvailabilityPageShell({
       data-node-id={dataNodeId}
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar
-          t={t}
-          activeItemKey={activeItemKey}
-          showAdminTab={showAdminTab}
-        />
+        <DashboardSidebar t={t} activeItemKey={activeItemKey} />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />

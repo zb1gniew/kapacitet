@@ -472,6 +472,41 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.ToTable("match_offers", (string)null);
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.PlatformAdminPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultAccessRequestsTab")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("DefaultAuditFilter")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<bool>("HighlightProvisioningAlerts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("PrioritizeFollowUpCompanies")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("platform_admin_preferences", (string)null);
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.NetworkEscalation", b =>
                 {
                     b.Property<int>("Id")
@@ -773,6 +808,17 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("Escalation");
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.PlatformAdminPreferences", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.User", "User")
+                        .WithOne("PlatformAdminPreferences")
+                        .HasForeignKey("Kapacitet.Domain.Entities.PlatformAdminPreferences", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.User", b =>
                 {
                     b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
@@ -782,6 +828,8 @@ namespace Kapacitet.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+
+                    b.Navigation("PlatformAdminPreferences");
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.AvailabilityDeclaration", b =>

@@ -1,4 +1,5 @@
 import { APP_ROUTES } from "@/constants/routes";
+import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import { BellIcon } from "./icons";
@@ -18,6 +19,8 @@ export function DashboardHeader({
   user,
   showSignOut = true,
 }: DashboardHeaderProps) {
+  const roleBadge = isPlatformAdmin(user) ? "Platform admin" : "Company user";
+
   return (
     <header className="border-b border-[#45556c66] bg-[linear-gradient(to_right,#314158_0%,#43536a_35%,#8693a3_70%,#f5f5f5_100%)] px-5 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -41,7 +44,7 @@ export function DashboardHeader({
                 {getDisplayName(user)}
               </p>
               <span className="rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                {t("Administrator")}
+                {t(roleBadge)}
               </span>
               {showSignOut ? (
                 <form action={APP_ROUTES.authLogoutApi} method="post">

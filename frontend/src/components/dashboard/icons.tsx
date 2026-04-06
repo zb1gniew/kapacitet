@@ -112,3 +112,36 @@ export function ChartNodesIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function BuildingsIcon(props: IconProps) {
+  return (
+    <svg fill="none" viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path
+        d="M4.167 3.333c0-.46.373-.833.833-.833h4.167c.46 0 .833.373.833.833v13.334a.833.833 0 0 1-.833.833H5a.833.833 0 0 1-.833-.833V3.333Zm1.666.834v1.666H8.333V4.167H5.833Zm0 3.333v1.667H8.333V7.5H5.833Zm0 3.333V12.5H8.333v-1.667H5.833Zm5-6.666c0-.46.373-.833.834-.833H15c.46 0 .833.373.833.833v12.5a.833.833 0 0 1-.833.833h-3.333a.833.833 0 0 1-.834-.833V4.167Zm1.667 1.666V7.5h1.666V5.833H12.5Zm0 3.334v1.666h1.666V9.167H12.5Zm0 3.333v1.667h1.666V12.5H12.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function ClipboardListIcon(props: IconProps) {
+  return (
+    <svg fill="none" viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path
+        d="M7.5 2.5a1.667 1.667 0 0 0-1.572 1.111H5a1.667 1.667 0 0 0-1.667 1.667v9.722A1.667 1.667 0 0 0 5 16.667h10A1.667 1.667 0 0 0 16.667 15V5.278A1.667 1.667 0 0 0 15 3.611h-.928A1.667 1.667 0 0 0 12.5 2.5h-5Zm0 1.667h5v.833h-5v-.833Zm-.833 4.166a.625.625 0 0 1 .625-.625h5.416a.625.625 0 1 1 0 1.25H7.292a.625.625 0 0 1-.625-.625Zm0 3.334a.625.625 0 0 1 .625-.625h5.416a.625.625 0 1 1 0 1.25H7.292a.625.625 0 0 1-.625-.625Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+export function SlidersIcon(props: IconProps) {
+  return (
+    <svg fill="none" viewBox="0 0 20 20" aria-hidden="true" {...props}>
+      <path
+        d="M5 4.167a1.667 1.667 0 1 0-3.333 0A1.667 1.667 0 0 0 5 4.167ZM18.333 4.792H5.833v-1.25h12.5v1.25ZM11.667 10a1.667 1.667 0 1 0-3.334 0 1.667 1.667 0 0 0 3.334 0Zm6.666.625h-5.833v-1.25h5.833v1.25Zm-11.666 5.208a1.667 1.667 0 1 0-3.334 0 1.667 1.667 0 0 0 3.334 0Zm11.666.625H7.5v-1.25h10.833v1.25Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}

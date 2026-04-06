@@ -4,7 +4,10 @@ export type DashboardNavIconKey =
   | "search"
   | "matches"
   | "settings"
-  | "admin";
+  | "admin"
+  | "companies"
+  | "audit"
+  | "platform-settings";
 
 export type DashboardNavItemKey =
   | "Home"
@@ -12,7 +15,13 @@ export type DashboardNavItemKey =
   | "Request capacity"
   | "Matches"
   | "Settings"
-  | "Access requests";
+  | "Platform overview"
+  | "Access requests"
+  | "Companies"
+  | "Audit log"
+  | "Platform settings";
+
+export type DashboardWorkspace = "company" | "platform";
 
 export type DashboardMetricIconKey = "users" | "search" | "warning";
 export type DashboardActionIconKey = "upload" | "search";

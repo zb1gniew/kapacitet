@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<NetworkEscalation> NetworkEscalations { get; set; } = null!;
     public DbSet<NetworkResponse> NetworkResponses { get; set; } = null!;
     public DbSet<AccessRequest> AccessRequests { get; set; } = null!;
+    public DbSet<PlatformAdminPreferences> PlatformAdminPreferences { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

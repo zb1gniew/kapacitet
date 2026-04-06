@@ -29,5 +29,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithMany(c => c.Users)
             .HasForeignKey(u => u.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.PlatformAdminPreferences)
+            .WithOne(p => p.User)
+            .HasForeignKey<PlatformAdminPreferences>(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
