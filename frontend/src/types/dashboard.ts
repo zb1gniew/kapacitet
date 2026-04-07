@@ -26,6 +26,7 @@ export type DashboardWorkspace = "company" | "platform";
 export type DashboardMetricIconKey = "users" | "search" | "warning";
 export type DashboardActionIconKey = "upload" | "search";
 export type DashboardTone = "success" | "primary" | "danger" | "neutral";
+export type DashboardBannerTone = "success" | "primary" | "warning";
 
 export type DashboardNavItem = {
   key: DashboardNavItemKey;
@@ -34,8 +35,8 @@ export type DashboardNavItem = {
 };
 
 export type DashboardMetric = {
-  labelKey: string;
-  valueKey: string;
+  label: string;
+  value: string;
   icon: DashboardMetricIconKey;
   tone: Exclude<DashboardTone, "neutral">;
   highlighted?: boolean;
@@ -50,25 +51,37 @@ export type DashboardQuickAction = {
 };
 
 export type DashboardProcess = {
-  titleKey: string;
-  subtitleKey: string;
-  metaKey: string;
-  statusKey: string;
+  id: number;
+  kind: "request" | "availability";
+  title: string;
+  subtitle: string;
+  meta: string;
+  status: string;
   statusTone: DashboardTone;
-  ctaKey: string;
+  cta: string;
 };
 
 export type DashboardReminder = {
-  titleKey: string;
-  descriptionKey: string;
-  dateKey: string;
+  title: string;
+  description: string;
+  date: string;
   tone: Exclude<DashboardTone, "neutral">;
 };
 
 export type DashboardActionBanner = {
-  badgeKey: string;
-  timingKey: string;
-  titleKey: string;
-  descriptionKey: string;
-  ctaKey: string;
+  id: number;
+  kind: "request" | "availability";
+  tone: DashboardBannerTone;
+  badge: string;
+  timing: string;
+  title: string;
+  description: string;
+  cta: string;
+};
+
+export type DashboardData = {
+  metrics: DashboardMetric[];
+  processes: DashboardProcess[];
+  reminders: DashboardReminder[];
+  banner: DashboardActionBanner | null;
 };

@@ -1,11 +1,10 @@
-import { DASHBOARD_METRICS } from "@/constants/dashboard";
 import type { DashboardMetric } from "@/types/dashboard";
-import type { TranslateFn } from "@/types/i18n";
 import { UsersIcon } from "@/components/auth/icons";
 import { SearchIcon, WarningIcon } from "../icons";
 
 type MetricsSectionProps = {
-  t: TranslateFn;
+  metrics: DashboardMetric[];
+  loading: boolean;
 };
 
 function getMetricIcon(metric: DashboardMetric) {
@@ -34,15 +33,15 @@ function getMetricValueToneClass(metric: DashboardMetric) {
   }
 }
 
-export function MetricsSection({ t }: MetricsSectionProps) {
+export function MetricsSection({ metrics, loading }: MetricsSectionProps) {
   return (
     <section className="grid gap-3 md:grid-cols-3">
-      {DASHBOARD_METRICS.map((metric) => {
+      {metrics.map((metric) => {
         const Icon = getMetricIcon(metric);
 
         return (
           <article
-            key={metric.labelKey}
+            key={metric.label}
             className={`rounded-[10px] border border-neutral-200 bg-white p-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] ${
               metric.highlighted ? "border-red-200" : ""
             }`}
@@ -50,11 +49,11 @@ export function MetricsSection({ t }: MetricsSectionProps) {
             <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-[8px] bg-neutral-100 text-neutral-500">
               <Icon className="h-4 w-4" />
             </div>
-            <p className="text-xs text-neutral-500">{t(metric.labelKey)}</p>
+            <p className="text-xs text-neutral-500">{metric.label}</p>
             <p
               className={`mt-1 text-sm font-semibold ${getMetricValueToneClass(metric)}`}
             >
-              {t(metric.valueKey)}
+              {loading ? "..." : metric.value}
             </p>
           </article>
         );
