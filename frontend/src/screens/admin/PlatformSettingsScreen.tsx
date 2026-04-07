@@ -25,12 +25,7 @@ type PlatformSettingsScreenProps = {
 export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
   const { t } = useLocalizedScreen();
   const { requests } = useAdminAccessRequests();
-  const {
-    preferences,
-    errorMessage,
-    updatePreferences,
-    resetPreferences,
-  } =
+  const { preferences, errorMessage, updatePreferences, resetPreferences } =
     usePlatformAdminPreferences();
   const [draft, setDraft] = useState<PlatformAdminPreferences | null>(null);
   const [toastMessage, setToastMessage] = useState("");

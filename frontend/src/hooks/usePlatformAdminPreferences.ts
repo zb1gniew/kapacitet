@@ -43,11 +43,11 @@ function normalizePreferences(
   const defaultAccessRequestsTab =
     rawAccessRequestsTab && isAccessRequestsTab(rawAccessRequestsTab)
       ? rawAccessRequestsTab
-    : DEFAULT_PLATFORM_ADMIN_PREFERENCES.defaultAccessRequestsTab;
+      : DEFAULT_PLATFORM_ADMIN_PREFERENCES.defaultAccessRequestsTab;
   const defaultAuditFilter =
     rawAuditFilter && isAuditFilter(rawAuditFilter)
       ? rawAuditFilter
-    : DEFAULT_PLATFORM_ADMIN_PREFERENCES.defaultAuditFilter;
+      : DEFAULT_PLATFORM_ADMIN_PREFERENCES.defaultAuditFilter;
 
   return {
     defaultAccessRequestsTab,
@@ -91,7 +91,9 @@ async function readErrorMessage(response: Response) {
   }
 }
 
-async function fetchPreferences(force = false): Promise<PlatformAdminPreferences> {
+async function fetchPreferences(
+  force = false,
+): Promise<PlatformAdminPreferences> {
   if (hasLoadedPreferences && !force) {
     return cachedPreferences;
   }
@@ -147,9 +149,8 @@ async function persistPreferences(
 }
 
 export function usePlatformAdminPreferences() {
-  const [preferences, setPreferences] = useState<PlatformAdminPreferences>(
-    cachedPreferences,
-  );
+  const [preferences, setPreferences] =
+    useState<PlatformAdminPreferences>(cachedPreferences);
   const [loaded, setLoaded] = useState(hasLoadedPreferences);
   const [errorMessage, setErrorMessage] = useState("");
 
