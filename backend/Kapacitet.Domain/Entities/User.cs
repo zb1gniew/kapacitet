@@ -12,4 +12,5 @@ public class User
     public DateTime? OnboardingCompletedAt { get; set; }
 
     public Company Company { get; set; } = null!;
+    public PlatformAdminPreferences? PlatformAdminPreferences { get; set; }
 }

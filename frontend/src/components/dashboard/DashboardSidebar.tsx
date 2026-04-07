@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { BrandIcon } from "@/components/auth/icons";
 import { getDashboardNavItems } from "@/constants/dashboard";
-import type { DashboardNavItem, DashboardNavItemKey } from "@/types/dashboard";
+import type {
+  DashboardNavItem,
+  DashboardNavItemKey,
+  DashboardWorkspace,
+} from "@/types/dashboard";
 import type { TranslateFn } from "@/types/i18n";
 import {
+  BuildingsIcon,
+  ClipboardListIcon,
   ChartNodesIcon,
   CogIcon,
   HomeIcon,
   SearchIcon,
+  SlidersIcon,
   UploadIcon,
   UserGearIcon,
 } from "./icons";
@@ -15,7 +22,7 @@ import {
 type DashboardSidebarProps = {
   t: TranslateFn;
   activeItemKey: DashboardNavItemKey;
-  showAdminTab?: boolean;
+  workspace?: DashboardWorkspace;
 };
 
 function getNavIcon(item: DashboardNavItem) {
@@ -32,6 +39,12 @@ function getNavIcon(item: DashboardNavItem) {
       return CogIcon;
     case "admin":
       return UserGearIcon;
+    case "companies":
+      return BuildingsIcon;
+    case "audit":
+      return ClipboardListIcon;
+    case "platform-settings":
+      return SlidersIcon;
     default:
       return HomeIcon;
   }
@@ -40,9 +53,12 @@ function getNavIcon(item: DashboardNavItem) {
 export function DashboardSidebar({
   t,
   activeItemKey,
-  showAdminTab = false,
+  workspace = "company",
 }: DashboardSidebarProps) {
-  const navItems = getDashboardNavItems(showAdminTab);
+  const navItems = getDashboardNavItems(workspace);
+  const subtitle =
+    workspace === "platform" ? "Platform operations" : "Capacity coordination";
+  const version = workspace === "platform" ? "Admin workspace" : "2.4.1";
 
   return (
     <aside className="flex w-full flex-col bg-gradient-to-b from-[#314158] to-[#1d293d] text-[#cad5e2] shadow-[0_20px_25px_rgba(0,0,0,0.1),0_8px_10px_rgba(0,0,0,0.1)] lg:w-72">
@@ -55,9 +71,7 @@ export function DashboardSidebar({
             <p className="text-lg font-semibold leading-[22.5px] tracking-[-0.4395px] text-neutral-100">
               KapacitetNet
             </p>
-            <p className="text-xs text-[#90a1b9]">
-              {t("Capacity coordination")}
-            </p>
+            <p className="text-xs text-[#90a1b9]">{t(subtitle)}</p>
           </div>
         </div>
       </div>
@@ -92,7 +106,7 @@ export function DashboardSidebar({
       <div className="mt-auto border-t border-[#45556c80] px-6 py-4">
         <p className="text-xs text-[#62748e]">{t("Platform version")}</p>
         <p className="mt-1 text-sm tracking-[-0.1504px] text-[#cad5e2]">
-          2.4.1
+          {version}
         </p>
       </div>
     </aside>

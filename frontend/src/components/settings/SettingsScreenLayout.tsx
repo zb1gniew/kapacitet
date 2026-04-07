@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { SettingsSectionNavigation } from "@/components/settings/SettingsSectionNavigation";
-import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import type { SettingsSectionKey } from "@/types/settings";
@@ -24,8 +23,6 @@ export function SettingsScreenLayout({
   dataNodeId,
   dataName = "Settings",
 }: SettingsScreenLayoutProps) {
-  const showAdminTab = isPlatformAdmin(user);
-
   return (
     <main
       className="min-h-screen bg-[#f5f5f5]"
@@ -33,11 +30,7 @@ export function SettingsScreenLayout({
       data-node-id={dataNodeId}
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar
-          t={t}
-          activeItemKey="Settings"
-          showAdminTab={showAdminTab}
-        />
+        <DashboardSidebar t={t} activeItemKey="Settings" />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />

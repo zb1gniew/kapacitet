@@ -9,6 +9,7 @@ using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.CapacityRequests.Services;
 using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.Services;
+using Kapacitet.Application.Features.AdminPreferences.Services;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
 using Kapacitet.Infrastructure.Keycloak;
@@ -104,6 +105,9 @@ builder.Services.AddScoped<AvailabilityDeclarationService>();
 
 // Onboarding Service
 builder.Services.AddScoped<OnboardingService>();
+
+// Admin preferences
+builder.Services.AddScoped<PlatformAdminPreferencesService>();
 
 // Matching and agreements
 builder.Services.AddScoped<MatchingService>();
