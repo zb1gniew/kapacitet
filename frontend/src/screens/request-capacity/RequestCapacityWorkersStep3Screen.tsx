@@ -121,11 +121,11 @@ export function RequestCapacityWorkersStep3Screen({
     >
       <AvailabilitySurfaceCard>
         <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
-          {t("Cooperation period and location")}
+          {t("Period, location, and urgency")}
         </h2>
         <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
           {t(
-            "Define when and where you need this capacity. The platform will search for matches in your specified area.",
+            "Define when and where you need support, and indicate how urgent the request is so matching can be prioritized appropriately.",
           )}
         </p>
 

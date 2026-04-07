@@ -69,11 +69,11 @@ export function DeclareAvailabilityWorkersStep3Screen({
     >
       <AvailabilitySurfaceCard>
         <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
-          {t("Cooperation period and control")}
+          {t("Period and location")}
         </h2>
         <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
           {t(
-            "Define when and where this capacity is available. You maintain full control over any agreements.",
+            "Define when and where this worker capacity is available so the platform can match it with relevant demand in your trusted network.",
           )}
         </p>
 

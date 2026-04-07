@@ -1,25 +1,14 @@
 import type {
-  AvailabilityResourceOption,
   AvailabilityStepDefinition,
   AvailabilityStepId,
   AvailabilitySummarySection,
 } from "@/types/availability";
 
 export const AVAILABILITY_STEPS: AvailabilityStepDefinition[] = [
-  { id: 1, labelKey: "Step 1", titleKey: "Workers" },
-  { id: 2, labelKey: "Step 2", titleKey: "Details" },
-  { id: 3, labelKey: "Step 3", titleKey: "Period & control" },
-  { id: 4, labelKey: "Step 4", titleKey: "Review" },
-];
-
-export const AVAILABILITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
-  {
-    id: "workers",
-    icon: "workers",
-    titleKey: "Workers",
-    descriptionKey:
-      "Temporarily share skilled workers or craftsmen who have available capacity during specific periods.",
-  },
+  { id: 1, labelKey: "Step 1", titleKey: "Availability" },
+  { id: 2, labelKey: "Step 2", titleKey: "Worker details" },
+  { id: 3, labelKey: "Step 3", titleKey: "Period and location" },
+  { id: 4, labelKey: "Step 4", titleKey: "Review and publish" },
 ];
 
 export const AVAILABILITY_DEFAULT_RADIUS_KM = 50;
