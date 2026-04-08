@@ -37,7 +37,9 @@ function PlatformWorkspaceSummary({
         {t("Current workspace")}
       </p>
       <p className="mt-1 text-sm font-medium text-[#163766]">
-        {loading ? "..." : (dashboard.processes[0]?.title ?? t("Coordination overview"))}
+        {loading
+          ? "..."
+          : (dashboard.processes[0]?.title ?? t("Coordination overview"))}
       </p>
       <p className="mt-2 text-xs leading-5 text-[#5a78a3]">
         {loading
