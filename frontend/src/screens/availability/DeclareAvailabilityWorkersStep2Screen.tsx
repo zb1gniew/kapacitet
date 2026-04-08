@@ -146,13 +146,13 @@ export function DeclareAvailabilityWorkersStep2Screen({
           </div>
 
           <div className="space-y-2">
-            <AvailabilityFieldLabel label={t("Required certificates")} />
+            <AvailabilityFieldLabel label={t("Worker certificates")} />
 
             <div className="flex items-start gap-2 rounded-[10px] border border-[#fee685] bg-[#fffbeb] px-4 py-4 text-[#973c00]">
               <AlertIcon className="mt-0.5 h-[18px] w-[18px] shrink-0" />
               <p className="text-xs leading-[19.5px] tracking-[-0.1172px]">
                 {t(
-                  "Certificates are mandatory for matching. Only select certificates that workers currently hold.",
+                  "Certificates are mandatory for matching. Select the certificates currently held by the workers you are making available.",
                 )}
               </p>
             </div>

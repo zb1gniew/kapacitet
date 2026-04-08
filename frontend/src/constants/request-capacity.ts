@@ -1,24 +1,13 @@
 import type {
-  AvailabilityResourceOption,
   AvailabilityStepDefinition,
   AvailabilitySummarySection,
 } from "@/types/availability";
 
 export const REQUEST_CAPACITY_STEPS: AvailabilityStepDefinition[] = [
-  { id: 1, labelKey: "Step 1", titleKey: "Workers" },
+  { id: 1, labelKey: "Step 1", titleKey: "Request" },
   { id: 2, labelKey: "Step 2", titleKey: "Requirements" },
-  { id: 3, labelKey: "Step 3", titleKey: "Period & location" },
-  { id: 4, labelKey: "Step 4", titleKey: "Review & submit" },
-];
-
-export const REQUEST_CAPACITY_RESOURCE_OPTIONS: AvailabilityResourceOption[] = [
-  {
-    id: "workers",
-    icon: "workers",
-    titleKey: "Workers",
-    descriptionKey:
-      "Request temporary skilled workers or craftsmen for a specific period when you have additional capacity needs.",
-  },
+  { id: 3, labelKey: "Step 3", titleKey: "Period and urgency" },
+  { id: 4, labelKey: "Step 4", titleKey: "Review and publish" },
 ];
 
 export const REQUEST_CAPACITY_WORKERS_SUMMARY_SECTIONS: AvailabilitySummarySection[] =

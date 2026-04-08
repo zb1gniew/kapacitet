@@ -8,15 +8,6 @@ export type AvailabilityStepDefinition = {
   titleKey: string;
 };
 
-export type AvailabilityResourceType = "workers";
-
-export type AvailabilityResourceOption = {
-  id: AvailabilityResourceType;
-  icon: "workers";
-  titleKey: string;
-  descriptionKey: string;
-};
-
 export type AvailabilitySummaryRow = {
   labelKey: string;
   valueKey: string;
