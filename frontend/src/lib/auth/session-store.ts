@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import type { AuthSession } from "@/types/auth";
 
 type StoredSession = {
@@ -44,7 +43,7 @@ export async function createServerSession(
   const store = getSessionStore();
   pruneExpiredSessions(store);
 
-  const sessionId = randomUUID();
+  const sessionId = crypto.randomUUID();
   store.set(sessionId, { session, updatedAt: Date.now() });
 
   return sessionId;

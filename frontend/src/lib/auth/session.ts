@@ -1,4 +1,3 @@
-import { createHash } from "crypto";
 import { EncryptJWT, jwtDecrypt } from "jose";
 import {
   AUTH_COOKIE_PATH,
@@ -17,8 +16,10 @@ type TokenPayload<T> = {
   data: T;
 };
 
-function buildEncryptionKey(secret: string): Uint8Array {
-  return createHash("sha256").update(secret, "utf8").digest();
+async function buildEncryptionKey(secret: string): Promise<Uint8Array> {
+  const encodedSecret = new TextEncoder().encode(secret);
+  const digest = await crypto.subtle.digest("SHA-256", encodedSecret);
+  return new Uint8Array(digest);
 }
 
 async function encryptPayload<T>(
@@ -26,7 +27,7 @@ async function encryptPayload<T>(
   maxAgeSeconds: number,
 ): Promise<string> {
   const { sessionSecret } = getAuthConfig();
-  const key = buildEncryptionKey(sessionSecret);
+  const key = await buildEncryptionKey(sessionSecret);
 
   return new EncryptJWT(payload)
     .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
@@ -41,7 +42,7 @@ async function decryptPayload<T>(
 ): Promise<T | null> {
   try {
     const { sessionSecret } = getAuthConfig();
-    const key = buildEncryptionKey(sessionSecret);
+    const key = await buildEncryptionKey(sessionSecret);
     const result = await jwtDecrypt<TokenPayload<T>>(value, key, {
       clockTolerance: 5,
     });
