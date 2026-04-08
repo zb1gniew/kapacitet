@@ -72,7 +72,9 @@ export function DeclareAvailabilityWorkersStep1Screen({
                 {t("Availability window")}
               </p>
               <p className="mt-1 text-sm text-neutral-700">
-                {t("Set the period, location, and matching radius for the availability.")}
+                {t(
+                  "Set the period, location, and matching radius for the availability.",
+                )}
               </p>
             </article>
             <article className="rounded-[12px] border border-blue-100 bg-white px-4 py-3">
@@ -83,7 +85,9 @@ export function DeclareAvailabilityWorkersStep1Screen({
                 {t("Result")}
               </p>
               <p className="mt-1 text-sm text-neutral-700">
-                {t("Review the declaration and publish it to your trusted network.")}
+                {t(
+                  "Review the declaration and publish it to your trusted network.",
+                )}
               </p>
             </article>
           </div>

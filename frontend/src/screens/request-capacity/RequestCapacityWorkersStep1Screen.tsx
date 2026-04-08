@@ -66,7 +66,9 @@ export function RequestCapacityWorkersStep1Screen({
                 {t("Requirements")}
               </p>
               <p className="mt-1 text-sm text-neutral-700">
-                {t("Add worker quantity, trade, and the certificates you require.")}
+                {t(
+                  "Add worker quantity, trade, and the certificates you require.",
+                )}
               </p>
             </article>
             <article className="rounded-[12px] border border-blue-100 bg-white px-4 py-3">
@@ -88,7 +90,9 @@ export function RequestCapacityWorkersStep1Screen({
                 {t("Result")}
               </p>
               <p className="mt-1 text-sm text-neutral-700">
-                {t("Review the request and publish it for matching across the network.")}
+                {t(
+                  "Review the request and publish it for matching across the network.",
+                )}
               </p>
             </article>
           </div>
