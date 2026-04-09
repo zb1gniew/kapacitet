@@ -66,7 +66,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
 
                 // Map email
-                var email = ctx.Principal?.FindFirst("email")?.Value
+                var email = ctx.Principal?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value
+                    ?? ctx.Principal?.FindFirst("email")?.Value
                     ?? ctx.Principal?.FindFirst("preferred_username")?.Value;
                 if (email != null)
                     identity?.AddClaim(new System.Security.Claims.Claim("email", email));
