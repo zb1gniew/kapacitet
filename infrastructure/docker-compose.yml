@@ -12,7 +12,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -20,6 +20,7 @@ services:
       - "8080:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - ./keycloak/kapacitet-realm.json:/opt/keycloak/data/import/kapacitet-realm.json:ro
 
   backend:
     build: ../backend
