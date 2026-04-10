@@ -76,7 +76,9 @@ export function SettingsParticipationVisibilityCard({
         )}
       </p>
 
-      <div className={`mt-5 space-y-3 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}>
+      <div
+        className={`mt-5 space-y-3 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}
+      >
         <SettingsPreferenceCard
           title={t("Receive capacity requests")}
           description={t(

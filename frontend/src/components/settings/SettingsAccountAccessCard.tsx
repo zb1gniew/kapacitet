@@ -27,7 +27,8 @@ function formatRelativeTime(dateStr: string): string {
   const diffDays = Math.floor(diffMs / 86_400_000);
 
   if (diffMin < 60) return `${diffMin} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+  if (diffHours < 24)
+    return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
   return date.toLocaleDateString("en-GB", {
@@ -146,7 +147,9 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
       </h3>
 
       {displayed.length === 0 ? (
-        <p className="mt-3 text-xs text-neutral-500">{t("No recent activity.")}</p>
+        <p className="mt-3 text-xs text-neutral-500">
+          {t("No recent activity.")}
+        </p>
       ) : (
         <div className="mt-3 space-y-2">
           {displayed.map((item, idx) => (

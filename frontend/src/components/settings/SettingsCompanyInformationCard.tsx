@@ -189,7 +189,12 @@ export function SettingsCompanyInformationCard({
 
         <div className="space-y-2">
           <Label label={t("Contact email")} />
-          <Input value={draft.contactEmail} icon="email" type="email" disabled />
+          <Input
+            value={draft.contactEmail}
+            icon="email"
+            type="email"
+            disabled
+          />
           <p className="text-[11px] leading-4 text-neutral-500">
             {t("Primary contact for platform communications")}
           </p>

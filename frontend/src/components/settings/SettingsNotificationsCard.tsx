@@ -95,7 +95,9 @@ export function SettingsNotificationsCard({
         )}
       </p>
 
-      <div className={`mt-5 space-y-4 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}>
+      <div
+        className={`mt-5 space-y-4 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}
+      >
         <section>
           <GroupLabel
             icon={<EmailIcon className="h-4 w-4" />}
