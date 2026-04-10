@@ -1,9 +1,14 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MatchesContent } from "@/components/matches/MatchesContent";
+import { useMatchAction } from "@/hooks/useMatchAction";
+import { useMatchesData } from "@/hooks/useMatchesData";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { isPlatformAdmin } from "@/lib/auth/roles";
+import { deriveMatchesSummary } from "@/lib/matches/derive";
 import type { AuthenticatedUser } from "@/types/auth";
 
 type MatchesScreenProps = {
@@ -12,6 +17,70 @@ type MatchesScreenProps = {
 
 export function MatchesScreen({ user }: MatchesScreenProps) {
   const { t } = useLocalizedScreen();
+  const showAdminTab = isPlatformAdmin(user);
+  const { matches, agreements, loading, error, refreshMatches } =
+    useMatchesData();
+  const { performAction, actionInProgress } = useMatchAction();
+  const [toastError, setToastError] = useState("");
+
+  useEffect(() => {
+    if (!toastError) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setToastError(""), 4500);
+    return () => window.clearTimeout(timer);
+  }, [toastError]);
+
+  const summaryCards = useMemo(
+    () => deriveMatchesSummary(matches, agreements),
+    [agreements, matches],
+  );
+
+  const handleMatchAction = useCallback(
+    async (
+      matchId: number,
+      action: "accept" | "decline" | "supplier-confirm" | "supplier-decline",
+    ) => {
+      const result = await performAction(matchId, action);
+
+      if (result.ok) {
+        await refreshMatches();
+        return;
+      }
+
+      setToastError(result.error);
+    },
+    [performAction, refreshMatches],
+  );
+
+  const handleAccept = useCallback(
+    async (matchId: number) => {
+      await handleMatchAction(matchId, "accept");
+    },
+    [handleMatchAction],
+  );
+
+  const handleDecline = useCallback(
+    async (matchId: number) => {
+      await handleMatchAction(matchId, "decline");
+    },
+    [handleMatchAction],
+  );
+
+  const handleSupplierConfirm = useCallback(
+    async (matchId: number) => {
+      await handleMatchAction(matchId, "supplier-confirm");
+    },
+    [handleMatchAction],
+  );
+
+  const handleSupplierDecline = useCallback(
+    async (matchId: number) => {
+      await handleMatchAction(matchId, "supplier-decline");
+    },
+    [handleMatchAction],
+  );
 
   return (
     <main
@@ -20,11 +89,29 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
       data-node-id="1:4605"
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey="Matches" />
+        <DashboardSidebar
+          t={t}
+          activeItemKey="Matches"
+          workspace={showAdminTab ? "platform" : "company"}
+        />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />
-          <MatchesContent t={t} />
+          <MatchesContent
+            actionInProgress={actionInProgress}
+            agreements={agreements}
+            error={error}
+            loading={loading}
+            matches={matches}
+            onAccept={handleAccept}
+            onDecline={handleDecline}
+            onRetry={refreshMatches}
+            onSupplierConfirm={handleSupplierConfirm}
+            onSupplierDecline={handleSupplierDecline}
+            summaryCards={summaryCards}
+            t={t}
+            toastError={toastError}
+          />
         </div>
       </div>
     </main>
