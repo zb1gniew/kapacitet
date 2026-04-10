@@ -58,8 +58,12 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml. v s / 
 
+# Claude
+
+.claude
+
 ./vs
 
-# claude
-.claude/
- 
+
+
+
