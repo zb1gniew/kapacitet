@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<NetworkResponse> NetworkResponses { get; set; } = null!;
     public DbSet<AccessRequest> AccessRequests { get; set; } = null!;
     public DbSet<PlatformAdminPreferences> PlatformAdminPreferences { get; set; } = null!;
+    public DbSet<CompanySettings> CompanySettings { get; set; } = null!;
+    public DbSet<NotificationPreferences> NotificationPreferences { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

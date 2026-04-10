@@ -21,7 +21,7 @@ export function SettingsAccountAccessScreen({
       activeSection="accountAccess"
       dataNodeId="1:5876"
     >
-      <SettingsAccountAccessCard t={t} />
+      <SettingsAccountAccessCard t={t} user={user} />
     </SettingsScreenLayout>
   );
 }

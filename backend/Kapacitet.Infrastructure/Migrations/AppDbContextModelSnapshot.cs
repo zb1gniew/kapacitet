@@ -302,6 +302,10 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -330,6 +334,34 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("companies", (string)null);
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.CompanySettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AllowPartialMatches")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ParticipateInNetworkWide")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ReceiveCapacityRequests")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId")
+                        .IsUnique();
+
+                    b.ToTable("company_settings", (string)null);
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.CooperationAgreement", b =>
@@ -472,41 +504,6 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.ToTable("match_offers", (string)null);
                 });
 
-            modelBuilder.Entity("Kapacitet.Domain.Entities.PlatformAdminPreferences", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DefaultAccessRequestsTab")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("DefaultAuditFilter")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<bool>("HighlightProvisioningAlerts")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("PrioritizeFollowUpCompanies")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("platform_admin_preferences", (string)null);
-                });
-
             modelBuilder.Entity("Kapacitet.Domain.Entities.NetworkEscalation", b =>
                 {
                     b.Property<int>("Id")
@@ -561,6 +558,78 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.HasIndex("EscalationId");
 
                     b.ToTable("network_responses", (string)null);
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.NotificationPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("EmailActionsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("EmailNewMatches")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("EmailUpcomingCooperation")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("InAppActionsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("InAppNewMatches")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("InAppUpcomingCooperation")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId")
+                        .IsUnique();
+
+                    b.ToTable("notification_preferences", (string)null);
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.PlatformAdminPreferences", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DefaultAccessRequestsTab")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("DefaultAuditFilter")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<bool>("HighlightProvisioningAlerts")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("PrioritizeFollowUpCompanies")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("platform_admin_preferences", (string)null);
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.Skill", b =>
@@ -716,6 +785,17 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.CompanySettings", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
+                        .WithOne("CompanySettings")
+                        .HasForeignKey("Kapacitet.Domain.Entities.CompanySettings", "CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.CooperationAgreement", b =>
                 {
                     b.HasOne("Kapacitet.Domain.Entities.AvailabilityDeclaration", "Availability")
@@ -808,6 +888,17 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("Escalation");
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.NotificationPreferences", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
+                        .WithOne("NotificationPreferences")
+                        .HasForeignKey("Kapacitet.Domain.Entities.NotificationPreferences", "CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.PlatformAdminPreferences", b =>
                 {
                     b.HasOne("Kapacitet.Domain.Entities.User", "User")
@@ -828,8 +919,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
-
-                    b.Navigation("PlatformAdminPreferences");
                 });
 
             modelBuilder.Entity("Kapacitet.Domain.Entities.AvailabilityDeclaration", b =>
@@ -850,7 +939,11 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Navigation("CapacityRequests");
 
+                    b.Navigation("CompanySettings");
+
                     b.Navigation("NetworkResponses");
+
+                    b.Navigation("NotificationPreferences");
 
                     b.Navigation("Users");
                 });
@@ -863,6 +956,11 @@ namespace Kapacitet.Infrastructure.Migrations
             modelBuilder.Entity("Kapacitet.Domain.Entities.NetworkEscalation", b =>
                 {
                     b.Navigation("Responses");
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.User", b =>
+                {
+                    b.Navigation("PlatformAdminPreferences");
                 });
 #pragma warning restore 612, 618
         }

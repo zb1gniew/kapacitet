@@ -27,6 +27,10 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(c => c.ContactPhone)
+            .HasMaxLength(50)
+            .IsRequired(false);
+
         builder.Property(c => c.Status)
             .HasConversion<string>();
 
