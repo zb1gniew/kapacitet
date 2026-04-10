@@ -9,6 +9,7 @@ public class Company
     public string? LogoUrl { get; set; }
     public string Industry { get; set; } = null!;
     public string DefaultLocation { get; set; } = null!;
+    public string? ContactPhone { get; set; }
     public CompanyStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
 
@@ -16,4 +17,6 @@ public class Company
     public ICollection<AvailabilityDeclaration> AvailabilityDeclarations { get; set; } = [];
     public ICollection<CapacityRequest> CapacityRequests { get; set; } = [];
     public ICollection<NetworkResponse> NetworkResponses { get; set; } = [];
+    public CompanySettings? CompanySettings { get; set; }
+    public NotificationPreferences? NotificationPreferences { get; set; }
 }

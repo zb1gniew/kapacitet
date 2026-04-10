@@ -59,4 +59,7 @@ TestResult.xml
 nunit-*.xml. v s / 
 
 ./vs
+
+# claude
+.claude/
  
