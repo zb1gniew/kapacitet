@@ -2,16 +2,19 @@ using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.Matching.Services;
 
 public sealed class MatchingEscalationService
 {
     private readonly AppDbContext _db;
+    private readonly NotificationService _notificationService;
 
-    public MatchingEscalationService(AppDbContext db)
+    public MatchingEscalationService(AppDbContext db, NotificationService notificationService)
     {
         _db = db;
+        _notificationService = notificationService;
     }
 
     public async Task UpsertAsync(CapacityRequest request, bool noOpenOffers)
@@ -40,11 +43,13 @@ public sealed class MatchingEscalationService
                     TriggeredAt = DateTime.UtcNow,
                     Status = NetworkEscalationStatus.Open
                 });
+                await _notificationService.QueueNetworkEscalationNotificationAsync(request.CompanyId, request.Id);
             }
             else if (escalation.Status != NetworkEscalationStatus.Open)
             {
                 escalation.TriggeredAt = DateTime.UtcNow;
                 escalation.Status = NetworkEscalationStatus.Open;
+                await _notificationService.QueueNetworkEscalationNotificationAsync(request.CompanyId, request.Id);
             }
 
             return;

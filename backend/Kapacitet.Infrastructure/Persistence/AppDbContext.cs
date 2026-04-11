@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<PlatformAdminPreferences> PlatformAdminPreferences { get; set; } = null!;
     public DbSet<CompanySettings> CompanySettings { get; set; } = null!;
     public DbSet<NotificationPreferences> NotificationPreferences { get; set; } = null!;
+    public DbSet<Notification> Notifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
