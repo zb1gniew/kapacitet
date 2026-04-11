@@ -3,6 +3,7 @@ using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.Matching.Services;
 
@@ -13,19 +14,22 @@ public sealed class MatchingGenerationService
     private readonly MatchEvaluationService _evaluationService;
     private readonly MatchingEscalationService _escalationService;
     private readonly MatchingQueryService _queryService;
+    private readonly NotificationService _notificationService;
 
     public MatchingGenerationService(
         AppDbContext db,
         MatchingAllocationService allocationService,
         MatchEvaluationService evaluationService,
         MatchingEscalationService escalationService,
-        MatchingQueryService queryService)
+        MatchingQueryService queryService,
+        NotificationService notificationService)
     {
         _db = db;
         _allocationService = allocationService;
         _evaluationService = evaluationService;
         _escalationService = escalationService;
         _queryService = queryService;
+        _notificationService = notificationService;
     }
 
     public async Task<List<MatchOfferDto>> GenerateMatchesForRequestAsync(int requestId)
@@ -110,6 +114,8 @@ public sealed class MatchingGenerationService
             activeRequests.Select(r => r.Id),
             candidates.Select(c => c.Id));
 
+        var newOfferPairs = new List<(MatchOffer offer, int requesterCompanyId, int supplierCompanyId)>();
+
         foreach (var request in activeRequests)
         {
             var requestRemainingQuantity = snapshot.GetRemainingRequestQuantity(request.Id);
@@ -159,6 +165,7 @@ public sealed class MatchingGenerationService
                     var createdOffer = CreateMatchOffer(request, evaluation);
                     _db.MatchOffers.Add(createdOffer);
                     requestOffers.Add(createdOffer);
+                    newOfferPairs.Add((createdOffer, request.CompanyId, evaluation.Availability.CompanyId));
                     continue;
                 }
 
@@ -174,6 +181,15 @@ public sealed class MatchingGenerationService
         }
 
         await _db.SaveChangesAsync();
+
+        foreach (var (offer, requesterCompanyId, supplierCompanyId) in newOfferPairs)
+        {
+            await _notificationService.QueueNewMatchNotificationsAsync(requesterCompanyId, supplierCompanyId, offer.Id);
+        }
+        if (newOfferPairs.Count > 0)
+        {
+            await _db.SaveChangesAsync();
+        }
     }
 
     private async Task<List<AvailabilityDeclaration>> LoadCandidateAvailabilitiesAsync(

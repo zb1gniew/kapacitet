@@ -2,7 +2,7 @@ import { APP_ROUTES } from "@/constants/routes";
 import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
-import { BellIcon } from "./icons";
+import { NotificationBell } from "./NotificationBell";
 
 type DashboardHeaderProps = {
   t: TranslateFn;
@@ -59,14 +59,7 @@ export function DashboardHeader({
             </div>
           </div>
 
-          <button
-            type="button"
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-[10px] border border-neutral-300 bg-[#d4d4d4] text-[#525252] shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)]"
-            aria-label={t("Notifications")}
-          >
-            <BellIcon className="h-5 w-5" />
-            <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border border-white bg-red-500" />
-          </button>
+          <NotificationBell ariaLabel={t("Notifications")} />
         </div>
       </div>
     </header>

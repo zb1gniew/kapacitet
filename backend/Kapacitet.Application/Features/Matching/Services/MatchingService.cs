@@ -4,6 +4,7 @@ using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.Matching.Services;
 
@@ -14,19 +15,22 @@ public class MatchingService
     private readonly MatchingEscalationService _escalationService;
     private readonly MatchingGenerationService _generationService;
     private readonly MatchingQueryService _queryService;
+    private readonly NotificationService _notificationService;
 
     public MatchingService(
         AppDbContext db,
         MatchingAllocationService allocationService,
         MatchingEscalationService escalationService,
         MatchingGenerationService generationService,
-        MatchingQueryService queryService)
+        MatchingQueryService queryService,
+        NotificationService notificationService)
     {
         _db = db;
         _allocationService = allocationService;
         _escalationService = escalationService;
         _generationService = generationService;
         _queryService = queryService;
+        _notificationService = notificationService;
     }
 
     public async Task<List<MatchOfferDto>> GenerateMatchesForRequestAsync(int requestId)
@@ -76,6 +80,9 @@ public class MatchingService
 
         offer.Status = MatchStatus.PendingSupplierConfirmation;
         offer.RequesterReviewedAt = DateTime.UtcNow;
+
+        await _notificationService.QueueSupplierConfirmationNotificationAsync(
+            offer.Availability.CompanyId, offer.Id);
 
         await _db.SaveChangesAsync();
         return MatchOfferMapper.MapToDto(offer, companyId);

@@ -11,6 +11,7 @@ using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.Services;
 using Kapacitet.Application.Features.AdminPreferences.Services;
 using Kapacitet.Application.Features.CompanySettings.Services;
+using Kapacitet.Application.Features.Notifications.Services;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
 using Kapacitet.Infrastructure.Keycloak;
@@ -120,7 +121,8 @@ builder.Services.AddScoped<MatchingAllocationService>();
 builder.Services.AddScoped<MatchingEscalationService>();
 builder.Services.AddScoped<MatchingGenerationService>();
 builder.Services.AddScoped<MatchingQueryService>();
-builder.Services.AddSingleton<MatchEvaluationService>();
+builder.Services.AddScoped<MatchEvaluationService>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 

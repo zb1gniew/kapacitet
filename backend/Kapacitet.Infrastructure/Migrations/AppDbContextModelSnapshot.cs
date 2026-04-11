@@ -560,6 +560,48 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.ToTable("network_responses", (string)null);
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "IsRead");
+
+                    b.ToTable("notifications", (string)null);
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.NotificationPreferences", b =>
                 {
                     b.Property<int>("Id")
@@ -888,6 +930,17 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("Escalation");
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
+                        .WithMany("Notifications")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Kapacitet.Domain.Entities.NotificationPreferences", b =>
                 {
                     b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
@@ -944,6 +997,8 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Navigation("NetworkResponses");
 
                     b.Navigation("NotificationPreferences");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Users");
                 });

@@ -19,4 +19,5 @@ public class Company
     public ICollection<NetworkResponse> NetworkResponses { get; set; } = [];
     public CompanySettings? CompanySettings { get; set; }
     public NotificationPreferences? NotificationPreferences { get; set; }
+    public ICollection<Notification> Notifications { get; set; } = [];
 }
