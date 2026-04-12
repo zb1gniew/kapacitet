@@ -11,10 +11,16 @@ export async function POST() {
       method: "POST",
     });
     if (!response.ok) {
-      return jsonResponse({ message: "Unable to mark all as read." }, response.status);
+      return jsonResponse(
+        { message: "Unable to mark all as read." },
+        response.status,
+      );
     }
     return jsonResponse({}, response.status);
   } catch {
-    return jsonResponse({ message: "Unable to mark all notifications as read." }, 500);
+    return jsonResponse(
+      { message: "Unable to mark all notifications as read." },
+      500,
+    );
   }
 }

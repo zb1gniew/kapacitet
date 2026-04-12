@@ -8,6 +8,10 @@ public class AgreementDto
     public int MatchOfferId { get; set; }
     public int RequestId { get; set; }
     public int AvailabilityId { get; set; }
+    public int? PartnerCompanyId { get; set; }
+    public string? PartnerCompanyName { get; set; }
+    public string? PartnerContactPhone { get; set; }
+    public string? PartnerContactEmail { get; set; }
     public int SupplierCompanyId { get; set; }
     public string SupplierCompanyName { get; set; } = null!;
     public int RequesterCompanyId { get; set; }

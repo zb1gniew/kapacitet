@@ -1,17 +1,20 @@
-import { CheckBadgeIcon, ClockIcon, UsersIcon } from "@/components/auth/icons";
+import {
+  CheckBadgeIcon,
+  ClockIcon,
+  EmailIcon,
+  UsersIcon,
+} from "@/components/auth/icons";
 import { formatDateRange, formatRelativeTime } from "@/lib/matches/derive";
 import type { AgreementResponse } from "@/types/api-matches";
 import type { TranslateFn } from "@/types/i18n";
 
 type MatchesAgreementCardProps = {
   agreement: AgreementResponse;
-  partnerName?: string | null;
   t: TranslateFn;
 };
 
 export function MatchesAgreementCard({
   agreement,
-  partnerName,
   t,
 }: MatchesAgreementCardProps) {
   return (
@@ -32,10 +35,49 @@ export function MatchesAgreementCard({
           </div>
 
           <p className="mt-2 text-sm leading-5 tracking-[-0.1504px] text-neutral-700">
-            {partnerName
-              ? `${t("Partner")}: ${partnerName}`
+            {agreement.partnerCompanyName
+              ? `${t("Partner")}: ${agreement.partnerCompanyName}`
               : t("Partner confirmed")}
           </p>
+
+          <div className="mt-3 rounded-[12px] border border-[#86efac] bg-white/80 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-[#166534] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-white">
+                {t("Next step")}
+              </span>
+              <p className="text-sm font-semibold leading-5 text-[#166534]">
+                {t(
+                  "Contact the partner now to finalize documents and start coordination.",
+                )}
+              </p>
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {agreement.partnerContactPhone ? (
+                <div className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-neutral-500">
+                    {t("Phone")}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold leading-5 text-neutral-900">
+                    {agreement.partnerContactPhone}
+                  </p>
+                </div>
+              ) : null}
+              {agreement.partnerContactEmail ? (
+                <div className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5">
+                  <div className="flex items-center gap-1.5 text-neutral-500">
+                    <EmailIcon className="h-3.5 w-3.5" />
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em]">
+                      {t("Email")}
+                    </p>
+                  </div>
+                  <p className="mt-1 break-all text-sm font-semibold leading-5 text-neutral-900">
+                    {agreement.partnerContactEmail}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           <div className="mt-2.5 flex flex-wrap gap-4 text-xs leading-4 text-neutral-600">
             <p className="inline-flex items-center gap-1.5">

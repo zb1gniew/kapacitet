@@ -45,14 +45,26 @@ internal static class MatchOfferMapper
         };
     }
 
-    public static AgreementDto MapAgreementToDto(CooperationAgreement agreement)
+    public static AgreementDto MapAgreementToDto(CooperationAgreement agreement, int companyId)
     {
+        var partnerCompany = agreement.SupplierCompanyId == companyId
+            ? agreement.RequesterCompany
+            : agreement.SupplierCompany;
+        var partnerContactEmail = partnerCompany.Users
+            .OrderBy(user => user.CreatedAt)
+            .Select(user => user.Email)
+            .FirstOrDefault();
+
         return new AgreementDto
         {
             Id = agreement.Id,
             MatchOfferId = agreement.MatchOfferId,
             RequestId = agreement.RequestId,
             AvailabilityId = agreement.AvailabilityId,
+            PartnerCompanyId = partnerCompany.Id,
+            PartnerCompanyName = partnerCompany.Name,
+            PartnerContactPhone = partnerCompany.ContactPhone,
+            PartnerContactEmail = partnerContactEmail,
             SupplierCompanyId = agreement.SupplierCompanyId,
             SupplierCompanyName = agreement.SupplierCompany.Name,
             RequesterCompanyId = agreement.RequesterCompanyId,

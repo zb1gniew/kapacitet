@@ -13,6 +13,7 @@ export type DashboardNavItemKey =
   | "Home"
   | "Declare availability"
   | "Request capacity"
+  | "Network requests"
   | "Matches"
   | "Settings"
   | "Platform overview"

@@ -183,6 +183,13 @@ public sealed class MatchingAllocationService
 
     private async Task LockRowAsync(string tableName, int id)
     {
+        var lockedTableName = tableName switch
+        {
+            "capacity_requests" => tableName,
+            "availability_declarations" => tableName,
+            _ => throw new InvalidOperationException($"Unsupported allocation lock table: {tableName}")
+        };
+
         var connection = _db.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
         {
@@ -191,7 +198,7 @@ public sealed class MatchingAllocationService
 
         await using var command = connection.CreateCommand();
         command.Transaction = _db.Database.CurrentTransaction!.GetDbTransaction();
-        command.CommandText = $"SELECT id FROM {tableName} WHERE id = @id FOR UPDATE";
+        command.CommandText = $"SELECT \"Id\" FROM {lockedTableName} WHERE \"Id\" = @id FOR UPDATE";
 
         var parameter = command.CreateParameter();
         parameter.ParameterName = "@id";
@@ -201,7 +208,7 @@ public sealed class MatchingAllocationService
         var result = await command.ExecuteScalarAsync();
         if (result is null)
         {
-            throw new KeyNotFoundException($"{tableName} row {id} not found");
+            throw new KeyNotFoundException($"{lockedTableName} row {id} not found");
         }
     }
 }

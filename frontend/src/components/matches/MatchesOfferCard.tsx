@@ -37,6 +37,7 @@ export function MatchesOfferCard({
   t,
 }: MatchesOfferCardProps) {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const isRequesterOffer =
     offer.perspective === "Requester" &&
     offer.status === MATCH_STATUS.PendingRequesterReview;
@@ -161,10 +162,11 @@ export function MatchesOfferCard({
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
+          onClick={() => setShowDetails((current) => !current)}
           className="h-10 flex-1 rounded-[10px] border border-neutral-300 bg-white text-sm font-semibold tracking-[-0.1504px] text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]"
           disabled={isBusy}
         >
-          {t("Review details")}
+          {t(showDetails ? "Hide details" : "Review details")}
         </button>
 
         {isRequesterOffer ? (
@@ -249,6 +251,48 @@ export function MatchesOfferCard({
           </>
         ) : null}
       </div>
+
+      {showDetails ? (
+        <div className="mt-3 rounded-[12px] border border-neutral-200 bg-neutral-50 px-4 py-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
+                {t("Skills")}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {offer.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-[8px] bg-white px-2 py-1 text-xs font-medium text-neutral-700 shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
+                {t("Offer summary")}
+              </p>
+              <ul className="mt-2 space-y-1 text-sm leading-5 text-neutral-700">
+                <li>{`${t("Offered quantity")}: ${offer.offeredQuantity}`}</li>
+                <li>{`${t("Perspective")}: ${t(offer.perspective)}`}</li>
+                <li>{`${t("Status")}: ${t(offer.status)}`}</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
+              {t("Matching explanation")}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-neutral-700">
+              {offer.explanation}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-2.5 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-3 py-2">
         <p className="flex items-start gap-2 text-[11px] leading-[16px] text-[#193cb8]">

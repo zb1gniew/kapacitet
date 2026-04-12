@@ -2,6 +2,7 @@ export const APP_ROUTES = {
   home: "/",
   dashboard: "/dashboard",
   matches: "/dashboard/matches",
+  networkRequests: "/dashboard/network-requests",
   declareAvailabilityWorkersStep1:
     "/dashboard/declare-availability/workers/step-1",
   declareAvailabilityWorkersStep2:

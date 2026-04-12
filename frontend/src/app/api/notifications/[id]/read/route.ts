@@ -26,6 +26,9 @@ export async function POST(
     if (!response.ok) return proxyError(response);
     return jsonResponse({}, response.status);
   } catch {
-    return jsonResponse({ message: "Unable to mark notification as read." }, 500);
+    return jsonResponse(
+      { message: "Unable to mark notification as read." },
+      500,
+    );
   }
 }

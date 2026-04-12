@@ -20,6 +20,9 @@ export async function GET() {
     if (!response.ok) return proxyError(response);
     return jsonResponse(await response.json(), response.status);
   } catch {
-    return jsonResponse({ message: "Unable to load notifications right now." }, 500);
+    return jsonResponse(
+      { message: "Unable to load notifications right now." },
+      500,
+    );
   }
 }

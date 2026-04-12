@@ -127,6 +127,38 @@ public class NotificationService
         // Caller must call SaveChangesAsync.
     }
 
+    // Internal — called when eligible recipient companies should be notified.
+    public async Task QueueNetworkEscalationOutreachNotificationAsync(
+        int recipientCompanyId,
+        int requestId,
+        DateTime triggeredAt)
+    {
+        if (!await IsInAppEnabledAsync(recipientCompanyId, p => p.InAppActionsRequired))
+            return;
+
+        var metadata =
+            $"{{\"requestId\":{requestId},\"triggeredAt\":\"{triggeredAt:O}\"}}";
+
+        var exists = await _db.Notifications.AnyAsync(n =>
+            n.CompanyId == recipientCompanyId &&
+            n.Type == NotificationType.NetworkEscalation &&
+            n.Metadata == metadata);
+
+        if (exists)
+            return;
+
+        _db.Notifications.Add(new Notification
+        {
+            CompanyId = recipientCompanyId,
+            Type = NotificationType.NetworkEscalation,
+            Title = "Action required: network request",
+            Body = "A high-priority network request is awaiting your company's response.",
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow,
+            Metadata = metadata
+        });
+    }
+
     // Default to true if company has no preferences row yet.
     private async Task<bool> IsInAppEnabledAsync(int companyId, Func<NotificationPreferences, bool> selector)
     {

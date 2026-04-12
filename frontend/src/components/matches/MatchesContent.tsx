@@ -5,7 +5,6 @@ import {
   deriveAwaitingOffers,
   deriveRequesterPendingOffers,
   deriveSupplierPendingOffers,
-  getAgreementPartnerName,
 } from "@/lib/matches/derive";
 import {
   AGREEMENT_STATUS,
@@ -58,12 +57,9 @@ export function MatchesContent({
     ...supplierPendingOffers,
   ].sort((left, right) => right.matchScore - left.matchScore);
   const awaitingOffers = deriveAwaitingOffers(matches);
-  const activeAgreements = agreements
-    .filter((agreement) => agreement.status === AGREEMENT_STATUS.Active)
-    .map((agreement) => ({
-      agreement,
-      partnerName: getAgreementPartnerName(agreement, matches),
-    }));
+  const activeAgreements = agreements.filter(
+    (agreement) => agreement.status === AGREEMENT_STATUS.Active,
+  );
   const hasLoadedData = matches.length > 0 || agreements.length > 0;
   const showInitialLoading = loading && !hasLoadedData;
   const showRefreshing = loading && hasLoadedData;
@@ -213,11 +209,10 @@ export function MatchesContent({
           </div>
 
           <div className="space-y-3">
-            {activeAgreements.map(({ agreement, partnerName }) => (
+            {activeAgreements.map((agreement) => (
               <MatchesAgreementCard
                 key={agreement.id}
                 agreement={agreement}
-                partnerName={partnerName}
                 t={t}
               />
             ))}
