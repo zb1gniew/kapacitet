@@ -6,8 +6,7 @@ import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLa
 import { PlatformCollectionToolbar } from "@/components/admin/platform/PlatformCollectionToolbar";
 import { PlatformSummaryCard } from "@/components/admin/platform/PlatformSummaryCard";
 import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurfaceCard";
-import { deriveAuditTimelineEvents } from "@/components/admin/platform/utils";
-import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
+import { useAdminAudit } from "@/hooks/useAdminAudit";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { usePlatformAdminPreferences } from "@/hooks/usePlatformAdminPreferences";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -19,7 +18,7 @@ type PlatformAuditScreenProps = {
 
 export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
   const { t } = useLocalizedScreen();
-  const { requests, loading, errorMessage } = useAdminAccessRequests();
+  const { events, loading, errorMessage } = useAdminAudit();
   const { preferences } = usePlatformAdminPreferences();
   const [currentTimestamp] = useState(() => Date.now());
   const [searchValue, setSearchValue] = useState("");
@@ -30,28 +29,24 @@ export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
 
   const metrics = useMemo(() => {
     const oneDayInMs = 24 * 60 * 60 * 1000;
-    const reviewedRequests = requests.filter((request) => request.reviewedAt);
-    const reviewsToday = reviewedRequests.filter((request) => {
-      if (!request.reviewedAt) {
-        return false;
-      }
-
-      const reviewedTime = new Date(request.reviewedAt).getTime();
+    const decisionEvents = events.filter(
+      (event) => event.type === "Approval" || event.type === "Rejection",
+    );
+    const reviewsToday = decisionEvents.filter((event) => {
+      const reviewedTime = new Date(event.timestamp).getTime();
       return (
         !Number.isNaN(reviewedTime) &&
         currentTimestamp - reviewedTime <= oneDayInMs
       );
     }).length;
-    const rejectedCount = requests.filter(
-      (request) => request.status === "Rejected",
+    const rejectedCount = events.filter(
+      (event) => event.type === "Rejection",
     ).length;
-    const provisioningFollowUp = requests.filter(
-      (request) =>
-        request.status === "Approved" && !request.provisionedCompanyId,
+    const provisioningEvents = events.filter(
+      (event) => event.type === "Provisioning",
     ).length;
-    const provisionedEvents = requests.filter(
-      (request) =>
-        request.status === "Approved" && request.provisionedCompanyId,
+    const submissionEvents = events.filter(
+      (event) => event.type === "Submission",
     ).length;
 
     return [
@@ -63,7 +58,7 @@ export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
       },
       {
         label: "Review events",
-        value: loading ? "..." : String(reviewedRequests.length),
+        value: loading ? "..." : String(decisionEvents.length),
         helper: "Requests with an approve or reject decision recorded.",
         tone: "amber" as const,
       },
@@ -74,18 +69,16 @@ export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
         tone: "green" as const,
       },
       {
-        label: "Provisioning follow-up",
-        value: loading ? "..." : String(provisioningFollowUp),
+        label: "Provisioning events",
+        value: loading ? "..." : String(provisioningEvents),
         helper:
-          provisionedEvents > 0
-            ? `${provisionedEvents} approved requests already completed provisioning.`
-            : "No approved requests have completed provisioning yet.",
+          submissionEvents > 0
+            ? `${submissionEvents} submissions are represented in the audit timeline.`
+            : "No submissions have been recorded yet.",
         tone: "slate" as const,
       },
     ];
-  }, [currentTimestamp, loading, requests]);
-
-  const events = useMemo(() => deriveAuditTimelineEvents(requests), [requests]);
+  }, [currentTimestamp, events, loading]);
 
   const filteredEvents = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();

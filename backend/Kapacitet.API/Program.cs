@@ -10,6 +10,7 @@ using Kapacitet.Application.Features.CapacityRequests.Services;
 using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.Services;
 using Kapacitet.Application.Features.AdminPreferences.Services;
+using Kapacitet.Application.Features.Admin.Services;
 using Kapacitet.Application.Features.CompanySettings.Services;
 using Kapacitet.Application.Features.NetworkEscalations.Services;
 using Kapacitet.Application.Features.Notifications.Services;
@@ -112,6 +113,7 @@ builder.Services.AddScoped<OnboardingService>();
 
 // Admin preferences
 builder.Services.AddScoped<PlatformAdminPreferencesService>();
+builder.Services.AddScoped<AdminDataService>();
 
 // Company settings
 builder.Services.AddScoped<CompanyService>();

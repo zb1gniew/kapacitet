@@ -6,11 +6,8 @@ import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLa
 import { PlatformCollectionToolbar } from "@/components/admin/platform/PlatformCollectionToolbar";
 import { PlatformSummaryCard } from "@/components/admin/platform/PlatformSummaryCard";
 import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurfaceCard";
-import {
-  deriveCompanyRegistryRecords,
-  formatPlatformDateTime,
-} from "@/components/admin/platform/utils";
-import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
+import { formatPlatformDateTime } from "@/components/admin/platform/utils";
+import { useAdminCompanies } from "@/hooks/useAdminCompanies";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { usePlatformAdminPreferences } from "@/hooks/usePlatformAdminPreferences";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -27,16 +24,11 @@ export function PlatformCompaniesScreen({
   user,
 }: PlatformCompaniesScreenProps) {
   const { t } = useLocalizedScreen();
-  const { requests, loading, errorMessage } = useAdminAccessRequests();
+  const { records, loading, errorMessage } = useAdminCompanies();
   const { preferences } = usePlatformAdminPreferences();
   const [searchValue, setSearchValue] = useState("");
   const [activeFilter, setActiveFilter] =
     useState<CompanyRegistryFilterTab>("All");
-
-  const records = useMemo(
-    () => deriveCompanyRegistryRecords(requests),
-    [requests],
-  );
 
   const metrics = useMemo(() => {
     const provisionedRecords = records.filter(
