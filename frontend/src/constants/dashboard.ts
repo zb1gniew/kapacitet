@@ -17,6 +17,11 @@ const COMPANY_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     icon: "search",
     href: APP_ROUTES.requestCapacityWorkersStep1,
   },
+  {
+    key: "Network requests",
+    icon: "matches",
+    href: APP_ROUTES.networkRequests,
+  },
   { key: "Matches", icon: "matches", href: APP_ROUTES.matches },
   { key: "Settings", icon: "settings", href: APP_ROUTES.settings },
 ];

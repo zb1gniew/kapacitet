@@ -68,19 +68,23 @@ public sealed class MatchingQueryService
     {
         var agreements = await _db.CooperationAgreements
             .Include(a => a.SupplierCompany)
+            .ThenInclude(c => c.Users)
             .Include(a => a.RequesterCompany)
+            .ThenInclude(c => c.Users)
             .Where(a => a.SupplierCompanyId == companyId || a.RequesterCompanyId == companyId)
             .OrderByDescending(a => a.ConfirmedAt)
             .ToListAsync();
 
-        return agreements.Select(MatchOfferMapper.MapAgreementToDto).ToList();
+        return agreements.Select(agreement => MatchOfferMapper.MapAgreementToDto(agreement, companyId)).ToList();
     }
 
     public async Task<AgreementDto> GetAgreementByIdAsync(int agreementId, int companyId)
     {
         var agreement = await _db.CooperationAgreements
             .Include(a => a.SupplierCompany)
+            .ThenInclude(c => c.Users)
             .Include(a => a.RequesterCompany)
+            .ThenInclude(c => c.Users)
             .FirstOrDefaultAsync(a => a.Id == agreementId)
             ?? throw new KeyNotFoundException($"Agreement {agreementId} not found");
 
@@ -89,7 +93,7 @@ public sealed class MatchingQueryService
             throw new UnauthorizedAccessException("Only participating companies can view this agreement");
         }
 
-        return MatchOfferMapper.MapAgreementToDto(agreement);
+        return MatchOfferMapper.MapAgreementToDto(agreement, companyId);
     }
 
     public async Task<CapacityRequest?> LoadRequestAsync(int requestId)

@@ -198,17 +198,3 @@ export function formatExpiresAt(isoDate: string) {
     year: "numeric",
   }).format(new Date(timestamp))}`;
 }
-
-export function getAgreementPartnerName(
-  agreement: AgreementResponse,
-  matches: MatchOfferResponse[],
-) {
-  const relatedMatch = matches.find(
-    (offer) => offer.id === agreement.matchOfferId,
-  );
-  return (
-    relatedMatch?.partnerCompanyName ??
-    agreement.supplierCompanyName ??
-    agreement.requesterCompanyName
-  );
-}

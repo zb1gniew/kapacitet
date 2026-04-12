@@ -63,6 +63,10 @@ export type AgreementResponse = {
   matchOfferId: number;
   requestId: number;
   availabilityId: number;
+  partnerCompanyId: number | null;
+  partnerCompanyName: string | null;
+  partnerContactPhone: string | null;
+  partnerContactEmail: string | null;
   supplierCompanyId: number;
   supplierCompanyName: string;
   requesterCompanyId: number;
