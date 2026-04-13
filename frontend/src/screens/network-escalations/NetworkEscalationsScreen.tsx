@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { NetworkEscalationsContent } from "@/components/network-escalations/NetworkEscalationsContent";
@@ -17,11 +18,13 @@ type NetworkEscalationsScreenProps = {
 export function NetworkEscalationsScreen({
   user,
 }: NetworkEscalationsScreenProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const { escalations, loading, error, refreshEscalations } =
     useNetworkEscalationsData();
   const { submitResponse, actionInProgress } = useNetworkEscalationAction();
   const [toastError, setToastError] = useState("");
+  const highlightedRequestId = Number(searchParams.get("requestId")) || null;
 
   useEffect(() => {
     if (!toastError) {
@@ -31,6 +34,17 @@ export function NetworkEscalationsScreen({
     const timer = window.setTimeout(() => setToastError(""), 4500);
     return () => window.clearTimeout(timer);
   }, [toastError]);
+
+  useEffect(() => {
+    if (loading || !highlightedRequestId) {
+      return;
+    }
+
+    const target = document.getElementById(
+      `network-request-${highlightedRequestId}`,
+    );
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedRequestId, loading]);
 
   const handleRespond = useCallback(
     async (escalationId: number, responseType: NetworkResponseType) => {
@@ -61,6 +75,7 @@ export function NetworkEscalationsScreen({
             actionInProgress={actionInProgress}
             error={error}
             escalations={escalations}
+            highlightedRequestId={highlightedRequestId}
             loading={loading}
             onRespond={handleRespond}
             onRetry={refreshEscalations}

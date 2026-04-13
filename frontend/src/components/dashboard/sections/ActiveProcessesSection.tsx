@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import type { DashboardProcess, DashboardTone } from "@/types/dashboard";
 import type { TranslateFn } from "@/types/i18n";
@@ -63,15 +64,13 @@ function ProcessItem({ process }: ProcessItemProps) {
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-neutral-100 pt-2">
         <p className="text-[10px] text-neutral-500">{process.meta}</p>
-        <button
-          type="button"
-          data-process-kind={process.kind}
-          data-item-id={process.id}
+        <Link
+          href={process.href}
           className="inline-flex items-center gap-1 text-xs font-bold text-blue-700"
         >
           <span>{process.cta}</span>
           <ArrowRightIcon className="h-3.5 w-3.5" />
-        </button>
+        </Link>
       </div>
     </article>
   );

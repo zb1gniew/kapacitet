@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MatchesContent } from "@/components/matches/MatchesContent";
@@ -16,12 +17,16 @@ type MatchesScreenProps = {
 };
 
 export function MatchesScreen({ user }: MatchesScreenProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const showAdminTab = isPlatformAdmin(user);
   const { matches, agreements, loading, error, refreshMatches } =
     useMatchesData();
   const { performAction, actionInProgress } = useMatchAction();
   const [toastError, setToastError] = useState("");
+  const highlightedMatchId = Number(searchParams.get("matchId")) || null;
+  const highlightedAgreementId =
+    Number(searchParams.get("agreementId")) || null;
 
   useEffect(() => {
     if (!toastError) {
@@ -31,6 +36,25 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
     const timer = window.setTimeout(() => setToastError(""), 4500);
     return () => window.clearTimeout(timer);
   }, [toastError]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const targetId = highlightedAgreementId
+      ? `agreement-${highlightedAgreementId}`
+      : highlightedMatchId
+        ? `match-offer-${highlightedMatchId}`
+        : null;
+
+    if (!targetId) {
+      return;
+    }
+
+    const target = document.getElementById(targetId);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedAgreementId, highlightedMatchId, loading]);
 
   const summaryCards = useMemo(
     () => deriveMatchesSummary(matches, agreements),
@@ -101,6 +125,8 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
             actionInProgress={actionInProgress}
             agreements={agreements}
             error={error}
+            highlightedAgreementId={highlightedAgreementId}
+            highlightedMatchId={highlightedMatchId}
             loading={loading}
             matches={matches}
             onAccept={handleAccept}

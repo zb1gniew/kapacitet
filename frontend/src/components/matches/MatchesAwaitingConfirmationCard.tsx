@@ -11,11 +11,13 @@ import type { TranslateFn } from "@/types/i18n";
 
 type MatchesAwaitingConfirmationCardProps = {
   offer: MatchOfferResponse;
+  highlighted?: boolean;
   t: TranslateFn;
 };
 
 export function MatchesAwaitingConfirmationCard({
   offer,
+  highlighted = false,
   t,
 }: MatchesAwaitingConfirmationCardProps) {
   const [showDetails, setShowDetails] = useState(false);
@@ -25,7 +27,14 @@ export function MatchesAwaitingConfirmationCard({
       : "Your availability was matched. The requesting company is reviewing the offer.";
 
   return (
-    <article className="rounded-[14px] border border-[#ffd230] bg-[#fffbeb] px-4 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+    <article
+      id={`match-offer-${offer.id}`}
+      className={`rounded-[14px] border bg-[#fffbeb] px-4 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-[#ffd230]"
+      }`}
+    >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#fe9a00] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)]">
           <UsersIcon className="h-6 w-6" />

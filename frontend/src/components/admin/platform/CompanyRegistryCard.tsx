@@ -5,6 +5,7 @@ import { formatPlatformDateTime } from "./utils";
 
 type CompanyRegistryCardProps = {
   record: CompanyRegistryRecord;
+  highlighted?: boolean;
 };
 
 function getStatusClasses(status: CompanyRegistryRecord["status"]) {
@@ -13,9 +14,25 @@ function getStatusClasses(status: CompanyRegistryRecord["status"]) {
     : "border-[#fde68a] bg-[#fff8db] text-[#92400e]";
 }
 
-export function CompanyRegistryCard({ record }: CompanyRegistryCardProps) {
+export function CompanyRegistryCard({
+  record,
+  highlighted = false,
+}: CompanyRegistryCardProps) {
+  const recordDomId =
+    record.companyId ??
+    record.provisionedCompanyId ??
+    record.requestId ??
+    record.companyName;
+
   return (
-    <article className="rounded-[16px] border border-neutral-200 bg-white p-5 shadow-[0_10px_15px_rgba(0,0,0,0.08),0_4px_6px_rgba(0,0,0,0.08)]">
+    <article
+      id={`company-registry-${recordDomId}`}
+      className={`rounded-[16px] border bg-white p-5 shadow-[0_10px_15px_rgba(0,0,0,0.08),0_4px_6px_rgba(0,0,0,0.08)] transition ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-neutral-200"
+      }`}
+    >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">

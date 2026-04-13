@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuditTimelineEventCard } from "@/components/admin/platform/AuditTimelineEventCard";
 import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLayout";
 import { PlatformCollectionToolbar } from "@/components/admin/platform/PlatformCollectionToolbar";
@@ -17,6 +18,7 @@ type PlatformAuditScreenProps = {
 };
 
 export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const { events, loading, errorMessage } = useAdminAudit();
   const { preferences } = usePlatformAdminPreferences();
@@ -25,7 +27,34 @@ export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
   const [activeFilter, setActiveFilter] = useState<AuditEventFilterTab | null>(
     null,
   );
-  const currentFilter = activeFilter ?? preferences.defaultAuditFilter;
+  const highlightedEventId = searchParams.get("eventId");
+
+  const highlightedEvent = useMemo(
+    () =>
+      highlightedEventId
+        ? (events.find((event) => event.id === highlightedEventId) ?? null)
+        : null,
+    [events, highlightedEventId],
+  );
+
+  const currentFilter =
+    activeFilter ??
+    (highlightedEvent
+      ? highlightedEvent.type === "Submission"
+        ? "Submissions"
+        : highlightedEvent.type === "Provisioning"
+          ? "Provisioning"
+          : "Decisions"
+      : preferences.defaultAuditFilter);
+
+  useEffect(() => {
+    if (loading || !highlightedEventId) {
+      return;
+    }
+
+    const target = document.getElementById(`audit-event-${highlightedEventId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedEventId, loading]);
 
   const metrics = useMemo(() => {
     const oneDayInMs = 24 * 60 * 60 * 1000;
@@ -195,7 +224,11 @@ export function PlatformAuditScreen({ user }: PlatformAuditScreenProps) {
 
           {!loading
             ? filteredEvents.map((event) => (
-                <AuditTimelineEventCard key={event.id} event={event} />
+                <AuditTimelineEventCard
+                  key={event.id}
+                  event={event}
+                  highlighted={highlightedEventId === event.id}
+                />
               ))
             : null}
         </div>
