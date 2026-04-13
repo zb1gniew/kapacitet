@@ -121,6 +121,8 @@ public class CompanyService
         prefs.InAppNewMatches = dto.InAppNewMatches;
         prefs.InAppActionsRequired = dto.InAppActionsRequired;
         prefs.InAppUpcomingCooperation = dto.InAppUpcomingCooperation;
+        prefs.EmailNetworkRequests = dto.EmailNetworkRequests;
+        prefs.InAppNetworkRequests = dto.InAppNetworkRequests;
 
         await _db.SaveChangesAsync();
         return MapToNotificationDto(prefs);
@@ -300,7 +302,9 @@ public class CompanyService
             EmailUpcomingCooperation = n.EmailUpcomingCooperation,
             InAppNewMatches = n.InAppNewMatches,
             InAppActionsRequired = n.InAppActionsRequired,
-            InAppUpcomingCooperation = n.InAppUpcomingCooperation
+            InAppUpcomingCooperation = n.InAppUpcomingCooperation,
+            EmailNetworkRequests = n.EmailNetworkRequests,
+            InAppNetworkRequests = n.InAppNetworkRequests
         };
     }
 }

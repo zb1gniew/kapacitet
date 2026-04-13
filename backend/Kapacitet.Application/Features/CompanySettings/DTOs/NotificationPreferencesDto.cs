@@ -8,4 +8,6 @@ public class NotificationPreferencesDto
     public bool InAppNewMatches { get; set; }
     public bool InAppActionsRequired { get; set; }
     public bool InAppUpcomingCooperation { get; set; }
+    public bool EmailNetworkRequests { get; set; }
+    public bool InAppNetworkRequests { get; set; }
 }

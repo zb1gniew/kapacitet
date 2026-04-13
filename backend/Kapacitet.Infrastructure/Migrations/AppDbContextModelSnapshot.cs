@@ -390,6 +390,9 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("ReminderEmailSentAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("RequestId")
                         .HasColumnType("integer");
 
@@ -616,6 +619,9 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.Property<bool>("EmailActionsRequired")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("EmailNetworkRequests")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("EmailNewMatches")
                         .HasColumnType("boolean");
 
@@ -623,6 +629,9 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("InAppActionsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("InAppNetworkRequests")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("InAppNewMatches")

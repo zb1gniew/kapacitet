@@ -16,6 +16,7 @@ public class CooperationAgreement
     public AgreementStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime ConfirmedAt { get; set; }
+    public DateTime? ReminderEmailSentAt { get; set; }
 
     public MatchOffer MatchOffer { get; set; } = null!;
     public CapacityRequest Request { get; set; } = null!;

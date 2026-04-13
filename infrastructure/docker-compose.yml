@@ -30,6 +30,9 @@ services:
       Keycloak__MetadataAddress: http://host.docker.internal:8080/realms/kapacitet/.well-known/openid-configuration
       Keycloak__ClientId: kapacitet-app
       KeycloakAdmin__BaseUrl: http://host.docker.internal:8080
+      Email__ApiKey: ${Email__ApiKey:-}
+      Email__FromAddress: ${Email__FromAddress:-onboarding@resend.dev}
+      Email__DevMode: ${Email__DevMode:-true}
     ports:
       - "5051:8080"
     depends_on:
