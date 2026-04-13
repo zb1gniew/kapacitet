@@ -6,6 +6,7 @@ import type { TranslateFn } from "@/types/i18n";
 
 type NetworkEscalationsContentProps = {
   escalations: NetworkEscalationResponse[];
+  highlightedRequestId?: number | null;
   loading: boolean;
   error: string | null;
   toastError: string;
@@ -58,6 +59,7 @@ function urgencyBadgeClass(urgency: NetworkEscalationResponse["urgency"]) {
 
 export function NetworkEscalationsContent({
   escalations,
+  highlightedRequestId,
   loading,
   error,
   toastError,
@@ -138,7 +140,12 @@ export function NetworkEscalationsContent({
             return (
               <article
                 key={escalation.id}
-                className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]"
+                id={`network-request-${escalation.requestId}`}
+                className={`rounded-[14px] border bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition ${
+                  highlightedRequestId === escalation.requestId
+                    ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+                    : "border-neutral-200"
+                }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

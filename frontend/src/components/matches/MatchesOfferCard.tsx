@@ -24,6 +24,7 @@ type MatchesOfferCardProps = {
   onSupplierConfirm: (matchId: number) => void | Promise<void>;
   onSupplierDecline: (matchId: number) => void | Promise<void>;
   actionInProgress: number | null;
+  highlighted?: boolean;
   t: TranslateFn;
 };
 
@@ -34,6 +35,7 @@ export function MatchesOfferCard({
   onSupplierConfirm,
   onSupplierDecline,
   actionInProgress,
+  highlighted = false,
   t,
 }: MatchesOfferCardProps) {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -75,7 +77,14 @@ export function MatchesOfferCard({
   }
 
   return (
-    <article className="rounded-[14px] border border-neutral-200 bg-white px-3 py-3 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] sm:px-4">
+    <article
+      id={`match-offer-${offer.id}`}
+      className={`rounded-[14px] border bg-white px-3 py-3 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition sm:px-4 ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-neutral-200"
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-3">

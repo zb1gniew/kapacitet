@@ -21,6 +21,8 @@ import { MatchesSummaryCards } from "./MatchesSummaryCards";
 
 type MatchesContentProps = {
   agreements: AgreementResponse[];
+  highlightedAgreementId?: number | null;
+  highlightedMatchId?: number | null;
   error: string | null;
   loading: boolean;
   matches: MatchOfferResponse[];
@@ -37,6 +39,8 @@ type MatchesContentProps = {
 
 export function MatchesContent({
   agreements,
+  highlightedAgreementId,
+  highlightedMatchId,
   error,
   loading,
   matches,
@@ -157,6 +161,7 @@ export function MatchesContent({
               <MatchesOfferCard
                 key={offer.id}
                 actionInProgress={actionInProgress}
+                highlighted={highlightedMatchId === offer.id}
                 offer={offer}
                 onAccept={onAccept}
                 onDecline={onDecline}
@@ -189,6 +194,7 @@ export function MatchesContent({
             {awaitingOffers.map((offer) => (
               <MatchesAwaitingConfirmationCard
                 key={offer.id}
+                highlighted={highlightedMatchId === offer.id}
                 offer={offer}
                 t={t}
               />
@@ -213,6 +219,7 @@ export function MatchesContent({
               <MatchesAgreementCard
                 key={agreement.id}
                 agreement={agreement}
+                highlighted={highlightedAgreementId === agreement.id}
                 t={t}
               />
             ))}

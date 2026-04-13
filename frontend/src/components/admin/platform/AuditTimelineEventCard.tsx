@@ -3,6 +3,7 @@ import { formatPlatformDateTime } from "./utils";
 
 type AuditTimelineEventCardProps = {
   event: AuditTimelineEvent;
+  highlighted?: boolean;
 };
 
 function getEventClasses(type: AuditTimelineEvent["type"]) {
@@ -18,9 +19,19 @@ function getEventClasses(type: AuditTimelineEvent["type"]) {
   }
 }
 
-export function AuditTimelineEventCard({ event }: AuditTimelineEventCardProps) {
+export function AuditTimelineEventCard({
+  event,
+  highlighted = false,
+}: AuditTimelineEventCardProps) {
   return (
-    <article className="rounded-[16px] border border-neutral-200 bg-white p-5 shadow-[0_10px_15px_rgba(0,0,0,0.08),0_4px_6px_rgba(0,0,0,0.08)]">
+    <article
+      id={`audit-event-${event.id}`}
+      className={`rounded-[16px] border bg-white p-5 shadow-[0_10px_15px_rgba(0,0,0,0.08),0_4px_6px_rgba(0,0,0,0.08)] transition ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-neutral-200"
+      }`}
+    >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">

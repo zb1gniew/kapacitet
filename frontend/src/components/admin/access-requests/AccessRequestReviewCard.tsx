@@ -5,6 +5,7 @@ import { formatAccessRequestDate, formatAccessRequestDateTime } from "./utils";
 
 type AccessRequestReviewCardProps = {
   request: AccessRequest;
+  highlighted?: boolean;
   onApprove: () => void;
   onReject: () => void;
 };
@@ -36,13 +37,21 @@ function InfoPill({ label, value, icon }: InfoPillProps) {
 
 export function AccessRequestReviewCard({
   request,
+  highlighted = false,
   onApprove,
   onReject,
 }: AccessRequestReviewCardProps) {
   const reviewedAtLabel = formatAccessRequestDateTime(request.reviewedAt);
 
   return (
-    <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+    <article
+      id={`access-request-${request.id}`}
+      className={`rounded-[14px] border bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-neutral-200"
+      }`}
+    >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start gap-3">

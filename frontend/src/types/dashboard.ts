@@ -60,6 +60,7 @@ export type DashboardProcess = {
   status: string;
   statusTone: DashboardTone;
   cta: string;
+  href: string;
 };
 
 export type DashboardReminder = {
@@ -78,6 +79,7 @@ export type DashboardActionBanner = {
   title: string;
   description: string;
   cta: string;
+  href: string;
 };
 
 export type DashboardData = {

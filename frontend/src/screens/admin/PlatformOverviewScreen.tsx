@@ -6,12 +6,13 @@ import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLa
 import { PlatformSummaryCard } from "@/components/admin/platform/PlatformSummaryCard";
 import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurfaceCard";
 import {
-  deriveCompanyRegistryRecords,
   formatPlatformDate,
   formatPlatformDateTime,
 } from "@/components/admin/platform/utils";
 import { APP_ROUTES } from "@/constants/routes";
+import { useAdminAudit } from "@/hooks/useAdminAudit";
 import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
+import { useAdminCompanies } from "@/hooks/useAdminCompanies";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { usePlatformAdminPreferences } from "@/hooks/usePlatformAdminPreferences";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -22,26 +23,47 @@ type PlatformOverviewScreenProps = {
 
 export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
   const { t } = useLocalizedScreen();
-  const { requests, loading, errorMessage } = useAdminAccessRequests();
+  const {
+    requests,
+    loading: requestsLoading,
+    errorMessage: requestsErrorMessage,
+  } = useAdminAccessRequests();
+  const {
+    records,
+    loading: companiesLoading,
+    errorMessage: companiesErrorMessage,
+  } = useAdminCompanies();
+  const {
+    events,
+    loading: auditLoading,
+    errorMessage: auditErrorMessage,
+  } = useAdminAudit();
   const { preferences } = usePlatformAdminPreferences();
+  const loading = requestsLoading || companiesLoading || auditLoading;
+  const errorMessages = [
+    requestsErrorMessage,
+    companiesErrorMessage,
+    auditErrorMessage,
+  ].filter(Boolean);
 
   const metrics = useMemo(() => {
     const pendingCount = requests.filter(
       (request) => request.status === "Pending",
     ).length;
-    const approvedRequests = requests.filter(
-      (request) => request.status === "Approved",
-    );
-    const reviewedCount = requests.filter(
-      (request) => request.reviewedAt,
+    const reviewedCount = events.filter(
+      (event) => event.type === "Approval" || event.type === "Rejection",
     ).length;
     const uniqueProvisionedCompanies = new Set(
-      approvedRequests
-        .map((request) => request.provisionedCompanyId)
+      records
+        .filter((record) => record.status === "Provisioned")
+        .map(
+          (record) =>
+            record.provisionedCompanyId ?? record.companyId ?? record.requestId,
+        )
         .filter((value): value is number => typeof value === "number"),
     ).size;
-    const provisioningAlerts = approvedRequests.filter(
-      (request) => !request.provisionedCompanyId,
+    const provisioningAlerts = records.filter(
+      (record) => record.status === "Needs follow-up",
     ).length;
 
     return [
@@ -72,7 +94,13 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
         tone: "slate" as const,
       },
     ];
-  }, [loading, preferences.highlightProvisioningAlerts, requests]);
+  }, [
+    events,
+    loading,
+    preferences.highlightProvisioningAlerts,
+    records,
+    requests,
+  ]);
 
   const pendingRequests = useMemo(
     () =>
@@ -89,23 +117,30 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
 
   const recentDecisions = useMemo(
     () =>
-      requests
-        .filter((request) => request.reviewedAt)
+      events
+        .filter(
+          (event) => event.type === "Approval" || event.type === "Rejection",
+        )
+        .sort(
+          (left, right) =>
+            new Date(right.timestamp).getTime() -
+            new Date(left.timestamp).getTime(),
+        )
+        .slice(0, 4),
+    [events],
+  );
+
+  const followUpCompanies = useMemo(
+    () =>
+      records
+        .filter((record) => record.status === "Needs follow-up")
         .sort(
           (left, right) =>
             new Date(right.reviewedAt ?? right.createdAt).getTime() -
             new Date(left.reviewedAt ?? left.createdAt).getTime(),
         )
         .slice(0, 4),
-    [requests],
-  );
-
-  const followUpCompanies = useMemo(
-    () =>
-      deriveCompanyRegistryRecords(requests)
-        .filter((record) => record.status === "Needs follow-up")
-        .slice(0, 4),
-    [requests],
+    [records],
   );
 
   return (
@@ -125,11 +160,14 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
         ))}
       </section>
 
-      {errorMessage ? (
-        <div className="mt-4 rounded-[12px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-sm text-[#b91c1c]">
-          {errorMessage}
+      {errorMessages.map((message) => (
+        <div
+          key={message}
+          className="mt-4 rounded-[12px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-sm text-[#b91c1c]"
+        >
+          {message}
         </div>
-      ) : null}
+      ))}
 
       <section className="mt-6 grid gap-4 xl:grid-cols-2">
         <PlatformSurfaceCard
@@ -143,7 +181,7 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
               title: request.name,
               meta: `${request.industry} · ${request.location}`,
               helper: `Submitted ${formatPlatformDate(request.createdAt)} · ${request.contactEmail}`,
-              href: APP_ROUTES.adminAccessRequests,
+              href: `${APP_ROUTES.adminAccessRequests}?requestId=${request.id}`,
               statusLabel: "Pending",
               statusTone: "warning" as const,
             }))}
@@ -158,21 +196,25 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
           description="The most recent approval and rejection decisions across company onboarding."
         >
           <PlatformActivityList
-            items={recentDecisions.map((request) => ({
-              id: `decision-${request.id}`,
-              title: request.name,
-              meta: `${request.status} on ${formatPlatformDateTime(
-                request.reviewedAt,
+            items={recentDecisions.map((event) => ({
+              id: `decision-${event.id}`,
+              title: event.companyName,
+              meta: `${event.type} on ${formatPlatformDateTime(
+                event.timestamp,
               )}`,
-              helper: `Reviewed by ${request.reviewedBy ?? "platform administrator"}${
-                request.provisionedCompanyId
-                  ? ` · Company ID ${request.provisionedCompanyId}`
-                  : ""
+              helper: `Reviewed by ${event.actor ?? "platform administrator"}${
+                event.provisionedCompanyId
+                  ? ` · Company ID ${event.provisionedCompanyId}`
+                  : event.companyId
+                    ? ` · Company ID ${event.companyId}`
+                    : ""
               }`,
-              href: APP_ROUTES.adminAccessRequests,
-              statusLabel: request.status,
+              href: `${APP_ROUTES.adminAudit}?eventId=${encodeURIComponent(
+                event.id,
+              )}`,
+              statusLabel: event.type === "Approval" ? "Approved" : "Rejected",
               statusTone:
-                request.status === "Approved"
+                event.type === "Approval"
                   ? ("success" as const)
                   : ("danger" as const),
             }))}
@@ -196,7 +238,11 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
               helper: `Reviewed ${formatPlatformDateTime(
                 record.reviewedAt,
               )} · ${record.contactEmail}`,
-              href: APP_ROUTES.adminCompanies,
+              href: `${APP_ROUTES.adminCompanies}?${
+                record.companyId || record.provisionedCompanyId
+                  ? `companyId=${record.companyId ?? record.provisionedCompanyId}`
+                  : `requestId=${record.requestId}`
+              }`,
               statusLabel: "Needs follow-up",
               statusTone: "warning" as const,
             }))}

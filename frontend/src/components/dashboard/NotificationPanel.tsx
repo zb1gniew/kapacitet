@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { getNotificationHref } from "@/lib/notifications/navigation";
 import type { NotificationResponse } from "@/types/api-notifications";
 
 function formatRelativeTime(isoString: string): string {
@@ -15,8 +17,9 @@ function formatRelativeTime(isoString: string): string {
 type Props = {
   notifications: NotificationResponse[];
   loading: boolean;
-  onMarkAsRead: (id: number) => void;
+  onMarkAsRead: (id: number) => void | Promise<void>;
   onMarkAllAsRead: () => void;
+  onNavigate?: () => void;
 };
 
 export function NotificationPanel({
@@ -24,7 +27,9 @@ export function NotificationPanel({
   loading,
   onMarkAsRead,
   onMarkAllAsRead,
+  onNavigate,
 }: Props) {
+  const router = useRouter();
   const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
@@ -58,8 +63,13 @@ export function NotificationPanel({
             <button
               key={n.id}
               type="button"
-              onClick={() => {
-                if (!n.isRead) onMarkAsRead(n.id);
+              onClick={async () => {
+                if (!n.isRead) {
+                  await onMarkAsRead(n.id);
+                }
+
+                onNavigate?.();
+                router.push(getNotificationHref(n));
               }}
               className={[
                 "flex w-full items-start gap-3 border-b border-neutral-100 px-4 py-3 text-left last:border-b-0",

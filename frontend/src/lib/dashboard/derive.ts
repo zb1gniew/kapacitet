@@ -11,6 +11,7 @@ import type {
   DashboardProcess,
   DashboardReminder,
 } from "@/types/dashboard";
+import { APP_ROUTES } from "@/constants/routes";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const HOUR_IN_MS = 60 * 60 * 1000;
@@ -92,6 +93,12 @@ function pluralizeSkill(skill: string, quantity: number) {
 function getPrimarySkill(skills: string[], fallback: string) {
   const firstSkill = skills.find((skill) => skill.trim().length > 0);
   return firstSkill ?? fallback;
+}
+
+function buildMatchesHref(matchId?: number | null) {
+  return matchId
+    ? `${APP_ROUTES.matches}?matchId=${matchId}`
+    : APP_ROUTES.matches;
 }
 
 function buildQuantityTitle(
@@ -180,6 +187,7 @@ function buildAvailabilityProcess(
   let status = "Availability published";
   let statusTone: DashboardProcess["statusTone"] = "success";
   let cta = "Review availability";
+  let href: DashboardProcess["href"] = APP_ROUTES.matches;
 
   if (pendingSupplierConfirmationMatches.length > 0) {
     subtitle = `${pendingSupplierConfirmationMatches.length} match${
@@ -188,6 +196,7 @@ function buildAvailabilityProcess(
     status = "Confirmation needed";
     statusTone = "primary";
     cta = "Review match";
+    href = buildMatchesHref(pendingSupplierConfirmationMatches[0]?.id);
   } else if (pendingRequesterReviewMatches.length > 0) {
     subtitle = `${pendingRequesterReviewMatches.length} potential match${
       pendingRequesterReviewMatches.length === 1 ? "" : "es"
@@ -195,11 +204,13 @@ function buildAvailabilityProcess(
     status = "Match under review";
     statusTone = "primary";
     cta = "Track matches";
+    href = buildMatchesHref(pendingRequesterReviewMatches[0]?.id);
   } else if (agreementCreatedMatches.length > 0) {
     subtitle = "Agreement confirmed";
     status = "Agreement confirmed";
     statusTone = "success";
     cta = "View agreement";
+    href = buildMatchesHref(agreementCreatedMatches[0]?.id);
   }
 
   return {
@@ -215,6 +226,7 @@ function buildAvailabilityProcess(
     status,
     statusTone,
     cta,
+    href,
   };
 }
 
@@ -239,6 +251,7 @@ function buildRequestProcess(
   let status = "Matching in progress";
   let statusTone: DashboardProcess["statusTone"] = "neutral";
   let cta = "View details";
+  let href: DashboardProcess["href"] = APP_ROUTES.matches;
 
   if (pendingRequesterReviewMatches.length > 0) {
     subtitle = `${pendingRequesterReviewMatches.length} potential match${
@@ -247,15 +260,18 @@ function buildRequestProcess(
     status = "Direct match found";
     statusTone = "success";
     cta = "View matches";
+    href = buildMatchesHref(pendingRequesterReviewMatches[0]?.id);
   } else if (pendingSupplierConfirmationMatches.length > 0) {
     subtitle = "Awaiting supplier confirmation";
     status = "Awaiting confirmation";
     statusTone = "primary";
+    href = buildMatchesHref(pendingSupplierConfirmationMatches[0]?.id);
   } else if (agreementCreatedMatches.length > 0) {
     subtitle = "Agreement confirmed";
     status = "Agreement confirmed";
     statusTone = "success";
     cta = "View agreement";
+    href = buildMatchesHref(agreementCreatedMatches[0]?.id);
   }
 
   return {
@@ -267,6 +283,7 @@ function buildRequestProcess(
     status,
     statusTone,
     cta,
+    href,
   };
 }
 
@@ -500,6 +517,7 @@ export function deriveActionBanner(
             : ""
         }Keep your declaration current so trusted companies can respond with relevant demand.`,
         cta: "Review availability",
+        href: APP_ROUTES.matches,
       };
     }
 
@@ -528,6 +546,7 @@ export function deriveActionBanner(
         description:
           "Your request is active and we are monitoring network capacity for relevant opportunities.",
         cta: "Review request",
+        href: APP_ROUTES.matches,
       };
     }
 
@@ -551,5 +570,6 @@ export function deriveActionBanner(
     description:
       "Your capacity request begins soon but matching is still in progress. Consider expanding search criteria or contacting network companies directly.",
     cta: "View and take action",
+    href: APP_ROUTES.matches,
   };
 }

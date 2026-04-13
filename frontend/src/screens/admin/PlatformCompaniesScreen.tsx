@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CompanyRegistryCard } from "@/components/admin/platform/CompanyRegistryCard";
 import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLayout";
 import { PlatformCollectionToolbar } from "@/components/admin/platform/PlatformCollectionToolbar";
@@ -23,12 +24,47 @@ type PlatformCompaniesScreenProps = {
 export function PlatformCompaniesScreen({
   user,
 }: PlatformCompaniesScreenProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const { records, loading, errorMessage } = useAdminCompanies();
   const { preferences } = usePlatformAdminPreferences();
   const [searchValue, setSearchValue] = useState("");
   const [activeFilter, setActiveFilter] =
     useState<CompanyRegistryFilterTab>("All");
+  const highlightedRequestId = Number(searchParams.get("requestId")) || null;
+  const highlightedCompanyId = Number(searchParams.get("companyId")) || null;
+
+  const highlightedRecord = useMemo(
+    () =>
+      records.find(
+        (record) =>
+          (highlightedRequestId !== null &&
+            record.requestId === highlightedRequestId) ||
+          (highlightedCompanyId !== null &&
+            (record.companyId === highlightedCompanyId ||
+              record.provisionedCompanyId === highlightedCompanyId)),
+      ) ?? null,
+    [highlightedCompanyId, highlightedRequestId, records],
+  );
+
+  useEffect(() => {
+    if (loading || !highlightedRecord) {
+      return;
+    }
+
+    const targetId =
+      highlightedRecord.companyId ??
+      highlightedRecord.provisionedCompanyId ??
+      highlightedRecord.requestId ??
+      null;
+
+    if (targetId === null) {
+      return;
+    }
+
+    const target = document.getElementById(`company-registry-${targetId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedRecord, loading]);
 
   const metrics = useMemo(() => {
     const provisionedRecords = records.filter(
@@ -196,7 +232,11 @@ export function PlatformCompaniesScreen({
 
           {!loading
             ? filteredRecords.map((record) => (
-                <CompanyRegistryCard key={record.requestId} record={record} />
+                <CompanyRegistryCard
+                  key={`${record.requestId ?? "requestless"}-${record.companyId ?? record.provisionedCompanyId ?? record.companyName}`}
+                  highlighted={highlightedRecord === record}
+                  record={record}
+                />
               ))
             : null}
         </div>

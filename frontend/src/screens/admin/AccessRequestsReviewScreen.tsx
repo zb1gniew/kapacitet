@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { InfoIcon } from "@/components/auth/icons";
 import { AccessRequestReviewCard } from "@/components/admin/access-requests/AccessRequestReviewCard";
 import { AccessRequestReviewDialog } from "@/components/admin/access-requests/AccessRequestReviewDialog";
@@ -25,6 +26,7 @@ type AccessRequestsReviewScreenProps = {
 export function AccessRequestsReviewScreen({
   user,
 }: AccessRequestsReviewScreenProps) {
+  const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const { requests, loading, errorMessage, refreshRequests } =
     useAdminAccessRequests();
@@ -45,7 +47,32 @@ export function AccessRequestsReviewScreen({
     const timer = window.setTimeout(() => setToastMessage(""), 4500);
     return () => window.clearTimeout(timer);
   }, [toastMessage]);
-  const currentActiveTab = activeTab ?? preferences.defaultAccessRequestsTab;
+  const highlightedRequestId = Number(searchParams.get("requestId")) || null;
+
+  const highlightedRequest = useMemo(
+    () =>
+      highlightedRequestId
+        ? (requests.find((request) => request.id === highlightedRequestId) ??
+          null)
+        : null,
+    [highlightedRequestId, requests],
+  );
+
+  const currentActiveTab =
+    activeTab ??
+    highlightedRequest?.status ??
+    preferences.defaultAccessRequestsTab;
+
+  useEffect(() => {
+    if (loading || !highlightedRequestId) {
+      return;
+    }
+
+    const target = document.getElementById(
+      `access-request-${highlightedRequestId}`,
+    );
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedRequestId, loading]);
 
   const filteredRequests =
     currentActiveTab === "All"
@@ -198,6 +225,7 @@ export function AccessRequestsReviewScreen({
             {filteredRequests.map((request) => (
               <AccessRequestReviewCard
                 key={request.id}
+                highlighted={highlightedRequestId === request.id}
                 request={request}
                 onApprove={() => setDialog({ type: "approve", request })}
                 onReject={() => {

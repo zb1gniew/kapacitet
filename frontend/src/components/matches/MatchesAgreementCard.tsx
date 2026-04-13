@@ -10,15 +10,24 @@ import type { TranslateFn } from "@/types/i18n";
 
 type MatchesAgreementCardProps = {
   agreement: AgreementResponse;
+  highlighted?: boolean;
   t: TranslateFn;
 };
 
 export function MatchesAgreementCard({
   agreement,
+  highlighted = false,
   t,
 }: MatchesAgreementCardProps) {
   return (
-    <article className="rounded-[14px] border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+    <article
+      id={`agreement-${agreement.id}`}
+      className={`rounded-[14px] border bg-[#f0fdf4] px-4 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition ${
+        highlighted
+          ? "border-[#2563eb] ring-2 ring-[#93c5fd]"
+          : "border-[#bbf7d0]"
+      }`}
+    >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[10px] bg-[#16a34a] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)]">
           <UsersIcon className="h-6 w-6" />

@@ -47,6 +47,7 @@ export function NotificationBell({
           loading={loading}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
+          onNavigate={() => setOpen(false)}
         />
       )}
     </div>

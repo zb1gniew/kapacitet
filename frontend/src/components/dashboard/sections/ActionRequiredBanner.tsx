@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { DashboardActionBanner as DashboardActionBannerData } from "@/types/dashboard";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import { SearchIcon, UploadIcon, WarningIcon } from "../icons";
@@ -78,15 +79,13 @@ export function ActionRequiredBanner({ banner }: ActionRequiredBannerProps) {
             {banner.title}
           </h2>
           <p className="mt-1 text-sm text-neutral-700">{banner.description}</p>
-          <button
-            type="button"
-            data-banner-kind={banner.kind}
-            data-item-id={banner.id}
+          <Link
+            href={banner.href}
             className="mt-3 inline-flex h-10 items-center gap-1 rounded-[8px] bg-neutral-950 px-4 text-sm font-medium text-white"
           >
             <span>{banner.cta}</span>
             <ArrowRightIcon className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </section>
