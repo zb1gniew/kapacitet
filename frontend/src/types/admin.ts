@@ -22,7 +22,8 @@ export type AccessRequestFilterTab =
 export type CompanyRegistryStatus = "Provisioned" | "Needs follow-up";
 
 export type CompanyRegistryRecord = {
-  requestId: number;
+  requestId?: number;
+  companyId?: number;
   companyName: string;
   industry: string;
   location: string;
@@ -55,7 +56,8 @@ export type AuditTimelineEvent = {
   id: string;
   timestamp: string;
   type: AuditEventType;
-  requestId: number;
+  requestId?: number;
+  companyId?: number;
   companyName: string;
   contactEmail: string;
   actor?: string;
