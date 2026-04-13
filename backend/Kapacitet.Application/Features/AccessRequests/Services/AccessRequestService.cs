@@ -5,6 +5,7 @@ using Kapacitet.Infrastructure.Keycloak;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.AccessRequests.Services;
 
@@ -13,15 +14,18 @@ public class AccessRequestService
     private readonly AppDbContext _db;
     private readonly KeycloakAdminClient _keycloakClient;
     private readonly ILogger<AccessRequestService> _logger;
+    private readonly EmailService _emailService;
 
     public AccessRequestService(
         AppDbContext db,
         KeycloakAdminClient keycloakClient,
-        ILogger<AccessRequestService> logger)
+        ILogger<AccessRequestService> logger,
+        EmailService emailService)
     {
         _db = db;
         _keycloakClient = keycloakClient;
         _logger = logger;
+        _emailService = emailService;
     }
 
     public async Task<AccessRequestDto> SubmitAsync(SubmitAccessRequestDto dto)
@@ -181,7 +185,17 @@ public class AccessRequestService
                 "Access request approved: RequestId={RequestId}, ReviewedBy={ReviewedBy}, CompanyId={CompanyId}",
                 request.Id, reviewedBy, request.ProvisionedCompanyId);
 
-            return await ProvisionKeycloakUserAsync(request);
+            var tempPassword = await ProvisionKeycloakUserAsync(request);
+
+            if (tempPassword != null)
+            {
+                await _emailService.SendApprovalEmailAsync(
+                    request.ContactEmail,
+                    request.Name,
+                    tempPassword);
+            }
+
+            return tempPassword;
         }
 
         if (decision == AccessRequestStatus.Rejected)

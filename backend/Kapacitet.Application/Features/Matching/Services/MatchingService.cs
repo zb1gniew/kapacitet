@@ -16,6 +16,7 @@ public class MatchingService
     private readonly MatchingGenerationService _generationService;
     private readonly MatchingQueryService _queryService;
     private readonly NotificationService _notificationService;
+    private readonly EmailService _emailService;
 
     public MatchingService(
         AppDbContext db,
@@ -23,7 +24,8 @@ public class MatchingService
         MatchingEscalationService escalationService,
         MatchingGenerationService generationService,
         MatchingQueryService queryService,
-        NotificationService notificationService)
+        NotificationService notificationService,
+        EmailService emailService)
     {
         _db = db;
         _allocationService = allocationService;
@@ -31,6 +33,7 @@ public class MatchingService
         _generationService = generationService;
         _queryService = queryService;
         _notificationService = notificationService;
+        _emailService = emailService;
     }
 
     public async Task<List<MatchOfferDto>> GenerateMatchesForRequestAsync(int requestId)
@@ -173,6 +176,13 @@ public class MatchingService
             offer.OfferedQuantity = confirmedQuantity;
 
             await _db.SaveChangesAsync();
+
+            await _emailService.SendAgreementConfirmedEmailIfEnabledAsync(
+            offer.Request.CompanyId,
+            offer.Availability.CompanyId,
+            offer.Id,
+            agreement.StartDate,
+            agreement.EndDate);
 
             var updatedSnapshot = await _allocationService.CreateSnapshotAsync([offer.RequestId], [offer.AvailabilityId]);
             await _allocationService.EnsureListingStatusConsistencyAsync(offer.Request, updatedSnapshot);

@@ -19,6 +19,7 @@ using Kapacitet.API.Auth;
 using Kapacitet.Infrastructure.Keycloak;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Resend;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -127,6 +128,16 @@ builder.Services.AddScoped<MatchingGenerationService>();
 builder.Services.AddScoped<MatchingQueryService>();
 builder.Services.AddScoped<MatchEvaluationService>();
 builder.Services.AddScoped<NotificationService>();
+
+// Email
+builder.Services.Configure<Kapacitet.Application.Features.Notifications.EmailOptions>(
+    builder.Configuration.GetSection("Email"));
+builder.Services.Configure<ResendClientOptions>(o =>
+    o.ApiToken = builder.Configuration["Email:ApiKey"] ?? "");
+builder.Services.AddHttpClient<ResendClient>();
+builder.Services.AddTransient<IResend, ResendClient>();
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddHostedService<CooperationReminderService>();
 builder.Services.AddScoped<NetworkEscalationService>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

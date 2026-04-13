@@ -9,10 +9,12 @@ namespace Kapacitet.Application.Features.Notifications.Services;
 public class NotificationService
 {
     private readonly AppDbContext _db;
+    private readonly EmailService _emailService;
 
-    public NotificationService(AppDbContext db)
+    public NotificationService(AppDbContext db, EmailService emailService)
     {
         _db = db;
+        _emailService = emailService;
     }
 
     public async Task<List<NotificationDto>> GetForCompanyAsync(int companyId, CancellationToken ct = default)
@@ -86,6 +88,9 @@ public class NotificationService
                 Metadata = metadata
             });
         }
+
+        await _emailService.SendNewMatchEmailIfEnabledAsync(requesterCompanyId, matchOfferId);
+        await _emailService.SendNewMatchEmailIfEnabledAsync(supplierCompanyId, matchOfferId);
         // Caller must call SaveChangesAsync.
     }
 
@@ -105,13 +110,15 @@ public class NotificationService
             CreatedAt = DateTime.UtcNow,
             Metadata = $"{{\"matchOfferId\":{matchOfferId}}}"
         });
+
+        await _emailService.SendSupplierConfirmationEmailIfEnabledAsync(supplierCompanyId, matchOfferId);
         // Caller must call SaveChangesAsync.
     }
 
     // Internal — called by MatchingEscalationService when a new/re-opened escalation is created.
     public async Task QueueNetworkEscalationNotificationAsync(int requesterCompanyId, int requestId)
     {
-        if (!await IsInAppEnabledAsync(requesterCompanyId, p => p.InAppActionsRequired))
+        if (!await IsInAppEnabledAsync(requesterCompanyId, p => p.InAppNetworkRequests))
             return;
 
         _db.Notifications.Add(new Notification
@@ -125,6 +132,7 @@ public class NotificationService
             Metadata = $"{{\"requestId\":{requestId}}}"
         });
         // Caller must call SaveChangesAsync.
+        await _emailService.SendNetworkEscalationEmailIfEnabledAsync(requesterCompanyId, requestId);
     }
 
     // Internal — called when eligible recipient companies should be notified.
@@ -133,7 +141,7 @@ public class NotificationService
         int requestId,
         DateTime triggeredAt)
     {
-        if (!await IsInAppEnabledAsync(recipientCompanyId, p => p.InAppActionsRequired))
+        if (!await IsInAppEnabledAsync(recipientCompanyId, p => p.InAppNetworkRequests))
             return;
 
         var metadata =
@@ -157,6 +165,7 @@ public class NotificationService
             CreatedAt = DateTime.UtcNow,
             Metadata = metadata
         });
+        await _emailService.SendNetworkEscalationOutreachEmailIfEnabledAsync(recipientCompanyId, requestId);
     }
 
     // Default to true if company has no preferences row yet.

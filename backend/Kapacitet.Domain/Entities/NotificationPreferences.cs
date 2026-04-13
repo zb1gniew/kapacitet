@@ -10,6 +10,8 @@ public class NotificationPreferences
     public bool InAppNewMatches { get; set; } = true;
     public bool InAppActionsRequired { get; set; } = true;
     public bool InAppUpcomingCooperation { get; set; } = true;
+    public bool EmailNetworkRequests { get; set; } = true;
+    public bool InAppNetworkRequests { get; set; } = true;
 
     public Company Company { get; set; } = null!;
 }

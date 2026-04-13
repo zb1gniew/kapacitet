@@ -18,6 +18,8 @@ type NotificationPreferences = {
   inAppNewMatches: boolean;
   inAppActionsRequired: boolean;
   inAppUpcomingCooperation: boolean;
+  emailNetworkRequests: boolean;
+  inAppNetworkRequests: boolean;
 };
 
 const DEFAULT: NotificationPreferences = {
@@ -27,6 +29,8 @@ const DEFAULT: NotificationPreferences = {
   inAppNewMatches: true,
   inAppActionsRequired: true,
   inAppUpcomingCooperation: true,
+  emailNetworkRequests: true,
+  inAppNetworkRequests: true,
 };
 
 function GroupLabel({ icon, label }: { icon: ReactNode; label: string }) {
@@ -131,6 +135,15 @@ export function SettingsNotificationsCard({
               onToggle={() => toggle("emailUpcomingCooperation")}
               t={t}
             />
+            <SettingsPreferenceCard
+              title={t("Network requests")}
+              description={t(
+                "Get notified when an urgent network-wide request needs your company's response",
+              )}
+              checked={prefs.emailNetworkRequests}
+              onToggle={() => toggle("emailNetworkRequests")}
+              t={t}
+            />
           </div>
         </section>
 
@@ -165,6 +178,15 @@ export function SettingsNotificationsCard({
               )}
               checked={prefs.inAppUpcomingCooperation}
               onToggle={() => toggle("inAppUpcomingCooperation")}
+              t={t}
+            />
+            <SettingsPreferenceCard
+              title={t("Network requests")}
+              description={t(
+                "Show notification when an urgent network-wide request is available",
+              )}
+              checked={prefs.inAppNetworkRequests}
+              onToggle={() => toggle("inAppNetworkRequests")}
               t={t}
             />
           </div>
