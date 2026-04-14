@@ -76,4 +76,7 @@ public class CooperationReminderService : BackgroundService
         if (agreements.Count > 0)
             await db.SaveChangesAsync(ct);
     }
+    
+    // For testing only
+    public Task TestProcessReminders(CancellationToken ct) => ProcessRemindersAsync(ct);
 }

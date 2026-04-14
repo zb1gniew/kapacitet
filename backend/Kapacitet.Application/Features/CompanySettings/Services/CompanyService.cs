@@ -104,7 +104,9 @@ public class CompanyService
                 EmailUpcomingCooperation = true,
                 InAppNewMatches = true,
                 InAppActionsRequired = true,
-                InAppUpcomingCooperation = true
+                InAppUpcomingCooperation = true,
+                EmailNetworkRequests = true,
+                InAppNetworkRequests = true
             };
     }
 
