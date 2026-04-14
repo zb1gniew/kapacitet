@@ -1,0 +1,63 @@
+# =============================================================
+# KapacitetNet — Caddy Reverse Proxy
+# Handles TLS termination for the entire application.
+#
+# DEVELOPMENT (localhost):
+#   Caddy issues a trusted local HTTPS certificate automatically.
+#   First-time setup (run once after `docker compose up`):
+#     docker exec -it caddy caddy trust
+#   Then restart your browser.
+#
+# PRODUCTION:
+#   Replace "localhost" with your real domain names below.
+#   Caddy will automatically provision Let's Encrypt certificates.
+#   Requires:
+#     - DNS A records pointing to this server's IP
+#     - Ports 80 and 443 open in your firewall
+#     - Set EMAIL variable in .env for Let's Encrypt notifications
+# =============================================================
+
+{
+    # Use local_certs for development (no real domain needed).
+    # REMOVE this line in production — Caddy will use Let's Encrypt automatically.
+    local_certs
+
+    # PRODUCTION: uncomment and set your email for Let's Encrypt alerts
+    # email {$CADDY_EMAIL:admin@yourdomain.com}
+}
+
+# -----------------------------------------------------------
+# Frontend — Next.js application
+# PRODUCTION: replace "localhost" with "app.yourdomain.com"
+# -----------------------------------------------------------
+localhost {
+    reverse_proxy frontend:3000
+
+    header {
+        # HSTS: tell browsers to always use HTTPS for this domain
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        # Prevent clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+    }
+
+    encode gzip
+}
+
+# -----------------------------------------------------------
+# Keycloak — Authentication server
+# PRODUCTION: replace "auth.localhost" with "auth.yourdomain.com"
+# Also update in .env:
+#   OIDC_ISSUER_URL=https://auth.yourdomain.com/realms/kapacitet
+#   OIDC_SERVER_ISSUER_URL=http://keycloak:8080/realms/kapacitet (internal stays HTTP)
+#   Keycloak__Authority=https://auth.yourdomain.com/realms/kapacitet
+#   Keycloak__MetadataAddress=http://keycloak:8080/realms/kapacitet/.well-known/openid-configuration
+# -----------------------------------------------------------
+auth.localhost {
+    reverse_proxy keycloak:8080
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+}

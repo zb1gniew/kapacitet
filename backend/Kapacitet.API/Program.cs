@@ -38,7 +38,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             options.Audience = audience;
         }
-        options.RequireHttpsMetadata = false;
+        // In production, Keycloak's Authority URL is HTTPS so metadata must be fetched over HTTPS.
+        // In development, the internal Docker network uses HTTP so we relax this requirement.
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -189,6 +191,17 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    // HSTS: instruct browsers to only connect over HTTPS for 1 year.
+    // Only active in production — dev uses HTTP internally.
+    app.UseHsts();
+}
+
+// Redirect any stray HTTP requests to HTTPS.
+// In production behind Caddy, the backend only ever receives internal HTTP
+// from the Docker network, so this middleware is a safety net for direct access.
+app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 app.UseAuthentication();
