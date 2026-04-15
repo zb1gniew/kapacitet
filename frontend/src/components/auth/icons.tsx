@@ -1,15 +1,25 @@
-import type { SVGProps } from "react";
+import Image from "next/image";
+import type { ComponentProps, SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;
+type BrandIconProps = Omit<
+  ComponentProps<typeof Image>,
+  "alt" | "height" | "src" | "width"
+> & {
+  alt?: string;
+};
 
-export function BrandIcon(props: IconProps) {
+export function BrandIcon({ alt = "", ...props }: BrandIconProps) {
   return (
-    <svg fill="none" viewBox="0 0 32 32" aria-hidden="true" {...props}>
-      <path
-        d="M11.333 10.667a.667.667 0 0 1 .667.666v2a.667.667 0 0 1-1.334 0v-.39l-2.195 2.195H10a.667.667 0 1 1 0 1.334H6.862V13.334a.667.667 0 0 1 1.334 0v1.528l2.195-2.195H10a.667.667 0 0 1 0-1.334h1.333Zm9.334 0a.667.667 0 0 1 0 1.333h-.391l2.195 2.196v-1.529a.667.667 0 0 1 1.333 0v3.138h-3.137a.667.667 0 1 1 0-1.334h1.528L20 12.276v.39a.667.667 0 1 1-1.333 0v-2h2Zm2.47 8.195a.667.667 0 0 1 .667.667v3.138h-3.137a.667.667 0 1 1 0-1.334h1.528L20 19.138v.39a.667.667 0 1 1-1.333 0v-2h2a.667.667 0 0 1 0 1.333h-.391l2.195 2.196v-1.529a.667.667 0 0 1 .666-.666Zm-15.608 0a.667.667 0 0 1 .667.667v1.528l2.195-2.195H10a.667.667 0 1 1 0-1.334h1.333a.667.667 0 0 1 .667.667v2a.667.667 0 1 1-1.334 0v-.39L8.47 22h1.529a.667.667 0 1 1 0 1.333H6.862v-3.137a.667.667 0 0 1 .667-.667Z"
-        fill="currentColor"
-      />
-    </svg>
+    <Image
+      src="/brand/kapacitet-logo.png"
+      alt={alt}
+      aria-hidden={alt ? undefined : true}
+      draggable={false}
+      width={112}
+      height={96}
+      {...props}
+    />
   );
 }
 

@@ -2,6 +2,7 @@ import { APP_ROUTES } from "@/constants/routes";
 import { isPlatformAdmin } from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
+import { BrandIcon } from "../auth/icons";
 import { NotificationBell } from "./NotificationBell";
 
 type DashboardHeaderProps = {
@@ -27,13 +28,17 @@ export function DashboardHeader({
     <header className="border-b border-[#45556c66] bg-[linear-gradient(to_right,#314158_0%,#43536a_35%,#8693a3_70%,#f5f5f5_100%)] px-5 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-base font-semibold tracking-[-0.3125px] text-neutral-100">
-            {t("KapacitetNet")}
-          </h1>
-          <span className="text-base text-[#62748e]">·</span>
-          <span className="text-sm text-[#90a1b9]">
-            {t("Capacity coordination")}
-          </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white p-1.5 shadow-[0_10px_20px_rgba(0,0,0,0.18)]">
+            <BrandIcon className="h-full w-full object-contain" />
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold leading-6 tracking-[-0.06em] text-white">
+              {t("KapacitetNet")}
+            </h1>
+            <p className="text-xs font-medium text-[#a7f3d0]">
+              {t("Capacity coordination")}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

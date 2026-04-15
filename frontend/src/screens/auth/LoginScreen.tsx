@@ -305,24 +305,24 @@ export function LoginScreen() {
 
   return (
     <main
-      className="flex min-h-screen items-center justify-center bg-[linear-gradient(151.85deg,#f5f5f5_0%,#f8fafc_50%,#f5f5f5_100%)] px-4 py-8"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_15%_16%,rgba(0,159,154,0.18),transparent_30rem),radial-gradient(circle_at_86%_10%,rgba(0,107,182,0.18),transparent_28rem),linear-gradient(151.85deg,#f8fafc_0%,#eef7f8_50%,#f5f7fb_100%)] px-4 py-10"
       data-name="Login Screen"
       data-node-id="1:7"
     >
       <div className="w-full max-w-[448px]">
         <header className="mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[14px] bg-blue-600 text-white shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
-            <BrandIcon className="h-8 w-8" />
+          <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-[28px] border border-white/90 bg-white p-4 shadow-[0_24px_50px_rgba(0,107,182,0.18),0_12px_22px_rgba(15,23,42,0.10)] ring-1 ring-slate-900/5">
+            <BrandIcon className="h-full w-full object-contain" />
           </div>
-          <h1 className="text-center text-2xl font-bold tracking-[0.0703px] text-neutral-900">
+          <h1 className="text-center text-[34px] font-extrabold leading-none tracking-[-0.055em] text-[#102033] drop-shadow-[0_1px_0_rgba(255,255,255,0.72)]">
             {t("KapacitetNet")}
           </h1>
-          <p className="mt-2 text-center text-sm tracking-[-0.1504px] text-neutral-600">
+          <p className="mt-3 text-center text-sm font-semibold tracking-[-0.1504px] text-[#0f5f96]">
             {t("Capacity coordination")}
           </p>
         </header>
 
-        <section className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
+        <section className="rounded-3xl border border-white/80 bg-white/95 p-8 shadow-[0_28px_70px_rgba(15,23,42,0.18),0_12px_24px_rgba(15,23,42,0.08)] backdrop-blur">
           {state.step === "email" ? renderEmailStep() : null}
           {state.step === "set-password"
             ? renderSetPasswordStep(state.email)

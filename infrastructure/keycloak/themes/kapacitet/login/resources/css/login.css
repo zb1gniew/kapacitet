@@ -1,0 +1,359 @@
+:root {
+  --kc-brand-blue: #006bb6;
+  --kc-brand-teal: #009f9a;
+  --kc-brand-navy: #0f5f96;
+  --kc-card-width: min(480px, calc(100vw - 36px));
+  --kc-ink: #172033;
+  --kc-muted: #64748b;
+  --kc-border: #dbe3ef;
+  --kc-panel: rgba(255, 255, 255, 0.96);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html.login-pf,
+body#keycloak-bg {
+  min-height: 100%;
+}
+
+body#keycloak-bg {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 44px 18px;
+  color: var(--kc-ink);
+  font-family:
+    Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 16% 14%, rgba(0, 159, 154, 0.18), transparent 30rem),
+    radial-gradient(circle at 86% 10%, rgba(0, 107, 182, 0.18), transparent 28rem),
+    linear-gradient(151deg, #f8fafc 0%, #eef7f8 50%, #f5f7fb 100%) !important;
+}
+
+body#keycloak-bg::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(0, 107, 182, 0.04) 0,
+      rgba(0, 107, 182, 0.04) 1px,
+      transparent 1px,
+      transparent 18px
+    );
+  content: "";
+}
+
+#kc-header {
+  display: none !important;
+}
+
+#kc-header-wrapper {
+  display: none !important;
+}
+
+.pf-v5-c-login__main-header::before {
+  display: block;
+  width: 96px;
+  height: 82px;
+  margin: 0 auto 14px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
+  background: #ffffff url("../img/kapacitet-logo.png") center / 74px auto no-repeat;
+  box-shadow:
+    0 24px 50px rgba(0, 107, 182, 0.18),
+    0 12px 22px rgba(15, 23, 42, 0.1);
+  content: "";
+}
+
+.pf-v5-c-login,
+.pf-v5-c-login__container {
+  width: var(--kc-card-width) !important;
+  max-width: none !important;
+  min-height: auto;
+}
+
+.pf-v5-c-login {
+  align-self: center !important;
+  display: block;
+  flex: 0 0 auto;
+  margin-right: auto !important;
+  margin-left: auto !important;
+}
+
+.pf-v5-c-login__container {
+  display: block;
+  grid-template-columns: none;
+  grid-template-areas: none;
+}
+
+.pf-v5-c-login__main {
+  width: var(--kc-card-width) !important;
+  min-width: 0;
+  max-width: none !important;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 28px;
+  background: var(--kc-panel);
+  box-shadow:
+    0 28px 70px rgba(15, 23, 42, 0.18),
+    0 12px 24px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.pf-v5-c-login__main-header,
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer {
+  padding-right: 40px;
+  padding-left: 40px;
+}
+
+.pf-v5-c-login__main-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 20px;
+  text-align: center;
+}
+
+.pf-v5-c-login__main-body {
+  padding-top: 0;
+  padding-bottom: 40px;
+}
+
+.pf-v5-c-title,
+#kc-page-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  color: var(--kc-ink);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.pf-v5-c-title::before,
+#kc-page-title::before {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--kc-ink);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1.15;
+  content: "KapacitetNet";
+}
+
+.pf-v5-c-title::after,
+#kc-page-title::after {
+  display: block;
+  max-width: 360px;
+  margin-top: 10px;
+  color: var(--kc-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  content: "Secure access for verified capacity partners";
+}
+
+.pf-v5-c-form {
+  display: grid;
+  width: 100%;
+  gap: 20px;
+}
+
+.pf-v5-c-form__group {
+  margin: 0;
+}
+
+.pf-v5-c-form__label,
+.pf-v5-c-form__label-text,
+label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.pf-v5-c-form__label {
+  margin-bottom: 7px;
+}
+
+.pf-v5-c-form-control {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  min-height: 52px;
+  align-items: center;
+  border: 1px solid var(--kc-border) !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04) !important;
+  color: var(--kc-ink) !important;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.pf-v5-c-form-control:focus-within {
+  border-color: var(--kc-brand-blue) !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 0 0 4px rgba(0, 107, 182, 0.14),
+    inset 0 1px 0 rgba(15, 23, 42, 0.04) !important;
+}
+
+.pf-v5-c-form-control input,
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  min-width: 0;
+  height: 50px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--kc-ink) !important;
+  font-size: 15px;
+  outline: 0;
+  padding-inline: 14px;
+}
+
+.pf-v5-c-input-group {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  align-items: stretch;
+}
+
+.pf-v5-c-input-group .pf-v5-c-form-control {
+  flex: 1 1 auto;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  width: 52px;
+  min-height: 52px;
+  border: 1px solid var(--kc-border) !important;
+  border-left: 0 !important;
+  border-radius: 0 14px 14px 0 !important;
+  background: #f8fafc !important;
+  color: #334155;
+}
+
+.pf-v5-c-input-group:focus-within .pf-v5-c-button.pf-m-control {
+  border-color: var(--kc-brand-blue) !important;
+  background: #ffffff !important;
+}
+
+.login-pf-settings {
+  display: none;
+}
+
+#kc-form-buttons {
+  margin-top: 8px;
+}
+
+.pf-v5-c-button.pf-m-primary,
+#kc-login,
+#kc-form-buttons input[type="submit"] {
+  width: 100%;
+  min-height: 52px;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(0, 159, 154, 0.82), transparent 34px),
+    linear-gradient(135deg, #0083bd, #006bb6 55%, #0f5f96) !important;
+  box-shadow:
+    0 16px 28px rgba(0, 107, 182, 0.3),
+    0 7px 14px rgba(15, 23, 42, 0.12);
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  transition:
+    filter 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+#kc-login:hover,
+#kc-form-buttons input[type="submit"]:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.pf-v5-c-button.pf-m-primary:focus-visible,
+#kc-login:focus-visible,
+#kc-form-buttons input[type="submit"]:focus-visible {
+  outline: 0;
+  box-shadow:
+    0 0 0 4px rgba(0, 107, 182, 0.2),
+    0 16px 28px rgba(0, 107, 182, 0.3),
+    0 7px 14px rgba(15, 23, 42, 0.12);
+}
+
+.pf-v5-c-alert,
+.pf-c-alert {
+  border-radius: 14px;
+}
+
+a {
+  color: var(--kc-brand-blue);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  body#keycloak-bg {
+    justify-content: flex-start;
+    padding: 30px 14px;
+  }
+
+  .pf-v5-c-login__main-header::before {
+    width: 84px;
+    height: 72px;
+    border-radius: 22px;
+    background-size: 64px auto;
+  }
+
+  .pf-v5-c-login__main {
+    border-radius: 24px;
+  }
+
+  .pf-v5-c-login__main-header,
+  .pf-v5-c-login__main-body,
+  .pf-v5-c-login__main-footer {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .pf-v5-c-login__main-header {
+    padding-top: 28px;
+  }
+
+  .pf-v5-c-login__main-body {
+    padding-bottom: 30px;
+  }
+
+  .pf-v5-c-title,
+  #kc-page-title {
+    font-size: 25px;
+  }
+}
