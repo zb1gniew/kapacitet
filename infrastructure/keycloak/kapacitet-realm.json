@@ -1,6 +1,7 @@
 {
   "realm": "kapacitet",
   "enabled": true,
+  "loginTheme": "kapacitet",
   "registrationAllowed": false,
   "registrationEmailAsUsername": false,
   "rememberMe": false,
@@ -22,20 +23,22 @@
       "clientId": "kapacitet-app",
       "name": "kapacitet-app",
       "protocol": "openid-connect",
-      "rootUrl": "http://localhost:3000",
-      "baseUrl": "http://localhost:3000",
-      "adminUrl": "http://localhost:3000",
+      "rootUrl": "https://localhost",
+      "baseUrl": "https://localhost",
+      "adminUrl": "https://localhost",
       "enabled": true,
-      "publicClient": true,
+      "publicClient": false,
+      "secret": "__OIDC_CLIENT_SECRET__",
+      "clientAuthenticatorType": "client-secret",
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "http://localhost:3000/*"
+        "https://localhost/*"
       ],
       "webOrigins": [
-        "http://localhost:3000"
+        "https://localhost"
       ],
       "attributes": {
         "backchannel.logout.session.required": "true",

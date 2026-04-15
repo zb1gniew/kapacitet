@@ -12,10 +12,11 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    command: start-dev --import-realm
+    entrypoint: ["/bin/sh", "/opt/keycloak/keycloak-start.sh"]
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       # Tell Keycloak its public-facing URL so OIDC tokens have the correct issuer.
       # DEV: https://auth.localhost  |  PROD: https://auth.yourdomain.com
       KC_HOSTNAME: auth.localhost
@@ -28,11 +29,14 @@ services:
       - "8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./keycloak/kapacitet-realm.json:/opt/keycloak/data/import/kapacitet-realm.json:ro
+      - ./keycloak/kapacitet-realm.json:/opt/keycloak/kapacitet-realm.json.template:ro
+      - ./keycloak/themes:/opt/keycloak/themes:ro
+      - ./keycloak/keycloak-start.sh:/opt/keycloak/keycloak-start.sh:ro
 
   backend:
     build: ../backend
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=kapacitetdb;Username=appuser;Password=strongpassword
       # Backend validates JWT tokens against Keycloak's public URL (authority).
       # DEV: https://auth.localhost/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
@@ -56,6 +60,9 @@ services:
     environment:
       # Internal Docker network call — stays HTTP.
       BACKEND_API_URL: http://backend:8080
+      # Public URL of the frontend app (used to build OIDC redirect_uri and session cookies).
+      # DEV: https://localhost  |  PROD: https://app.yourdomain.com
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-https://localhost}
       # Browser-facing OIDC URL — must match Keycloak's public HTTPS URL.
       # DEV: https://auth.localhost/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
       OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL:-https://auth.localhost}/realms/kapacitet
