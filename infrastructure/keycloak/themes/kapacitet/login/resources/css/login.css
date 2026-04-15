@@ -75,23 +75,22 @@ body#keycloak-bg::before {
   content: "";
 }
 
-.pf-v5-c-login,
+.pf-v5-c-login {
+  display: flex !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: auto !important;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
 .pf-v5-c-login__container {
+  display: block;
   width: var(--kc-card-width) !important;
   max-width: none !important;
   min-height: auto;
-}
-
-.pf-v5-c-login {
-  align-self: center !important;
-  display: block;
-  flex: 0 0 auto;
-  margin-right: auto !important;
-  margin-left: auto !important;
-}
-
-.pf-v5-c-login__container {
-  display: block;
+  padding-inline-start: 0 !important;
+  padding-inline-end: 0 !important;
   grid-template-columns: none;
   grid-template-areas: none;
 }
