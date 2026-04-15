@@ -117,15 +117,15 @@ export function RequestAccessScreen() {
       dataNodeId="1:69"
     >
       <header className="mb-6 flex flex-col items-center">
-        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-[14px] bg-blue-600 text-white shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
-          <BrandIcon className="h-7 w-7" />
+        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-[24px] border border-white/90 bg-white p-3.5 shadow-[0_22px_44px_rgba(0,107,182,0.16),0_10px_20px_rgba(15,23,42,0.08)] ring-1 ring-slate-900/5">
+          <BrandIcon className="h-full w-full object-contain" />
         </div>
-        <h1 className="text-center text-xl font-bold tracking-[-0.4492px] text-neutral-900">
+        <h1 className="text-center text-[30px] font-extrabold leading-none tracking-[-0.055em] text-[#102033] drop-shadow-[0_1px_0_rgba(255,255,255,0.72)]">
           {t("KapacitetNet")}
         </h1>
       </header>
 
-      <section className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-[0_25px_50px_rgba(0,0,0,0.25)]">
+      <section className="rounded-3xl border border-white/80 bg-white/95 p-8 shadow-[0_28px_70px_rgba(15,23,42,0.18),0_12px_24px_rgba(15,23,42,0.08)] backdrop-blur">
         <h2
           className="text-[24px] font-bold leading-8 tracking-[0.0703px] text-neutral-900"
           data-node-id="1:87"

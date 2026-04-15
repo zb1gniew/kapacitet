@@ -66,14 +66,16 @@ export function DashboardSidebar({
     <aside className="flex w-full flex-col bg-gradient-to-b from-[#314158] to-[#1d293d] text-[#cad5e2] shadow-[0_20px_25px_rgba(0,0,0,0.1),0_8px_10px_rgba(0,0,0,0.1)] lg:w-72">
       <div className="border-b border-[#45556c80] px-6 py-7">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-blue-600 text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-            <BrandIcon className="h-6 w-6" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white p-2 shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
+            <BrandIcon className="h-full w-full object-contain" />
           </div>
           <div>
-            <p className="text-lg font-semibold leading-[22.5px] tracking-[-0.4395px] text-neutral-100">
+            <p className="text-xl font-extrabold leading-[24px] tracking-[-0.06em] text-white">
               {t("KapacitetNet")}
             </p>
-            <p className="text-xs text-[#90a1b9]">{subtitle}</p>
+            <p className="mt-0.5 text-xs font-medium text-[#a7f3d0]">
+              {subtitle}
+            </p>
           </div>
         </div>
       </div>
