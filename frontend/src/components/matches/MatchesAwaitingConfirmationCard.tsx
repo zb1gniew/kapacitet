@@ -62,7 +62,11 @@ export function MatchesAwaitingConfirmationCard({
             <p className="inline-flex items-center gap-1.5">
               <ClockIcon className="h-3 w-3" />
               <span>
-                {formatDateRange(t, offer.requestStartDate, offer.requestEndDate)}
+                {formatDateRange(
+                  t,
+                  offer.requestStartDate,
+                  offer.requestEndDate,
+                )}
               </span>
             </p>
             <p className="inline-flex items-center gap-1.5">

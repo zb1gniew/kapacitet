@@ -50,7 +50,7 @@ export function PlatformAdminLayout({
             <section className="rounded-[18px] border border-neutral-200 bg-white p-6 shadow-[0_25px_50px_rgba(0,0,0,0.18)]">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-[760px]">
-                <div className="inline-flex items-center rounded-full border border-[#bedbff] bg-[#eff6ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#1c398e]">
+                  <div className="inline-flex items-center rounded-full border border-[#bedbff] bg-[#eff6ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#1c398e]">
                     {t(badge)}
                   </div>
                   <h1 className="mt-4 text-[28px] font-bold leading-9 tracking-[-0.4492px] text-neutral-900">

@@ -1,6 +1,7 @@
 import { OIDC_SCOPES_DEFAULT } from "@/constants/auth";
 
 export type AuthConfig = {
+  appUrl: string;
   issuerUrl: string;
   serverIssuerUrl: string;
   clientId: string;
@@ -52,6 +53,7 @@ export function getAuthConfig(): AuthConfig {
   );
 
   cachedConfig = {
+    appUrl: normalizeUrl(getRequiredEnv("APP_PUBLIC_URL")),
     issuerUrl,
     serverIssuerUrl,
     clientId: getRequiredEnv("OIDC_CLIENT_ID"),

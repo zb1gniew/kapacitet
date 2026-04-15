@@ -127,9 +127,7 @@ export async function GET(request: NextRequest) {
       ? transaction.returnTo || APP_ROUTES.dashboard
       : APP_ROUTES.onboardingWelcome;
 
-    const response = NextResponse.redirect(
-      buildRedirectUrl(redirectTo),
-    );
+    const response = NextResponse.redirect(buildRedirectUrl(redirectTo));
 
     response.cookies.set(
       AUTH_COOKIE_NAMES.session,

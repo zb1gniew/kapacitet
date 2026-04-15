@@ -101,13 +101,17 @@ export function PlatformCompaniesScreen({
       {
         label: t("Reviewed companies"),
         value: loading ? "..." : String(records.length),
-        helper: t("Approved requests now visible in the admin company registry."),
+        helper: t(
+          "Approved requests now visible in the admin company registry.",
+        ),
         tone: "slate" as const,
       },
       {
         label: t("New this month"),
         value: loading ? "..." : String(newThisMonth),
-        helper: t("Provisioned companies reviewed or created during this month."),
+        helper: t(
+          "Provisioned companies reviewed or created during this month.",
+        ),
         tone: "blue" as const,
       },
     ];

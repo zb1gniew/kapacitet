@@ -19,7 +19,9 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export function SettingsLanguageCard() {
   const { i18n, t } = useLocalizedScreen();
-  const active = (i18n.resolvedLanguage ?? "en").split("-")[0] as SupportedLanguage;
+  const active = (i18n.resolvedLanguage ?? "en").split(
+    "-",
+  )[0] as SupportedLanguage;
 
   return (
     <article className="rounded-[14px] border border-neutral-200 bg-white p-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">

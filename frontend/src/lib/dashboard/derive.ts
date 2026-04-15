@@ -499,7 +499,11 @@ export function deriveReminders(
         tone: "primary" as const,
         title: t("Request live"),
         description: t("{{title}} still open for matching", {
-          title: buildQuantityTitle(request.quantity, request.skills, t("Capacity")),
+          title: buildQuantityTitle(
+            request.quantity,
+            request.skills,
+            t("Capacity"),
+          ),
         }),
       })),
   ]
