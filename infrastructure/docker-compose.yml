@@ -18,9 +18,10 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       # Tell Keycloak its public-facing URL so OIDC tokens have the correct issuer.
       # DEV: https://auth.localhost  |  PROD: https://auth.yourdomain.com
-      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-https://auth.localhost}
+      KC_HOSTNAME: auth.localhost
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
     # Keycloak is no longer exposed directly to the host.
     # Traffic reaches it only through the Caddy proxy.
     expose:
