@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kapacitet.Infrastructure", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kapacitet.Tests", "Kapacitet.Tests\Kapacitet.Tests.csproj", "{626DAF7E-46EA-4F74-B6EA-4AD57BB6FC35}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kapacitet.E2ETests", "Kapacitet.E2ETests\Kapacitet.E2ETests.csproj", "{95AECC7A-F236-4EE4-B04F-3F52F58F347C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{626DAF7E-46EA-4F74-B6EA-4AD57BB6FC35}.Release|x64.Build.0 = Release|Any CPU
 		{626DAF7E-46EA-4F74-B6EA-4AD57BB6FC35}.Release|x86.ActiveCfg = Release|Any CPU
 		{626DAF7E-46EA-4F74-B6EA-4AD57BB6FC35}.Release|x86.Build.0 = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|x64.Build.0 = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Debug|x86.Build.0 = Debug|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|x64.ActiveCfg = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|x64.Build.0 = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|x86.ActiveCfg = Release|Any CPU
+		{95AECC7A-F236-4EE4-B04F-3F52F58F347C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -14,12 +14,16 @@ using Kapacitet.Application.Features.Admin.Services;
 using Kapacitet.Application.Features.CompanySettings.Services;
 using Kapacitet.Application.Features.NetworkEscalations.Services;
 using Kapacitet.Application.Features.Notifications.Services;
+using Kapacitet.Application.Features.Retention;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
 using Kapacitet.Infrastructure.Keycloak;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Resend;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -140,9 +144,16 @@ builder.Services.AddHttpClient<ResendClient>();
 builder.Services.AddTransient<IResend, ResendClient>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddHostedService<CooperationReminderService>();
+builder.Services.AddHostedService<DataRetentionService>();
 builder.Services.AddScoped<NetworkEscalationService>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "database",
+        tags: ["ready"]);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -208,6 +219,41 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Liveness — always 200 if process is running
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false,
+    ResponseWriter = (ctx, _) =>
+    {
+        ctx.Response.ContentType = "text/plain";
+        return ctx.Response.WriteAsync("OK");
+    }
+}).AllowAnonymous();
+
+// Readiness — checks DB connectivity
+app.MapHealthChecks("/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = async (ctx, report) =>
+    {
+        ctx.Response.ContentType = "application/json";
+        ctx.Response.StatusCode = report.Status == HealthStatus.Healthy
+            ? StatusCodes.Status200OK
+            : StatusCodes.Status503ServiceUnavailable;
+        var result = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description
+            })
+        };
+        await ctx.Response.WriteAsync(JsonSerializer.Serialize(result));
+    }
+}).AllowAnonymous();
+
 // Auto-migration when started
 using (var scope = app.Services.CreateScope())
 {
@@ -229,3 +275,6 @@ static string ToCamelCase(string value)
         ? value.ToLowerInvariant()
         : char.ToLowerInvariant(value[0]) + value[1..];
 }
+
+// Expose Program as public so WebApplicationFactory<Program> works in the E2E test project.
+public partial class Program { }

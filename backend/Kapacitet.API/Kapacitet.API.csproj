@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
@@ -19,6 +20,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Kapacitet.Application\Kapacitet.Application.csproj" />
     <ProjectReference Include="..\Kapacitet.Infrastructure\Kapacitet.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Kapacitet.E2ETests" />
   </ItemGroup>
 
 </Project>
