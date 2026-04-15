@@ -1,17 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { getNotificationHref } from "@/lib/notifications/navigation";
 import type { NotificationResponse } from "@/types/api-notifications";
 
-function formatRelativeTime(isoString: string): string {
+function formatRelativeTime(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  isoString: string,
+): string {
   const diff = Date.now() - new Date(isoString).getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t("Just now");
+  if (minutes < 60) return t("{{count}}m ago", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t("{{count}}h ago", { count: hours });
+  return t("{{count}}d ago", { count: Math.floor(hours / 24) });
 }
 
 type Props = {
@@ -30,13 +34,14 @@ export function NotificationPanel({
   onNavigate,
 }: Props) {
   const router = useRouter();
+  const { t } = useLocalizedScreen();
   const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
     <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-[10px] border border-neutral-200 bg-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
       <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
         <span className="text-sm font-semibold text-neutral-800">
-          Notifications
+          {t("Notifications")}
         </span>
         {hasUnread && (
           <button
@@ -44,7 +49,7 @@ export function NotificationPanel({
             onClick={onMarkAllAsRead}
             className="text-xs text-blue-600 hover:text-blue-800"
           >
-            Mark all as read
+            {t("Mark all as read")}
           </button>
         )}
       </div>
@@ -52,11 +57,11 @@ export function NotificationPanel({
       <div className="max-h-96 overflow-y-auto">
         {loading && notifications.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-neutral-500">
-            Loading...
+            {t("Loading...")}
           </p>
         ) : notifications.length === 0 ? (
           <p className="px-4 py-6 text-center text-sm text-neutral-500">
-            No notifications yet
+            {t("No notifications yet")}
           </p>
         ) : (
           notifications.map((n) => (
@@ -92,7 +97,7 @@ export function NotificationPanel({
                   {n.body}
                 </p>
                 <p className="mt-1 text-[10px] text-neutral-400">
-                  {formatRelativeTime(n.createdAt)}
+                  {formatRelativeTime(t, n.createdAt)}
                 </p>
               </div>
             </button>

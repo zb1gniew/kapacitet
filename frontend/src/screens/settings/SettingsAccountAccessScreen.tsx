@@ -1,6 +1,7 @@
 "use client";
 
 import { SettingsAccountAccessCard } from "@/components/settings/SettingsAccountAccessCard";
+import { SettingsLanguageCard } from "@/components/settings/SettingsLanguageCard";
 import { SettingsScreenLayout } from "@/components/settings/SettingsScreenLayout";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -21,7 +22,10 @@ export function SettingsAccountAccessScreen({
       activeSection="accountAccess"
       dataNodeId="1:5876"
     >
-      <SettingsAccountAccessCard t={t} user={user} />
+      <div className="space-y-4">
+        <SettingsLanguageCard />
+        <SettingsAccountAccessCard t={t} user={user} />
+      </div>
     </SettingsScreenLayout>
   );
 }

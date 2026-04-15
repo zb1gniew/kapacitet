@@ -20,8 +20,9 @@ import {
 import { createServerSession } from "@/lib/auth/session-store";
 import { getBackendApiBaseUrl } from "@/lib/backend/config";
 
-function buildRedirectUrl(request: NextRequest, path: string): URL {
-  return new URL(path, request.nextUrl.origin);
+function buildRedirectUrl(path: string): URL {
+  const { appUrl } = getAuthConfig();
+  return new URL(path, appUrl);
 }
 
 function clearTransactionCookie(response: NextResponse) {
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
 
   if (error || !code || !state) {
     const redirectResponse = NextResponse.redirect(
-      buildRedirectUrl(request, APP_ROUTES.home),
+      buildRedirectUrl(APP_ROUTES.home),
     );
     clearTransactionCookie(redirectResponse);
     return redirectResponse;
@@ -56,20 +57,21 @@ export async function GET(request: NextRequest) {
     AUTH_COOKIE_NAMES.transaction,
   )?.value;
   if (!transactionCookie) {
-    return NextResponse.redirect(buildRedirectUrl(request, APP_ROUTES.home));
+    return NextResponse.redirect(buildRedirectUrl(APP_ROUTES.home));
   }
 
   const transaction = await parseTransactionCookieValue(transactionCookie);
   if (!transaction || transaction.state !== state) {
     const redirectResponse = NextResponse.redirect(
-      buildRedirectUrl(request, APP_ROUTES.home),
+      buildRedirectUrl(APP_ROUTES.home),
     );
     clearTransactionCookie(redirectResponse);
     return redirectResponse;
   }
 
   try {
-    const redirectUri = `${request.nextUrl.origin}${APP_ROUTES.authCallbackApi}`;
+    const { appUrl } = getAuthConfig();
+    const redirectUri = `${appUrl}${APP_ROUTES.authCallbackApi}`;
     const tokenResponse = await exchangeAuthorizationCode({
       code,
       codeVerifier: transaction.codeVerifier,
@@ -126,7 +128,7 @@ export async function GET(request: NextRequest) {
       : APP_ROUTES.onboardingWelcome;
 
     const response = NextResponse.redirect(
-      buildRedirectUrl(request, redirectTo),
+      buildRedirectUrl(redirectTo),
     );
 
     response.cookies.set(
@@ -143,7 +145,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Auth callback failed", error);
     const redirectResponse = NextResponse.redirect(
-      buildRedirectUrl(request, APP_ROUTES.home),
+      buildRedirectUrl(APP_ROUTES.home),
     );
     clearTransactionCookie(redirectResponse);
     return redirectResponse;

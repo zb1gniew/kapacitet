@@ -1,12 +1,15 @@
 import type { AccessRequest } from "@/types/admin";
+import type { TranslateFn } from "@/types/i18n";
 import { getAccessRequestStatusClasses } from "./utils";
 
 type AccessRequestStatusBadgeProps = {
   status: AccessRequest["status"];
+  t: TranslateFn;
 };
 
 export function AccessRequestStatusBadge({
   status,
+  t,
 }: AccessRequestStatusBadgeProps) {
   return (
     <span
@@ -14,7 +17,7 @@ export function AccessRequestStatusBadge({
         status,
       )}`}
     >
-      {status}
+      {t(status)}
     </span>
   );
 }

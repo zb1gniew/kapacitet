@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 
 type AuthFieldProps = {
   id: string;
@@ -29,6 +32,7 @@ export function AuthField({
   rows = 4,
   readOnly = false,
 }: AuthFieldProps) {
+  const { t } = useLocalizedScreen();
   const sharedInputClassName = [
     "w-full rounded-[10px] border shadow-[0_1px_3px_rgba(0,0,0,0.10),0_1px_2px_rgba(0,0,0,0.10)]",
     error ? "border-red-400" : "border-neutral-300",
@@ -46,7 +50,9 @@ export function AuthField({
         {label}
         {required ? <span className="text-red-600"> *</span> : null}
         {optional ? (
-          <span className="ml-1 font-normal text-neutral-500">(optional)</span>
+          <span className="ml-1 font-normal text-neutral-500">
+            {t("(optional)")}
+          </span>
         ) : null}
       </label>
 

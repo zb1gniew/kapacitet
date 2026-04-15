@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
+import { getAuthConfig } from "@/lib/auth/config";
 import { buildEndSessionUrl } from "@/lib/auth/oidc";
 import { parseSessionCookieValue } from "@/lib/auth/session";
 import {
@@ -13,12 +14,13 @@ function clearAuthCookies(response: NextResponse) {
   response.cookies.delete(AUTH_COOKIE_NAMES.transaction);
 }
 
-function defaultRedirectUrl(request: NextRequest): URL {
-  return new URL(APP_ROUTES.home, request.nextUrl.origin);
+function defaultRedirectUrl(): URL {
+  const { appUrl } = getAuthConfig();
+  return new URL(APP_ROUTES.home, appUrl);
 }
 
 export async function POST(request: NextRequest) {
-  const localRedirectUrl = defaultRedirectUrl(request);
+  const localRedirectUrl = defaultRedirectUrl();
   const sessionCookie = request.cookies.get(AUTH_COOKIE_NAMES.session)?.value;
   const sessionId = sessionCookie
     ? await parseSessionCookieValue(sessionCookie)

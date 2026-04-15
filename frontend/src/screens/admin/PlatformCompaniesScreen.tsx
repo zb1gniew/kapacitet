@@ -87,31 +87,31 @@ export function PlatformCompaniesScreen({
 
     return [
       {
-        label: "Provisioned companies",
+        label: t("Provisioned companies"),
         value: loading ? "..." : String(provisionedRecords.length),
-        helper: "Companies linked from approved and provisioned requests.",
+        helper: t("Companies linked from approved and provisioned requests."),
         tone: "green" as const,
       },
       {
-        label: "Needs follow-up",
+        label: t("Needs follow-up"),
         value: loading ? "..." : String(followUpRecords.length),
-        helper: "Approved requests still missing a linked company record.",
+        helper: t("Approved requests still missing a linked company record."),
         tone: "amber" as const,
       },
       {
-        label: "Reviewed companies",
+        label: t("Reviewed companies"),
         value: loading ? "..." : String(records.length),
-        helper: "Approved requests now visible in the admin company registry.",
+        helper: t("Approved requests now visible in the admin company registry."),
         tone: "slate" as const,
       },
       {
-        label: "New this month",
+        label: t("New this month"),
         value: loading ? "..." : String(newThisMonth),
-        helper: "Provisioned companies reviewed or created during this month.",
+        helper: t("Provisioned companies reviewed or created during this month."),
         tone: "blue" as const,
       },
     ];
-  }, [loading, records]);
+  }, [loading, records, t]);
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
@@ -160,9 +160,13 @@ export function PlatformCompaniesScreen({
       user={user}
       t={t}
       activeItemKey="Companies"
-      title="Companies"
-      description="Review provisioned organizations, identify onboarding follow-up, and keep the company registry visible from a platform-level perspective."
-      sidebarNote="This registry is built from approved access requests and highlights which companies are already linked and which approvals still need provisioning follow-up."
+      title={t("Companies")}
+      description={t(
+        "Review provisioned organizations, identify onboarding follow-up, and keep the company registry visible from a platform-level perspective.",
+      )}
+      sidebarNote={t(
+        "This registry is built from approved access requests and highlights which companies are already linked and which approvals still need provisioning follow-up.",
+      )}
       dataName="Platform Companies"
       dataNodeId="platform-companies"
     >
@@ -173,24 +177,27 @@ export function PlatformCompaniesScreen({
       </section>
 
       <PlatformCollectionToolbar
+        t={t}
         searchValue={searchValue}
-        searchPlaceholder="Search by company, contact email, industry, or location"
+        searchPlaceholder={t(
+          "Search by company, contact email, industry, or location",
+        )}
         onSearchChange={setSearchValue}
         activeFilter={activeFilter}
         onFilterChange={(value) =>
           setActiveFilter(value as CompanyRegistryFilterTab)
         }
         filters={[
-          { key: "All", label: "All", count: records.length },
+          { key: "All", label: t("All"), count: records.length },
           {
             key: "Provisioned",
-            label: "Provisioned",
+            label: t("Provisioned"),
             count: records.filter((record) => record.status === "Provisioned")
               .length,
           },
           {
             key: "Needs follow-up",
-            label: "Needs follow-up",
+            label: t("Needs follow-up"),
             count: records.filter(
               (record) => record.status === "Needs follow-up",
             ).length,
@@ -208,24 +215,30 @@ export function PlatformCompaniesScreen({
         <div className="space-y-4">
           {loading ? (
             <PlatformSurfaceCard
-              eyebrow="Registry"
-              title="Loading companies"
-              description="Fetching the latest approved company records from the access-request workflow."
+              eyebrow={t("Registry")}
+              title={t("Loading companies")}
+              description={t(
+                "Fetching the latest approved company records from the access-request workflow.",
+              )}
             >
               <p className="text-sm text-neutral-600">
-                The company registry is loading.
+                {t("The company registry is loading.")}
               </p>
             </PlatformSurfaceCard>
           ) : null}
 
           {!loading && filteredRecords.length === 0 ? (
             <PlatformSurfaceCard
-              eyebrow="Registry"
-              title="No companies found"
-              description="No approved company records match the current search or filter."
+              eyebrow={t("Registry")}
+              title={t("No companies found")}
+              description={t(
+                "No approved company records match the current search or filter.",
+              )}
             >
               <p className="text-sm text-neutral-600">
-                Try clearing the search or switching to another registry filter.
+                {t(
+                  "Try clearing the search or switching to another registry filter.",
+                )}
               </p>
             </PlatformSurfaceCard>
           ) : null}
@@ -236,6 +249,7 @@ export function PlatformCompaniesScreen({
                   key={`${record.requestId ?? "requestless"}-${record.companyId ?? record.provisionedCompanyId ?? record.companyName}`}
                   highlighted={highlightedRecord === record}
                   record={record}
+                  t={t}
                 />
               ))
             : null}
@@ -243,17 +257,19 @@ export function PlatformCompaniesScreen({
 
         <div className="space-y-4">
           <PlatformSurfaceCard
-            eyebrow="Registry summary"
-            title="Current company coverage"
-            description="A quick read on how recently companies were reviewed and which part of the registry needs attention."
+            eyebrow={t("Registry summary")}
+            title={t("Current company coverage")}
+            description={t(
+              "A quick read on how recently companies were reviewed and which part of the registry needs attention.",
+            )}
           >
             <div className="space-y-3">
               <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                  Latest reviewed company
+                  {t("Latest reviewed company")}
                 </p>
                 <p className="mt-1 text-sm font-medium text-neutral-900">
-                  {filteredRecords[0]?.companyName ?? "Not available"}
+                  {filteredRecords[0]?.companyName ?? t("Not available")}
                 </p>
                 <p className="mt-1 text-sm text-neutral-600">
                   {filteredRecords[0]
@@ -261,20 +277,22 @@ export function PlatformCompaniesScreen({
                         filteredRecords[0].reviewedAt ??
                           filteredRecords[0].createdAt,
                       )
-                    : "No review timestamp available"}
+                    : t("No review timestamp available")}
                 </p>
               </div>
               <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                  Follow-up queue
+                  {t("Follow-up queue")}
                 </p>
                 <p className="mt-1 text-sm font-medium text-neutral-900">
-                  {
-                    records.filter(
-                      (record) => record.status === "Needs follow-up",
-                    ).length
-                  }{" "}
-                  companies currently need provisioning attention.
+                  {t(
+                    "{{count}} companies currently need provisioning attention.",
+                    {
+                      count: records.filter(
+                        (record) => record.status === "Needs follow-up",
+                      ).length,
+                    },
+                  )}
                 </p>
               </div>
             </div>

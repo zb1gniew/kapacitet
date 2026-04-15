@@ -47,7 +47,9 @@ export function MatchesOfferCard({
     offer.perspective === "Supplier" &&
     offer.status === MATCH_STATUS.PendingSupplierConfirmation;
   const isBusy = actionInProgress === offer.id || pendingAction !== null;
-  const statusLabel = isRequesterOffer ? "Direct match" : "Confirmation needed";
+  const statusLabel = isRequesterOffer
+    ? t("Direct match")
+    : t("Confirmation needed");
 
   async function handleAction(
     nextAction: "accept" | "decline" | "supplier-confirm" | "supplier-decline",
@@ -95,17 +97,17 @@ export function MatchesOfferCard({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base font-bold leading-6 tracking-[-0.3125px] text-neutral-900">
-                  {formatMatchTitle(offer)}
+                  {formatMatchTitle(t, offer)}
                 </h3>
                 <span className="rounded-[8px] border border-[#b9f8cf] bg-[#f0fdf4] px-2 py-0.5 text-[10px] font-semibold leading-4 text-[#016630]">
-                  {t(statusLabel)}
+                  {statusLabel}
                 </span>
               </div>
 
               <p className="mt-1 text-[11px] leading-4 text-neutral-500">
-                {formatRelativeTime(offer.createdAt)}
+                {formatRelativeTime(t, offer.createdAt)}
                 <span className="mx-1.5">·</span>
-                {formatExpiresAt(offer.expiresAt)}
+                {formatExpiresAt(t, offer.expiresAt)}
               </p>
             </div>
           </div>
@@ -129,6 +131,7 @@ export function MatchesOfferCard({
           </p>
           <p className="mt-1 leading-5 tracking-[-0.1504px] text-neutral-900">
             {formatDateRange(
+              t,
               offer.availabilityStartDate,
               offer.availabilityEndDate,
             )}
@@ -151,7 +154,7 @@ export function MatchesOfferCard({
             {t("Certificates")}
           </p>
           <p className="mt-1 leading-5 tracking-[-0.1504px] text-neutral-900">
-            {`${offer.certificates.length} verified`}
+            {t("{{count}} verified", { count: offer.certificates.length })}
           </p>
         </div>
       </div>

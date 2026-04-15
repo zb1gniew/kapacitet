@@ -19,14 +19,17 @@ type NetworkEscalationsContentProps = {
   t: TranslateFn;
 };
 
-function formatDateRange(startDate: string, endDate: string) {
+function formatDateRange(t: TranslateFn, startDate: string, endDate: string) {
   const formatter = new Intl.DateTimeFormat(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
 
-  return `${formatter.format(new Date(startDate))} - ${formatter.format(new Date(endDate))}`;
+  return t("{{start}} - {{end}}", {
+    start: formatter.format(new Date(startDate)),
+    end: formatter.format(new Date(endDate)),
+  });
 }
 
 function formatTriggeredAt(triggeredAt: string) {
@@ -86,7 +89,9 @@ export function NetworkEscalationsContent({
         <div className="rounded-[12px] border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
           {loading
             ? t("Loading network requests...")
-            : `${escalations.length} ${escalations.length === 1 ? t("request") : t("requests")}`}
+            : escalations.length === 1
+              ? t("{{count}} request", { count: escalations.length })
+              : t("{{count}} requests", { count: escalations.length })}
         </div>
       </header>
 
@@ -155,23 +160,49 @@ export function NetworkEscalationsContent({
                           escalation.urgency,
                         )}`}
                       >
-                        {`${t(escalation.urgency)} ${t("priority")}`}
+                        {t("{{urgency}} priority", {
+                          urgency: t(escalation.urgency),
+                        })}
                       </span>
                       <span className="text-xs text-neutral-500">
-                        {`${t("Escalated")} ${formatTriggeredAt(escalation.triggeredAt)}`}
+                        {t("Escalated {{date}}", {
+                          date: formatTriggeredAt(escalation.triggeredAt),
+                        })}
                       </span>
                     </div>
                     <h2 className="mt-3 text-xl font-semibold text-neutral-900">
-                      {`${escalation.quantity} ${escalation.quantity === 1 ? t("worker needed") : t("workers needed")}`}
+                      {escalation.quantity === 1
+                        ? t("{{count}} worker needed", {
+                            count: escalation.quantity,
+                          })
+                        : t("{{count}} workers needed", {
+                            count: escalation.quantity,
+                          })}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-neutral-600">
-                      {`${escalation.locationCity} · ${escalation.locationRadiusKm} km · ${formatDateRange(escalation.startDate, escalation.endDate)}`}
+                      {t("{{city}} · {{radius}} km · {{range}}", {
+                        city: escalation.locationCity,
+                        radius: escalation.locationRadiusKm,
+                        range: formatDateRange(
+                          t,
+                          escalation.startDate,
+                          escalation.endDate,
+                        ),
+                      })}
                     </p>
                   </div>
 
                   <div className="rounded-[12px] border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
-                    <p>{`${escalation.helpResponses} ${t("can help")}`}</p>
-                    <p className="mt-1">{`${escalation.needCapacityResponses} ${t("also need capacity")}`}</p>
+                    <p>
+                      {t("{{count}} can help", {
+                        count: escalation.helpResponses,
+                      })}
+                    </p>
+                    <p className="mt-1">
+                      {t("{{count}} also need capacity", {
+                        count: escalation.needCapacityResponses,
+                      })}
+                    </p>
                   </div>
                 </div>
 

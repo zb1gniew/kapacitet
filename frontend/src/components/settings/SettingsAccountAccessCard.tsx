@@ -18,7 +18,7 @@ type ActivityItem = {
   occurredAt: string;
 };
 
-function formatRelativeTime(dateStr: string): string {
+function formatRelativeTime(t: TranslateFn, dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -26,11 +26,17 @@ function formatRelativeTime(dateStr: string): string {
   const diffHours = Math.floor(diffMs / 3_600_000);
   const diffDays = Math.floor(diffMs / 86_400_000);
 
-  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffMin < 60) {
+    return diffMin === 1
+      ? t("{{count}} min ago", { count: diffMin })
+      : t("{{count}} mins ago", { count: diffMin });
+  }
   if (diffHours < 24)
-    return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
+    return diffHours === 1
+      ? t("{{count}} hour ago", { count: diffHours })
+      : t("{{count}} hours ago", { count: diffHours });
+  if (diffDays === 1) return t("Yesterday");
+  if (diffDays < 7) return t("{{count}} days ago", { count: diffDays });
   return date.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -38,11 +44,14 @@ function formatRelativeTime(dateStr: string): string {
   });
 }
 
-function getRoleLabel(roles?: string[]): { label: string; badge: string } {
+function getRoleLabel(
+  t: TranslateFn,
+  roles?: string[],
+): { label: string; badge: string } {
   if (roles?.includes("platform-admin") || roles?.includes("operator-admin")) {
-    return { label: "Platform Administrator", badge: "Full Access" };
+    return { label: t("Platform Administrator"), badge: t("Full Access") };
   }
-  return { label: "Company Administrator", badge: "Full Access" };
+  return { label: t("Company Administrator"), badge: t("Full Access") };
 }
 
 function AccountPanel({
@@ -52,7 +61,7 @@ function AccountPanel({
   t: TranslateFn;
   user: AuthenticatedUser;
 }) {
-  const { label: roleLabel, badge } = getRoleLabel(user.roles);
+  const { label: roleLabel, badge } = getRoleLabel(t, user.roles);
   const displayEmail = user.email ?? user.preferredUsername ?? "";
 
   return (
@@ -68,16 +77,19 @@ function AccountPanel({
               {t("Current role")}
             </p>
             <p className="mt-0.5 text-xs leading-[19.5px] tracking-[-0.1172px] text-[#193cb8]">
-              {t(roleLabel)}
+              {roleLabel}
             </p>
           </div>
           <span className="inline-flex h-5 items-center rounded-[10px] bg-blue-600 px-2 text-[10px] font-semibold text-white">
-            {t(badge)}
+            {badge}
           </span>
         </div>
         <p className="mt-2 text-[11px] leading-[16px] text-[#193cb8]">
           {t(
-            "As a company administrator, you have full access to declare availability, request capacity, review matches, and manage settings.",
+            user.roles?.includes("platform-admin") ||
+              user.roles?.includes("operator-admin")
+              ? "As a platform administrator, you have full access to review onboarding, manage platform operations, and inspect audit activity."
+              : "As a company administrator, you have full access to declare availability, request capacity, review matches, and manage settings.",
           )}
         </p>
       </div>
@@ -166,11 +178,11 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
                     </p>
                   </div>
                   <p className="mt-0.5 pl-4 text-[11px] leading-[16px] text-neutral-500">
-                    {item.description}
+                    {t(item.description)}
                   </p>
                 </div>
                 <p className="shrink-0 text-[10px] leading-[14px] text-neutral-500">
-                  {formatRelativeTime(item.occurredAt)}
+                  {formatRelativeTime(t, item.occurredAt)}
                 </p>
               </div>
             </div>

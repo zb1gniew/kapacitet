@@ -26,8 +26,9 @@ function sanitizeReturnTo(value: string | null): string {
   return value;
 }
 
-function getRedirectUri(request: NextRequest): string {
-  return `${request.nextUrl.origin}${APP_ROUTES.authCallbackApi}`;
+function getRedirectUri(): string {
+  const { appUrl } = getAuthConfig();
+  return `${appUrl}${APP_ROUTES.authCallbackApi}`;
 }
 
 function createLoginResponse(
@@ -42,7 +43,7 @@ function createLoginResponse(
   const nonce = createRandomState();
   const codeVerifier = createCodeVerifier();
   const codeChallenge = createCodeChallenge(codeVerifier);
-  const redirectUri = getRedirectUri(request);
+  const redirectUri = getRedirectUri();
 
   const transaction: AuthTransaction = {
     state,

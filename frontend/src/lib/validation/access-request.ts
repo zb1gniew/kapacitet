@@ -1,3 +1,5 @@
+import type { TranslateFn } from "@/types/i18n";
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ACCESS_REQUEST_LIMITS = {
@@ -24,30 +26,41 @@ export type AccessRequestPayload = {
 };
 
 export function validateAccessRequest(
+  t: TranslateFn,
   payload: AccessRequestPayload,
 ): AccessRequestFieldErrors {
   const errors: AccessRequestFieldErrors = {};
 
-  if (!payload.name) errors.companyName = "Company name is required.";
+  if (!payload.name) errors.companyName = t("Company name is required.");
   else if (payload.name.length > ACCESS_REQUEST_LIMITS.name)
-    errors.companyName = `Must be ${ACCESS_REQUEST_LIMITS.name} characters or fewer.`;
+    errors.companyName = t("Must be {{count}} characters or fewer.", {
+      count: ACCESS_REQUEST_LIMITS.name,
+    });
 
-  if (!payload.industry) errors.industry = "Industry is required.";
+  if (!payload.industry) errors.industry = t("Industry is required.");
   else if (payload.industry.length > ACCESS_REQUEST_LIMITS.industry)
-    errors.industry = `Must be ${ACCESS_REQUEST_LIMITS.industry} characters or fewer.`;
+    errors.industry = t("Must be {{count}} characters or fewer.", {
+      count: ACCESS_REQUEST_LIMITS.industry,
+    });
 
-  if (!payload.location) errors.location = "Location is required.";
+  if (!payload.location) errors.location = t("Location is required.");
   else if (payload.location.length > ACCESS_REQUEST_LIMITS.location)
-    errors.location = `Must be ${ACCESS_REQUEST_LIMITS.location} characters or fewer.`;
+    errors.location = t("Must be {{count}} characters or fewer.", {
+      count: ACCESS_REQUEST_LIMITS.location,
+    });
 
-  if (!payload.contactEmail) errors.contactEmail = "Email is required.";
+  if (!payload.contactEmail) errors.contactEmail = t("Email is required.");
   else if (!EMAIL_RE.test(payload.contactEmail))
-    errors.contactEmail = "Enter a valid email address.";
+    errors.contactEmail = t("Enter a valid email address.");
   else if (payload.contactEmail.length > ACCESS_REQUEST_LIMITS.email)
-    errors.contactEmail = `Must be ${ACCESS_REQUEST_LIMITS.email} characters or fewer.`;
+    errors.contactEmail = t("Must be {{count}} characters or fewer.", {
+      count: ACCESS_REQUEST_LIMITS.email,
+    });
 
   if (payload.message && payload.message.length > ACCESS_REQUEST_LIMITS.message)
-    errors.message = `Must be ${ACCESS_REQUEST_LIMITS.message} characters or fewer.`;
+    errors.message = t("Must be {{count}} characters or fewer.", {
+      count: ACCESS_REQUEST_LIMITS.message,
+    });
 
   return errors;
 }

@@ -1,10 +1,12 @@
 import { CheckBadgeIcon, EmailIcon, MapPinIcon } from "@/components/auth/icons";
 import type { AccessRequest } from "@/types/admin";
+import type { TranslateFn } from "@/types/i18n";
 import { AccessRequestStatusBadge } from "./AccessRequestStatusBadge";
 import { formatAccessRequestDate, formatAccessRequestDateTime } from "./utils";
 
 type AccessRequestReviewCardProps = {
   request: AccessRequest;
+  t: TranslateFn;
   highlighted?: boolean;
   onApprove: () => void;
   onReject: () => void;
@@ -37,6 +39,7 @@ function InfoPill({ label, value, icon }: InfoPillProps) {
 
 export function AccessRequestReviewCard({
   request,
+  t,
   highlighted = false,
   onApprove,
   onReject,
@@ -64,24 +67,26 @@ export function AccessRequestReviewCard({
                 <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
                   {request.name}
                 </h2>
-                <AccessRequestStatusBadge status={request.status} />
+                <AccessRequestStatusBadge status={request.status} t={t} />
               </div>
 
               <p className="mt-1 text-sm leading-6 tracking-[-0.1504px] text-neutral-600">
-                Submitted on {formatAccessRequestDate(request.createdAt)}
+                {t("Submitted on {{date}}", {
+                  date: formatAccessRequestDate(request.createdAt),
+                })}
               </p>
             </div>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <InfoPill label="Industry" value={request.industry} />
+            <InfoPill label={t("Industry")} value={request.industry} />
             <InfoPill
-              label="Location"
+              label={t("Location")}
               value={request.location}
               icon="location"
             />
             <InfoPill
-              label="Contact email"
+              label={t("Contact email")}
               value={request.contactEmail}
               icon="email"
             />
@@ -90,7 +95,7 @@ export function AccessRequestReviewCard({
           {request.message ? (
             <div className="mt-5 rounded-[12px] border border-neutral-200 bg-[#fafafa] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Message
+                {t("Message")}
               </p>
               <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-700">
                 {request.message}
@@ -101,13 +106,20 @@ export function AccessRequestReviewCard({
           {request.status === "Approved" ? (
             <div className="mt-5 rounded-[12px] border border-[#b9f8cf] bg-[#f0fdf4] p-4 text-[#166534]">
               <p className="text-sm font-semibold">
-                Company access provisioned successfully
+                {t("Company access provisioned successfully")}
               </p>
               <p className="mt-1 text-sm leading-[22.75px] tracking-[-0.1504px]">
-                Reviewed by {request.reviewedBy ?? "platform administrator"}
-                {reviewedAtLabel ? ` on ${reviewedAtLabel}` : ""}.
+                {t("Reviewed by {{actor}}", {
+                  actor: request.reviewedBy ?? t("platform administrator"),
+                })}
+                {reviewedAtLabel
+                  ? t(" on {{date}}", { date: reviewedAtLabel })
+                  : ""}
+                .
                 {request.provisionedCompanyId
-                  ? ` Company ID: ${request.provisionedCompanyId}.`
+                  ? ` ${t("Company ID: {{id}}.", {
+                      id: request.provisionedCompanyId,
+                    })}`
                   : ""}
               </p>
             </div>
@@ -115,14 +127,21 @@ export function AccessRequestReviewCard({
 
           {request.status === "Rejected" ? (
             <div className="mt-5 rounded-[12px] border border-[#fecaca] bg-[#fff5f5] p-4 text-[#b91c1c]">
-              <p className="text-sm font-semibold">Request rejected</p>
+              <p className="text-sm font-semibold">{t("Request rejected")}</p>
               <p className="mt-1 text-sm leading-[22.75px] tracking-[-0.1504px]">
-                Reviewed by {request.reviewedBy ?? "platform administrator"}
-                {reviewedAtLabel ? ` on ${reviewedAtLabel}` : ""}.
+                {t("Reviewed by {{actor}}", {
+                  actor: request.reviewedBy ?? t("platform administrator"),
+                })}
+                {reviewedAtLabel
+                  ? t(" on {{date}}", { date: reviewedAtLabel })
+                  : ""}
+                .
               </p>
               {request.rejectionReason ? (
                 <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px]">
-                  Reason: {request.rejectionReason}
+                  {t("Reason: {{reason}}", {
+                    reason: request.rejectionReason,
+                  })}
                 </p>
               ) : null}
             </div>
@@ -137,23 +156,23 @@ export function AccessRequestReviewCard({
                 onClick={onApprove}
                 className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#00a63e] px-4 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition hover:bg-[#008b35]"
               >
-                Approve request
+                {t("Approve request")}
               </button>
               <button
                 type="button"
                 onClick={onReject}
                 className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#fca5a5] bg-white px-4 text-sm font-semibold text-[#dc2626] transition hover:bg-[#fff5f5]"
               >
-                Reject request
+                {t("Reject request")}
               </button>
             </div>
           ) : (
             <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] p-4">
               <p className="text-sm font-semibold text-neutral-900">
-                Review completed
+                {t("Review completed")}
               </p>
               <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
-                This request has already been processed.
+                {t("This request has already been processed.")}
               </p>
             </div>
           )}

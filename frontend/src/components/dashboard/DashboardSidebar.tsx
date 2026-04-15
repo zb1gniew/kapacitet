@@ -57,8 +57,10 @@ export function DashboardSidebar({
 }: DashboardSidebarProps) {
   const navItems = getDashboardNavItems(workspace);
   const subtitle =
-    workspace === "platform" ? "Platform operations" : "Capacity coordination";
-  const version = workspace === "platform" ? "Admin workspace" : "2.4.1";
+    workspace === "platform"
+      ? t("Platform operations")
+      : t("Capacity coordination");
+  const version = workspace === "platform" ? t("Admin workspace") : "2.4.1";
 
   return (
     <aside className="flex w-full flex-col bg-gradient-to-b from-[#314158] to-[#1d293d] text-[#cad5e2] shadow-[0_20px_25px_rgba(0,0,0,0.1),0_8px_10px_rgba(0,0,0,0.1)] lg:w-72">
@@ -69,9 +71,9 @@ export function DashboardSidebar({
           </div>
           <div>
             <p className="text-lg font-semibold leading-[22.5px] tracking-[-0.4395px] text-neutral-100">
-              KapacitetNet
+              {t("KapacitetNet")}
             </p>
-            <p className="text-xs text-[#90a1b9]">{t(subtitle)}</p>
+            <p className="text-xs text-[#90a1b9]">{subtitle}</p>
           </div>
         </div>
       </div>

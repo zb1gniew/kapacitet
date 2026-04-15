@@ -124,15 +124,19 @@ export function AccessRequestsReviewScreen({
       setRejectionReason("");
       setToastMessage(
         decision === "Approved"
-          ? `Approved access request from ${request.name}.`
-          : `Rejected access request from ${request.name}.`,
+          ? t("Approved access request from {{name}}.", {
+              name: request.name,
+            })
+          : t("Rejected access request from {{name}}.", {
+              name: request.name,
+            }),
       );
       await refreshRequests();
     } catch (error) {
       setToastMessage(
         error instanceof Error
           ? error.message
-          : "Unable to process the review right now.",
+          : t("Unable to process the review right now."),
       );
     } finally {
       setSubmitting(false);
@@ -145,30 +149,34 @@ export function AccessRequestsReviewScreen({
         user={user}
         t={t}
         activeItemKey="Access requests"
-        title="Access requests"
-        description="Review incoming company access requests, approve verified organizations, and keep track of provisioning outcomes from one place."
-        sidebarNote="This view handles incoming company onboarding requests and supports the full review workflow from pending to approved or rejected."
+        title={t("Access requests")}
+        description={t(
+          "Review incoming company access requests, approve verified organizations, and keep track of provisioning outcomes from one place.",
+        )}
+        sidebarNote={t(
+          "This view handles incoming company onboarding requests and supports the full review workflow from pending to approved or rejected.",
+        )}
         dataName="Admin Access Requests"
         dataNodeId="admin-access-requests"
       >
         <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <AccessRequestsMetricCard
-            title="Pending review"
+            title={t("Pending review")}
             value={pendingCount}
             status="Pending"
           />
           <AccessRequestsMetricCard
-            title="Approved requests"
+            title={t("Approved requests")}
             value={approvedCount}
             status="Approved"
           />
           <AccessRequestsMetricCard
-            title="Rejected requests"
+            title={t("Rejected requests")}
             value={rejectedCount}
             status="Rejected"
           />
           <AccessRequestsMetricCard
-            title="Total requests"
+            title={t("Total requests")}
             value={requests.length}
             status="All"
           />
@@ -178,8 +186,9 @@ export function AccessRequestsReviewScreen({
           <div className="mb-4 flex items-start gap-3 rounded-[12px] border border-[#bedbff] bg-[#eff6ff] px-4 py-3 text-sm text-[#193cb8]">
             <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
             <p className="leading-[22.75px] tracking-[-0.1504px]">
-              Approve verified companies to continue provisioning. Reject only
-              when the request does not meet access requirements.
+              {t(
+                "Approve verified companies to continue provisioning. Reject only when the request does not meet access requirements.",
+              )}
             </p>
           </div>
 
@@ -187,6 +196,7 @@ export function AccessRequestsReviewScreen({
             activeTab={currentActiveTab}
             onChange={setActiveTab}
             requests={requests}
+            t={t}
           />
         </section>
 
@@ -204,18 +214,19 @@ export function AccessRequestsReviewScreen({
 
         {loading ? (
           <div className="mt-6 rounded-[14px] border border-neutral-200 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-            Loading access requests...
+            {t("Loading access requests...")}
           </div>
         ) : null}
 
         {!loading && filteredRequests.length === 0 ? (
           <div className="mt-6 rounded-[14px] border border-neutral-200 bg-white px-6 py-12 text-center shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
             <p className="text-lg font-semibold text-neutral-900">
-              No access requests found
+              {t("No access requests found")}
             </p>
             <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
-              There are no requests in the <strong>{currentActiveTab}</strong>{" "}
-              view right now.
+              {t("There are no requests in the {{tab}} view right now.", {
+                tab: t(currentActiveTab),
+              })}
             </p>
           </div>
         ) : null}
@@ -227,6 +238,7 @@ export function AccessRequestsReviewScreen({
                 key={request.id}
                 highlighted={highlightedRequestId === request.id}
                 request={request}
+                t={t}
                 onApprove={() => setDialog({ type: "approve", request })}
                 onReject={() => {
                   setRejectionReason("");
@@ -240,8 +252,15 @@ export function AccessRequestsReviewScreen({
 
       {dialog.type === "approve" ? (
         <AccessRequestReviewDialog
-          title="Approve access request"
-          description={`Approve ${dialog.request.name} and trigger company provisioning for ${dialog.request.contactEmail}.`}
+          t={t}
+          title={t("Approve access request")}
+          description={t(
+            "Approve {{name}} and trigger company provisioning for {{contactEmail}}.",
+            {
+              name: dialog.request.name,
+              contactEmail: dialog.request.contactEmail,
+            },
+          )}
           onCancel={() => setDialog({ type: "none" })}
           onConfirm={() => handleReview(dialog.request, "Approved")}
           confirmLabel="Approve request"
@@ -249,16 +268,23 @@ export function AccessRequestsReviewScreen({
           submitting={submitting}
         >
           <div className="rounded-[12px] border border-[#bedbff] bg-[#eff6ff] p-4 text-sm leading-[22.75px] tracking-[-0.1504px] text-[#193cb8]">
-            The request will be marked as approved and the backend will continue
-            with provisioning based on the submitted company details.
+            {t(
+              "The request will be marked as approved and the backend will continue with provisioning based on the submitted company details.",
+            )}
           </div>
         </AccessRequestReviewDialog>
       ) : null}
 
       {dialog.type === "reject" ? (
         <AccessRequestReviewDialog
-          title="Reject access request"
-          description={`Reject ${dialog.request.name}. You can optionally save a short reason for the decision.`}
+          t={t}
+          title={t("Reject access request")}
+          description={t(
+            "Reject {{name}}. You can optionally save a short reason for the decision.",
+            {
+              name: dialog.request.name,
+            },
+          )}
           onCancel={() => {
             setDialog({ type: "none" });
             setRejectionReason("");
@@ -276,7 +302,7 @@ export function AccessRequestsReviewScreen({
         >
           <label className="block">
             <span className="text-sm font-semibold text-neutral-900">
-              Rejection reason
+              {t("Rejection reason")}
             </span>
             <textarea
               value={rejectionReason}
@@ -284,7 +310,7 @@ export function AccessRequestsReviewScreen({
               maxLength={1000}
               rows={4}
               className="mt-2 w-full rounded-[12px] border border-neutral-300 px-4 py-3 text-sm text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] focus:border-blue-600 focus:outline-none"
-              placeholder="Optional reason for rejecting this request"
+              placeholder={t("Optional reason for rejecting this request")}
             />
           </label>
         </AccessRequestReviewDialog>

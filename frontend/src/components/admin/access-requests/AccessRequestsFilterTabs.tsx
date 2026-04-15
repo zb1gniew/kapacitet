@@ -1,9 +1,11 @@
 import type { AccessRequest, AccessRequestFilterTab } from "@/types/admin";
+import type { TranslateFn } from "@/types/i18n";
 
 type AccessRequestsFilterTabsProps = {
   activeTab: AccessRequestFilterTab;
   onChange: (tab: AccessRequestFilterTab) => void;
   requests: AccessRequest[];
+  t: TranslateFn;
 };
 
 const FILTER_TABS: AccessRequestFilterTab[] = [
@@ -17,6 +19,7 @@ export function AccessRequestsFilterTabs({
   activeTab,
   onChange,
   requests,
+  t,
 }: AccessRequestsFilterTabsProps) {
   return (
     <div className="rounded-[14px] border border-neutral-200 bg-white p-2 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
@@ -39,7 +42,7 @@ export function AccessRequestsFilterTabs({
                   : "text-neutral-600 hover:bg-neutral-100"
               }`}
             >
-              <span>{tab}</span>
+              <span>{t(tab)}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-[11px] ${
                   isActive

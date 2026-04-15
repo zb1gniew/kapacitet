@@ -26,12 +26,18 @@ export function DashboardScreen({ user }: DashboardScreenProps) {
 
   const dashboard = useMemo<DashboardData>(
     () => ({
-      metrics: deriveMetrics(availability, requests, matches),
-      processes: deriveActiveProcesses(availability, requests, matches),
-      reminders: deriveReminders(availability, requests, matches, agreements),
-      banner: deriveActionBanner(availability, requests, matches),
+      metrics: deriveMetrics(t, availability, requests, matches),
+      processes: deriveActiveProcesses(t, availability, requests, matches),
+      reminders: deriveReminders(
+        t,
+        availability,
+        requests,
+        matches,
+        agreements,
+      ),
+      banner: deriveActionBanner(t, availability, requests, matches),
     }),
-    [agreements, availability, matches, requests],
+    [agreements, availability, matches, requests, t],
   );
 
   const hasLoadedData =
