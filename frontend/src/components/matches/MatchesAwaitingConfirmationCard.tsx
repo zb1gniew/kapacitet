@@ -23,8 +23,12 @@ export function MatchesAwaitingConfirmationCard({
   const [showDetails, setShowDetails] = useState(false);
   const description =
     offer.perspective === "Requester"
-      ? "You accepted this offer. The capacity provider is reviewing your request and will confirm or decline within 48 hours."
-      : "Your availability was matched. The requesting company is reviewing the offer.";
+      ? t(
+          "You accepted this offer. The capacity provider is reviewing your request and will confirm or decline within 48 hours.",
+        )
+      : t(
+          "Your availability was matched. The requesting company is reviewing the offer.",
+        );
 
   return (
     <article
@@ -43,7 +47,7 @@ export function MatchesAwaitingConfirmationCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-bold leading-6 tracking-[-0.3125px] text-neutral-900">
-              {formatMatchTitle(offer)}
+              {formatMatchTitle(t, offer)}
             </h3>
             <span className="rounded-[8px] border border-[#e17100] bg-[#fe9a00] px-2.5 py-0.5 text-xs font-bold text-white">
               {t("Awaiting confirmation")}
@@ -51,14 +55,18 @@ export function MatchesAwaitingConfirmationCard({
           </div>
 
           <p className="mt-2 text-sm leading-5 tracking-[-0.1504px] text-neutral-700">
-            {t(description)}
+            {description}
           </p>
 
           <div className="mt-2.5 flex flex-wrap gap-4 text-xs leading-4 text-neutral-600">
             <p className="inline-flex items-center gap-1.5">
               <ClockIcon className="h-3 w-3" />
               <span>
-                {formatDateRange(offer.requestStartDate, offer.requestEndDate)}
+                {formatDateRange(
+                  t,
+                  offer.requestStartDate,
+                  offer.requestEndDate,
+                )}
               </span>
             </p>
             <p className="inline-flex items-center gap-1.5">
@@ -67,7 +75,11 @@ export function MatchesAwaitingConfirmationCard({
             </p>
             <p className="inline-flex items-center gap-1.5">
               <CheckBadgeIcon className="h-3 w-3" />
-              <span>{`${offer.certificates.length} certificates verified`}</span>
+              <span>
+                {t("{{count}} certificates verified", {
+                  count: offer.certificates.length,
+                })}
+              </span>
             </p>
           </div>
 

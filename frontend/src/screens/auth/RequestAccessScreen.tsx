@@ -16,6 +16,7 @@ import {
   InfoIcon,
   MapPinIcon,
 } from "@/components/auth/icons";
+import type { TranslateFn } from "@/types/i18n";
 import type { AccessRequestSuccess } from "@/types/workflows";
 import {
   type AccessRequestFieldErrors,
@@ -23,9 +24,9 @@ import {
   hasErrors,
 } from "@/lib/validation/access-request";
 
-function getApiErrorMessage(responseText: string): string {
+function getApiErrorMessage(t: TranslateFn, responseText: string): string {
   if (!responseText) {
-    return "We couldn't submit the access request. Please try again.";
+    return t("We couldn't submit the access request. Please try again.");
   }
 
   try {
@@ -37,7 +38,9 @@ function getApiErrorMessage(responseText: string): string {
     // Fall back to a generic message when the error body isn't JSON.
   }
 
-  return "We couldn't submit the access request. Check the form values and try again.";
+  return t(
+    "We couldn't submit the access request. Check the form values and try again.",
+  );
 }
 
 export function RequestAccessScreen() {
@@ -61,7 +64,7 @@ export function RequestAccessScreen() {
       message: String(formData.get("message") ?? "").trim() || undefined,
     };
 
-    const errors = validateAccessRequest(payload);
+    const errors = validateAccessRequest(t, payload);
     setFieldErrors(errors);
 
     if (hasErrors(errors)) {
@@ -85,7 +88,7 @@ export function RequestAccessScreen() {
       const responseText = await response.text();
 
       if (!response.ok) {
-        setErrorMessage(getApiErrorMessage(responseText));
+        setErrorMessage(getApiErrorMessage(t, responseText));
         return;
       }
 
@@ -99,7 +102,7 @@ export function RequestAccessScreen() {
     } catch {
       if (!succeeded) {
         setErrorMessage(
-          "We couldn't reach the backend. Please try again in a moment.",
+          t("We couldn't reach the backend. Please try again in a moment."),
         );
       }
     } finally {
@@ -118,7 +121,7 @@ export function RequestAccessScreen() {
           <BrandIcon className="h-7 w-7" />
         </div>
         <h1 className="text-center text-xl font-bold tracking-[-0.4492px] text-neutral-900">
-          KapacitetNet
+          {t("KapacitetNet")}
         </h1>
       </header>
 

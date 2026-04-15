@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { APP_ROUTES } from "@/constants/routes";
 import type { CompanyRegistryRecord } from "@/types/admin";
+import type { TranslateFn } from "@/types/i18n";
 import { formatPlatformDateTime } from "./utils";
 
 type CompanyRegistryCardProps = {
   record: CompanyRegistryRecord;
+  t: TranslateFn;
   highlighted?: boolean;
 };
 
@@ -16,6 +18,7 @@ function getStatusClasses(status: CompanyRegistryRecord["status"]) {
 
 export function CompanyRegistryCard({
   record,
+  t,
   highlighted = false,
 }: CompanyRegistryCardProps) {
   const recordDomId =
@@ -44,11 +47,13 @@ export function CompanyRegistryCard({
                 record.status,
               )}`}
             >
-              {record.status}
+              {t(record.status)}
             </span>
             {record.provisionedCompanyId ? (
               <span className="inline-flex rounded-[10px] border border-[#dbeafe] bg-[#eff6ff] px-2.5 py-1 text-[11px] font-semibold text-[#1d4ed8]">
-                Company ID {record.provisionedCompanyId}
+                {t("Company ID {{id}}", {
+                  id: record.provisionedCompanyId,
+                })}
               </span>
             ) : null}
           </div>
@@ -56,7 +61,7 @@ export function CompanyRegistryCard({
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Industry
+                {t("Industry")}
               </p>
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {record.industry}
@@ -64,7 +69,7 @@ export function CompanyRegistryCard({
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Location
+                {t("Location")}
               </p>
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {record.location}
@@ -72,7 +77,7 @@ export function CompanyRegistryCard({
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 sm:col-span-2 2xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Primary contact
+                {t("Primary contact")}
               </p>
               <p className="mt-1 break-all text-[13px] font-medium leading-5 text-neutral-900">
                 {record.contactEmail}
@@ -80,7 +85,7 @@ export function CompanyRegistryCard({
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Reviewed
+                {t("Reviewed")}
               </p>
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {formatPlatformDateTime(record.reviewedAt)}
@@ -89,11 +94,20 @@ export function CompanyRegistryCard({
           </div>
 
           <div className="mt-4 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 text-sm text-neutral-700">
-            <p className="font-semibold text-neutral-900">Operational note</p>
+            <p className="font-semibold text-neutral-900">
+              {t("Operational note")}
+            </p>
             <p className="mt-1 break-words leading-[22.75px] tracking-[-0.1504px]">
               {record.status === "Provisioned"
-                ? `Provisioned from an approved access request and reviewed by ${record.reviewedBy ?? "platform administrator"}.`
-                : "The request was approved but still needs provisioning follow-up before the company is fully linked."}
+                ? t(
+                    "Provisioned from an approved access request and reviewed by {{actor}}.",
+                    {
+                      actor: record.reviewedBy ?? t("platform administrator"),
+                    },
+                  )
+                : t(
+                    "The request was approved but still needs provisioning follow-up before the company is fully linked.",
+                  )}
             </p>
           </div>
         </div>
@@ -104,20 +118,29 @@ export function CompanyRegistryCard({
               href={APP_ROUTES.adminAccessRequests}
               className="inline-flex h-11 w-full items-center justify-center rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-4 text-sm font-semibold text-[#1d4ed8] transition hover:bg-[#dbeafe]"
             >
-              View access request
+              {t("View access request")}
             </Link>
           ) : (
             <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 text-sm text-neutral-700">
-              <p className="font-semibold text-neutral-900">Registry source</p>
+              <p className="font-semibold text-neutral-900">
+                {t("Registry source")}
+              </p>
               <p className="mt-1 break-words leading-[22.75px] tracking-[-0.1504px]">
-                This company record exists directly in the platform registry.
+                {t(
+                  "This company record exists directly in the platform registry.",
+                )}
               </p>
             </div>
           )}
           <p className="mt-3 break-words text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
             {record.requestId
-              ? `Request ID ${record.requestId} created on ${formatPlatformDateTime(record.createdAt)}.`
-              : `Company record created on ${formatPlatformDateTime(record.createdAt)}.`}
+              ? t("Request ID {{id}} created on {{date}}.", {
+                  id: record.requestId,
+                  date: formatPlatformDateTime(record.createdAt),
+                })
+              : t("Company record created on {{date}}.", {
+                  date: formatPlatformDateTime(record.createdAt),
+                })}
           </p>
         </div>
       </div>

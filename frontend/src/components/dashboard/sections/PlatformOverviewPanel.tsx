@@ -10,18 +10,18 @@ type PlatformOverviewPanelProps = {
 
 const PLATFORM_OVERVIEW_ITEMS = [
   {
-    title: "Platform purpose",
-    description:
+    titleKey: "Platform purpose",
+    descriptionKey:
       "Coordinate temporary labour capacity between trusted companies without exposing worker identities or losing operational control.",
   },
   {
-    title: "How matching works",
-    description:
+    titleKey: "How matching works",
+    descriptionKey:
       "Availability and demand are published into the network, reviewed through structured match states, and confirmed before cooperation begins.",
   },
   {
-    title: "What this dashboard shows",
-    description:
+    titleKey: "What this dashboard shows",
+    descriptionKey:
       "A live overview of published availability, active requests, match progress, deadlines, and the coordination status of your company on the platform.",
   },
 ] as const;
@@ -38,12 +38,12 @@ function PlatformWorkspaceSummary({
       </p>
       <p className="mt-1 text-sm font-medium text-[#163766]">
         {loading
-          ? "..."
+          ? t("Loading...")
           : (dashboard.processes[0]?.title ?? t("Coordination overview"))}
       </p>
       <p className="mt-2 text-xs leading-5 text-[#5a78a3]">
         {loading
-          ? "..."
+          ? t("Loading...")
           : (dashboard.banner?.description ??
             t(
               "Use this dashboard to publish activity, track deadlines, and manage live coordination across your network.",
@@ -84,13 +84,15 @@ export function PlatformOverviewPanel({
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {PLATFORM_OVERVIEW_ITEMS.map((item) => (
           <article
-            key={item.title}
+            key={item.titleKey}
             className="rounded-[12px] border border-[#cfe0fb] bg-[#ffffffb8] px-4 py-3 backdrop-blur-sm"
           >
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#5a78a3]">
-              {t(item.title)}
+              {t(item.titleKey)}
             </p>
-            <p className="mt-1 text-sm text-[#315178]">{t(item.description)}</p>
+            <p className="mt-1 text-sm text-[#315178]">
+              {t(item.descriptionKey)}
+            </p>
           </article>
         ))}
       </div>

@@ -57,8 +57,8 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
   }, [highlightedAgreementId, highlightedMatchId, loading]);
 
   const summaryCards = useMemo(
-    () => deriveMatchesSummary(matches, agreements),
-    [agreements, matches],
+    () => deriveMatchesSummary(t, matches, agreements),
+    [agreements, matches, t],
   );
 
   const handleMatchAction = useCallback(

@@ -1,6 +1,8 @@
 import { SearchIcon } from "@/components/dashboard/icons";
+import type { TranslateFn } from "@/types/i18n";
 
 type PlatformCollectionToolbarProps = {
+  t: TranslateFn;
   searchValue: string;
   searchPlaceholder: string;
   onSearchChange: (value: string) => void;
@@ -14,6 +16,7 @@ type PlatformCollectionToolbarProps = {
 };
 
 export function PlatformCollectionToolbar({
+  t,
   searchValue,
   searchPlaceholder,
   onSearchChange,
@@ -30,7 +33,7 @@ export function PlatformCollectionToolbar({
             type="search"
             value={searchValue}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={searchPlaceholder}
+            placeholder={t(searchPlaceholder)}
             className="h-12 w-full rounded-[12px] border border-neutral-300 bg-white pl-11 pr-4 text-sm text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] outline-none transition focus:border-blue-600"
           />
         </label>
@@ -49,7 +52,7 @@ export function PlatformCollectionToolbar({
                     : "border-neutral-200 bg-white text-neutral-600 hover:border-[#bedbff] hover:text-[#1d4ed8]"
                 }`}
               >
-                <span>{filter.label}</span>
+                <span>{t(filter.label)}</span>
                 {typeof filter.count === "number" ? (
                   <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs">
                     {filter.count}

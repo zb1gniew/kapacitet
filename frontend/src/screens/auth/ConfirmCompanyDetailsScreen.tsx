@@ -36,7 +36,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
     const industry = (formData?.get("industry") as string | null)?.trim();
     const location = (formData?.get("location") as string | null)?.trim();
 
-    const errors = validateOnboardingDetails({
+    const errors = validateOnboardingDetails(t, {
       industry: industry ?? undefined,
       location: location ?? undefined,
     });

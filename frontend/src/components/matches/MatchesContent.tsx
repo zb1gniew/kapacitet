@@ -152,7 +152,9 @@ export function MatchesContent({
               {t("Action required")}
             </h2>
             <p className="text-sm leading-5 tracking-[-0.1504px] text-neutral-500">
-              {`${actionRequiredOffers.length} ${actionRequiredOffers.length === 1 ? "offer" : "offers"}`}
+              {actionRequiredOffers.length === 1
+                ? t("{{count}} offer", { count: actionRequiredOffers.length })
+                : t("{{count}} offers", { count: actionRequiredOffers.length })}
             </p>
           </div>
 
@@ -186,7 +188,7 @@ export function MatchesContent({
               {t("Awaiting response")}
             </h2>
             <p className="text-sm leading-5 tracking-[-0.1504px] text-neutral-500">
-              {`${awaitingOffers.length} pending`}
+              {t("{{count}} pending", { count: awaitingOffers.length })}
             </p>
           </div>
 
@@ -210,7 +212,7 @@ export function MatchesContent({
               {t("Active agreements")}
             </h2>
             <p className="text-sm leading-5 tracking-[-0.1504px] text-neutral-500">
-              {`${activeAgreements.length}`}
+              {activeAgreements.length}
             </p>
           </div>
 

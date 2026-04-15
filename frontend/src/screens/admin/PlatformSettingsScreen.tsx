@@ -52,41 +52,41 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
 
     return [
       {
-        label: "Approval flow",
-        value: "Manual",
-        helper: "Every company request currently requires admin review.",
+        label: t("Approval flow"),
+        value: t("Manual"),
+        helper: t("Every company request currently requires admin review."),
         tone: "blue" as const,
       },
       {
-        label: "Pending queue",
+        label: t("Pending queue"),
         value: String(pendingCount),
-        helper: "Requests currently waiting in the review queue.",
+        helper: t("Requests currently waiting in the review queue."),
         tone: "amber" as const,
       },
       {
-        label: "Provisioning mode",
-        value: "Hybrid",
-        helper: "DB provisioning plus Keycloak account activation.",
+        label: t("Provisioning mode"),
+        value: t("Hybrid"),
+        helper: t("DB provisioning plus Keycloak account activation."),
         tone: "green" as const,
       },
       {
-        label: "Follow-up items",
+        label: t("Follow-up items"),
         value: String(followUpCount),
-        helper: "Approved requests that still need provisioning attention.",
+        helper: t("Approved requests that still need provisioning attention."),
         tone: "slate" as const,
       },
     ];
-  }, [requests]);
+  }, [requests, t]);
 
   async function handleSave() {
     try {
       await updatePreferences(currentDraft);
-      setToastMessage("Admin workspace preferences saved.");
+      setToastMessage(t("Admin workspace preferences saved."));
     } catch (error) {
       setToastMessage(
         error instanceof Error
           ? error.message
-          : "Unable to save admin workspace preferences.",
+          : t("Unable to save admin workspace preferences."),
       );
     }
   }
@@ -95,12 +95,12 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
     try {
       await resetPreferences();
       setDraft(DEFAULT_PLATFORM_ADMIN_PREFERENCES);
-      setToastMessage("Admin workspace preferences reset.");
+      setToastMessage(t("Admin workspace preferences reset."));
     } catch (error) {
       setToastMessage(
         error instanceof Error
           ? error.message
-          : "Unable to reset admin workspace preferences.",
+          : t("Unable to reset admin workspace preferences."),
       );
     }
   }
@@ -110,9 +110,13 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
       user={user}
       t={t}
       activeItemKey="Platform settings"
-      title="Platform settings"
-      description="Configure operational preferences for the admin workspace and keep the platform review flow aligned with how you work."
-      sidebarNote="These settings focus on the admin workspace itself: which views open by default, how follow-up work is prioritized, and which alerts are emphasized."
+      title={t("Platform settings")}
+      description={t(
+        "Configure operational preferences for the admin workspace and keep the platform review flow aligned with how you work.",
+      )}
+      sidebarNote={t(
+        "These settings focus on the admin workspace itself: which views open by default, how follow-up work is prioritized, and which alerts are emphasized.",
+      )}
       dataName="Platform Settings"
       dataNodeId="platform-settings"
     >
@@ -136,14 +140,16 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
 
       <section className="mt-6 grid gap-4 xl:grid-cols-2">
         <PlatformSurfaceCard
-          eyebrow="Review defaults"
-          title="Admin workflow defaults"
-          description="These preferences control how the admin workspace opens and how follow-up work is prioritized on the platform pages."
+          eyebrow={t("Review defaults")}
+          title={t("Admin workflow defaults")}
+          description={t(
+            "These preferences control how the admin workspace opens and how follow-up work is prioritized on the platform pages.",
+          )}
         >
           <div className="space-y-4">
             <label className="block">
               <span className="text-sm font-semibold text-neutral-900">
-                Default access requests tab
+                {t("Default access requests tab")}
               </span>
               <select
                 value={currentDraft.defaultAccessRequestsTab}
@@ -156,16 +162,16 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
                 }
                 className="mt-2 h-12 w-full rounded-[12px] border border-neutral-300 bg-white px-4 text-sm text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] outline-none transition focus:border-blue-600"
               >
-                <option value="Pending">Pending</option>
-                <option value="All">All</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Pending">{t("Pending")}</option>
+                <option value="All">{t("All")}</option>
+                <option value="Approved">{t("Approved")}</option>
+                <option value="Rejected">{t("Rejected")}</option>
               </select>
             </label>
 
             <label className="block">
               <span className="text-sm font-semibold text-neutral-900">
-                Default audit view
+                {t("Default audit view")}
               </span>
               <select
                 value={currentDraft.defaultAuditFilter}
@@ -178,24 +184,28 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
                 }
                 className="mt-2 h-12 w-full rounded-[12px] border border-neutral-300 bg-white px-4 text-sm text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] outline-none transition focus:border-blue-600"
               >
-                <option value="All">All events</option>
-                <option value="Submissions">Submissions</option>
-                <option value="Decisions">Decisions</option>
-                <option value="Provisioning">Provisioning</option>
+                <option value="All">{t("All events")}</option>
+                <option value="Submissions">{t("Submissions")}</option>
+                <option value="Decisions">{t("Decisions")}</option>
+                <option value="Provisioning">{t("Provisioning")}</option>
               </select>
             </label>
           </div>
         </PlatformSurfaceCard>
 
         <PlatformSurfaceCard
-          eyebrow="Workspace preferences"
-          title="Saved admin behavior"
-          description="These controls are saved for the current admin workspace and are applied when the platform pages load."
+          eyebrow={t("Workspace preferences")}
+          title={t("Saved admin behavior")}
+          description={t(
+            "These controls are saved for the current admin workspace and are applied when the platform pages load.",
+          )}
         >
           <div className="space-y-4">
             <PreferenceToggleField
-              label="Prioritize follow-up companies"
-              description="Show companies that still need provisioning attention before fully provisioned records in the company registry."
+              label={t("Prioritize follow-up companies")}
+              description={t(
+                "Show companies that still need provisioning attention before fully provisioned records in the company registry.",
+              )}
               checked={currentDraft.prioritizeFollowUpCompanies}
               onChange={(checked) =>
                 setDraft((current) => ({
@@ -205,8 +215,10 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
               }
             />
             <PreferenceToggleField
-              label="Highlight provisioning alerts on overview"
-              description="Keep provisioning-related alerts emphasized in the platform overview cards."
+              label={t("Highlight provisioning alerts on overview")}
+              description={t(
+                "Keep provisioning-related alerts emphasized in the platform overview cards.",
+              )}
               checked={currentDraft.highlightProvisioningAlerts}
               onChange={(checked) =>
                 setDraft((current) => ({
@@ -225,14 +237,14 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
           onClick={handleSave}
           className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#1d4ed8] px-5 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition hover:bg-[#1e40af]"
         >
-          Save preferences
+          {t("Save preferences")}
         </button>
         <button
           type="button"
           onClick={handleReset}
           className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
         >
-          Reset to defaults
+          {t("Reset to defaults")}
         </button>
       </section>
     </PlatformAdminLayout>

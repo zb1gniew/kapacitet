@@ -11,6 +11,7 @@ import type {
   DashboardProcess,
   DashboardReminder,
 } from "@/types/dashboard";
+import type { TranslateFn } from "@/types/i18n";
 import { APP_ROUTES } from "@/constants/routes";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -33,45 +34,57 @@ function formatShortDate(value: string) {
   }).format(new Date(value));
 }
 
-function formatUntilDate(value?: string | null) {
+function formatUntilDate(t: TranslateFn, value?: string | null) {
   if (!value) {
-    return "Live now";
+    return t("Live now");
   }
 
-  return `Until ${formatShortDate(value)}`;
+  return t("Until {{date}}", { date: formatShortDate(value) });
 }
 
-function formatRelativePublishedAt(value?: string | null, now = Date.now()) {
+function formatRelativePublishedAt(
+  t: TranslateFn,
+  value?: string | null,
+  now = Date.now(),
+) {
   const publishedAt = parseDate(value);
 
   if (!publishedAt) {
-    return "Published recently";
+    return t("Published recently");
   }
 
   const diffInMs = now - publishedAt;
 
   if (diffInMs < 60 * 1000) {
-    return "Published just now";
+    return t("Published just now");
   }
 
   if (diffInMs < HOUR_IN_MS) {
     const minutes = Math.max(1, Math.floor(diffInMs / (60 * 1000)));
-    return `Published ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    return minutes === 1
+      ? t("Published {{count}} minute ago", { count: minutes })
+      : t("Published {{count}} minutes ago", { count: minutes });
   }
 
   if (diffInMs < DAY_IN_MS) {
     const hours = Math.max(1, Math.floor(diffInMs / HOUR_IN_MS));
-    return `Published ${hours} hour${hours === 1 ? "" : "s"} ago`;
+    return hours === 1
+      ? t("Published {{count}} hour ago", { count: hours })
+      : t("Published {{count}} hours ago", { count: hours });
   }
 
   const days = Math.max(1, Math.floor(diffInMs / DAY_IN_MS));
-  return `Published ${days} day${days === 1 ? "" : "s"} ago`;
+  return days === 1
+    ? t("Published {{count}} day ago", { count: days })
+    : t("Published {{count}} days ago", { count: days });
 }
 
-function buildLocationSubtitle(locationCity?: string | null) {
+function buildLocationSubtitle(t: TranslateFn, locationCity?: string | null) {
   return locationCity?.trim()
-    ? `Visible in ${locationCity} for trusted network companies`
-    : "Visible in your trusted network";
+    ? t("Visible in {{locationCity}} for trusted network companies", {
+        locationCity,
+      })
+    : t("Visible in your trusted network");
 }
 
 function pluralizeSkill(skill: string, quantity: number) {
@@ -120,20 +133,26 @@ function isWithinWindow(
   );
 }
 
-function formatDaysUntilStart(startDate: string, now = Date.now()) {
+function formatDaysUntilStart(
+  t: TranslateFn,
+  startDate: string,
+  now = Date.now(),
+) {
   const startTime = parseDate(startDate);
 
   if (startTime === null) {
-    return "Starts soon";
+    return t("Starts soon");
   }
 
   const daysUntilStart = Math.max(0, Math.ceil((startTime - now) / DAY_IN_MS));
 
   if (daysUntilStart === 0) {
-    return "Starts today";
+    return t("Starts today");
   }
 
-  return `Starts in ${daysUntilStart} day${daysUntilStart === 1 ? "" : "s"}`;
+  return daysUntilStart === 1
+    ? t("Starts in {{count}} day", { count: daysUntilStart })
+    : t("Starts in {{count}} days", { count: daysUntilStart });
 }
 
 function getLatestRequestActivityTimestamp(
@@ -167,6 +186,7 @@ function getLatestAvailabilityActivityTimestamp(
 }
 
 function buildAvailabilityProcess(
+  t: TranslateFn,
   availability: AvailabilityDeclarationResponse,
   matches: MatchOfferResponse[],
 ): DashboardProcess {
@@ -183,33 +203,43 @@ function buildAvailabilityProcess(
     (match) => match.status === "AgreementCreated",
   );
 
-  let subtitle = buildLocationSubtitle(availability.locationCity);
-  let status = "Availability published";
+  let subtitle = buildLocationSubtitle(t, availability.locationCity);
+  let status = t("Availability published");
   let statusTone: DashboardProcess["statusTone"] = "success";
-  let cta = "Review availability";
+  let cta = t("Review availability");
   let href: DashboardProcess["href"] = APP_ROUTES.matches;
 
   if (pendingSupplierConfirmationMatches.length > 0) {
-    subtitle = `${pendingSupplierConfirmationMatches.length} match${
-      pendingSupplierConfirmationMatches.length === 1 ? "" : "es"
-    } waiting for supplier confirmation`;
-    status = "Confirmation needed";
+    subtitle =
+      pendingSupplierConfirmationMatches.length === 1
+        ? t("{{count}} match waiting for supplier confirmation", {
+            count: pendingSupplierConfirmationMatches.length,
+          })
+        : t("{{count}} matches waiting for supplier confirmation", {
+            count: pendingSupplierConfirmationMatches.length,
+          });
+    status = t("Confirmation needed");
     statusTone = "primary";
-    cta = "Review match";
+    cta = t("Review match");
     href = buildMatchesHref(pendingSupplierConfirmationMatches[0]?.id);
   } else if (pendingRequesterReviewMatches.length > 0) {
-    subtitle = `${pendingRequesterReviewMatches.length} potential match${
-      pendingRequesterReviewMatches.length === 1 ? "" : "es"
-    } currently under requester review`;
-    status = "Match under review";
+    subtitle =
+      pendingRequesterReviewMatches.length === 1
+        ? t("{{count}} potential match currently under requester review", {
+            count: pendingRequesterReviewMatches.length,
+          })
+        : t("{{count}} potential matches currently under requester review", {
+            count: pendingRequesterReviewMatches.length,
+          });
+    status = t("Match under review");
     statusTone = "primary";
-    cta = "Track matches";
+    cta = t("Track matches");
     href = buildMatchesHref(pendingRequesterReviewMatches[0]?.id);
   } else if (agreementCreatedMatches.length > 0) {
-    subtitle = "Agreement confirmed";
-    status = "Agreement confirmed";
+    subtitle = t("Agreement confirmed");
+    status = t("Agreement confirmed");
     statusTone = "success";
-    cta = "View agreement";
+    cta = t("View agreement");
     href = buildMatchesHref(agreementCreatedMatches[0]?.id);
   }
 
@@ -219,10 +249,10 @@ function buildAvailabilityProcess(
     title: buildQuantityTitle(
       availability.quantity,
       availability.skills,
-      "Availability",
+      t("Availability"),
     ),
     subtitle,
-    meta: formatUntilDate(availability.endDate),
+    meta: formatUntilDate(t, availability.endDate),
     status,
     statusTone,
     cta,
@@ -231,6 +261,7 @@ function buildAvailabilityProcess(
 }
 
 function buildRequestProcess(
+  t: TranslateFn,
   request: CapacityRequestResponse,
   matches: MatchOfferResponse[],
 ): DashboardProcess {
@@ -247,39 +278,47 @@ function buildRequestProcess(
     (match) => match.status === "AgreementCreated",
   );
 
-  let subtitle = "System analyzing network capacity";
-  let status = "Matching in progress";
+  let subtitle = t("System analyzing network capacity");
+  let status = t("Matching in progress");
   let statusTone: DashboardProcess["statusTone"] = "neutral";
-  let cta = "View details";
+  let cta = t("View details");
   let href: DashboardProcess["href"] = APP_ROUTES.matches;
 
   if (pendingRequesterReviewMatches.length > 0) {
-    subtitle = `${pendingRequesterReviewMatches.length} potential match${
-      pendingRequesterReviewMatches.length === 1 ? "" : "es"
-    } from network companies`;
-    status = "Direct match found";
+    subtitle =
+      pendingRequesterReviewMatches.length === 1
+        ? t("{{count}} potential match from network companies", {
+            count: pendingRequesterReviewMatches.length,
+          })
+        : t("{{count}} potential matches from network companies", {
+            count: pendingRequesterReviewMatches.length,
+          });
+    status = t("Direct match found");
     statusTone = "success";
-    cta = "View matches";
+    cta = t("View matches");
     href = buildMatchesHref(pendingRequesterReviewMatches[0]?.id);
   } else if (pendingSupplierConfirmationMatches.length > 0) {
-    subtitle = "Awaiting supplier confirmation";
-    status = "Awaiting confirmation";
+    subtitle = t("Awaiting supplier confirmation");
+    status = t("Awaiting confirmation");
     statusTone = "primary";
     href = buildMatchesHref(pendingSupplierConfirmationMatches[0]?.id);
   } else if (agreementCreatedMatches.length > 0) {
-    subtitle = "Agreement confirmed";
-    status = "Agreement confirmed";
+    subtitle = t("Agreement confirmed");
+    status = t("Agreement confirmed");
     statusTone = "success";
-    cta = "View agreement";
+    cta = t("View agreement");
     href = buildMatchesHref(agreementCreatedMatches[0]?.id);
   }
 
   return {
     id: request.id,
     kind: "request",
-    title: buildQuantityTitle(request.quantity, request.skills, "Capacity"),
+    title: buildQuantityTitle(request.quantity, request.skills, t("Capacity")),
     subtitle,
-    meta: formatRelativePublishedAt(request.publishedAt ?? request.createdAt),
+    meta: formatRelativePublishedAt(
+      t,
+      request.publishedAt ?? request.createdAt,
+    ),
     status,
     statusTone,
     cta,
@@ -288,6 +327,7 @@ function buildRequestProcess(
 }
 
 export function deriveMetrics(
+  t: TranslateFn,
   availability: AvailabilityDeclarationResponse[],
   requests: CapacityRequestResponse[],
   matches: MatchOfferResponse[],
@@ -304,20 +344,20 @@ export function deriveMetrics(
 
   return [
     {
-      label: "Declared availability",
-      value: `${activeAvailabilityCount} Active`,
+      label: t("Declared availability"),
+      value: t("{{count}} Active", { count: activeAvailabilityCount }),
       icon: "users",
       tone: "success",
     },
     {
-      label: "Declared needs",
-      value: `${activeRequestCount} Searching`,
+      label: t("Declared needs"),
+      value: t("{{count}} Searching", { count: activeRequestCount }),
       icon: "search",
       tone: "primary",
     },
     {
-      label: "Actions needed",
-      value: `${actionsNeededCount} Requires response`,
+      label: t("Actions needed"),
+      value: t("{{count}} Requires response", { count: actionsNeededCount }),
       icon: "warning",
       tone: "danger",
       highlighted: actionsNeededCount > 0,
@@ -326,6 +366,7 @@ export function deriveMetrics(
 }
 
 export function deriveActiveProcesses(
+  t: TranslateFn,
   availability: AvailabilityDeclarationResponse[],
   requests: CapacityRequestResponse[],
   matches: MatchOfferResponse[],
@@ -333,10 +374,10 @@ export function deriveActiveProcesses(
   return [
     ...requests
       .filter((request) => request.status === "Active")
-      .map((request) => buildRequestProcess(request, matches)),
+      .map((request) => buildRequestProcess(t, request, matches)),
     ...availability
       .filter((entry) => entry.status === "Active")
-      .map((entry) => buildAvailabilityProcess(entry, matches)),
+      .map((entry) => buildAvailabilityProcess(t, entry, matches)),
   ]
     .sort((left, right) => {
       const leftTimestamp =
@@ -366,6 +407,7 @@ export function deriveActiveProcesses(
 }
 
 export function deriveReminders(
+  t: TranslateFn,
   availability: AvailabilityDeclarationResponse[],
   requests: CapacityRequestResponse[],
   matches: MatchOfferResponse[],
@@ -381,8 +423,10 @@ export function deriveReminders(
       .map((entry) => ({
         date: entry.endDate,
         tone: "success" as const,
-        title: "Availability expiring",
-        description: `${getPrimarySkill(entry.skills, "Availability")} capacity ends`,
+        title: t("Availability expiring"),
+        description: t("{{skill}} capacity ends", {
+          skill: getPrimarySkill(entry.skills, t("Availability")),
+        }),
       }))
       .filter((entry) =>
         isWithinWindow(parseDate(entry.date), now, 7 * DAY_IN_MS),
@@ -395,8 +439,10 @@ export function deriveReminders(
       .map((request) => ({
         date: request.startDate,
         tone: "primary" as const,
-        title: "Request start date",
-        description: `${getPrimarySkill(request.skills, "Capacity")} needed period begins`,
+        title: t("Request start date"),
+        description: t("{{skill}} needed period begins", {
+          skill: getPrimarySkill(request.skills, t("Capacity")),
+        }),
       }))
       .filter((entry) =>
         isWithinWindow(parseDate(entry.date), now, 7 * DAY_IN_MS),
@@ -406,8 +452,8 @@ export function deriveReminders(
       .map((match) => ({
         date: match.expiresAt,
         tone: "danger" as const,
-        title: "Response deadline",
-        description: "Pending match response expires soon",
+        title: t("Response deadline"),
+        description: t("Pending match response expires soon"),
       }))
       .filter((entry) =>
         isWithinWindow(parseDate(entry.date), now, 48 * HOUR_IN_MS),
@@ -436,16 +482,29 @@ export function deriveReminders(
       .map((entry) => ({
         date: entry.endDate,
         tone: "success" as const,
-        title: "Availability live",
-        description: `${buildQuantityTitle(entry.quantity, entry.skills, "Availability")} visible in ${entry.locationCity || "your market"}`,
+        title: t("Availability live"),
+        description: t("{{title}} visible in {{location}}", {
+          title: buildQuantityTitle(
+            entry.quantity,
+            entry.skills,
+            t("Availability"),
+          ),
+          location: entry.locationCity || t("your market"),
+        }),
       })),
     ...requests
       .filter((request) => request.status === "Active")
       .map((request) => ({
         date: request.startDate,
         tone: "primary" as const,
-        title: "Request live",
-        description: `${buildQuantityTitle(request.quantity, request.skills, "Capacity")} still open for matching`,
+        title: t("Request live"),
+        description: t("{{title}} still open for matching", {
+          title: buildQuantityTitle(
+            request.quantity,
+            request.skills,
+            t("Capacity"),
+          ),
+        }),
       })),
   ]
     .sort((left, right) => {
@@ -463,6 +522,7 @@ export function deriveReminders(
 }
 
 export function deriveActionBanner(
+  t: TranslateFn,
   availability: AvailabilityDeclarationResponse[],
   requests: CapacityRequestResponse[],
   matches: MatchOfferResponse[],
@@ -504,19 +564,26 @@ export function deriveActionBanner(
         id: mostRecentAvailability.id,
         kind: "availability",
         tone: "success",
-        badge: "Availability live",
-        timing: formatUntilDate(mostRecentAvailability.endDate),
-        title: `${buildQuantityTitle(
-          mostRecentAvailability.quantity,
-          mostRecentAvailability.skills,
-          "Availability",
-        )} is now visible in your trusted network`,
-        description: `${
-          mostRecentAvailability.locationCity
-            ? `${mostRecentAvailability.locationCity} availability is open for matching. `
-            : ""
-        }Keep your declaration current so trusted companies can respond with relevant demand.`,
-        cta: "Review availability",
+        badge: t("Availability live"),
+        timing: formatUntilDate(t, mostRecentAvailability.endDate),
+        title: t("{{title}} is now visible in your trusted network", {
+          title: buildQuantityTitle(
+            mostRecentAvailability.quantity,
+            mostRecentAvailability.skills,
+            t("Availability"),
+          ),
+        }),
+        description: mostRecentAvailability.locationCity
+          ? t(
+              "{{location}} availability is open for matching. Keep your declaration current so trusted companies can respond with relevant demand.",
+              {
+                location: mostRecentAvailability.locationCity,
+              },
+            )
+          : t(
+              "Keep your declaration current so trusted companies can respond with relevant demand.",
+            ),
+        cta: t("Review availability"),
         href: APP_ROUTES.matches,
       };
     }
@@ -536,16 +603,19 @@ export function deriveActionBanner(
         id: mostRecentRequest.id,
         kind: "request",
         tone: "primary",
-        badge: "Request live",
-        timing: formatDaysUntilStart(mostRecentRequest.startDate, now),
-        title: `${buildQuantityTitle(
-          mostRecentRequest.quantity,
-          mostRecentRequest.skills,
-          "Capacity",
-        )} is now being matched across your network`,
-        description:
+        badge: t("Request live"),
+        timing: formatDaysUntilStart(t, mostRecentRequest.startDate, now),
+        title: t("{{title}} is now being matched across your network", {
+          title: buildQuantityTitle(
+            mostRecentRequest.quantity,
+            mostRecentRequest.skills,
+            t("Capacity"),
+          ),
+        }),
+        description: t(
           "Your request is active and we are monitoring network capacity for relevant opportunities.",
-        cta: "Review request",
+        ),
+        cta: t("Review request"),
         href: APP_ROUTES.matches,
       };
     }
@@ -555,21 +625,23 @@ export function deriveActionBanner(
 
   const primarySkill = getPrimarySkill(
     mostUrgentRequest.skills,
-    "Capacity request",
+    t("Capacity request"),
   );
 
   return {
     id: mostUrgentRequest.id,
     kind: "request",
     tone: "warning" as DashboardBannerTone,
-    badge: "Action required",
-    timing: formatDaysUntilStart(mostUrgentRequest.startDate, now),
-    title: `${primarySkill} request starts ${formatShortDate(
-      mostUrgentRequest.startDate,
-    )} - No confirmed match yet`,
-    description:
+    badge: t("Action required"),
+    timing: formatDaysUntilStart(t, mostUrgentRequest.startDate, now),
+    title: t("{{skill}} request starts {{date}} - No confirmed match yet", {
+      skill: primarySkill,
+      date: formatShortDate(mostUrgentRequest.startDate),
+    }),
+    description: t(
       "Your capacity request begins soon but matching is still in progress. Consider expanding search criteria or contacting network companies directly.",
-    cta: "View and take action",
+    ),
+    cta: t("View and take action"),
     href: APP_ROUTES.matches,
   };
 }

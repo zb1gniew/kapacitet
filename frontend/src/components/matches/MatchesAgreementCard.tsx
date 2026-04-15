@@ -36,7 +36,7 @@ export function MatchesAgreementCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-bold leading-6 tracking-[-0.3125px] text-neutral-900">
-              {`${agreement.quantity} Workers`}
+              {t("{{count}} Workers", { count: agreement.quantity })}
             </h3>
             <span className="rounded-[8px] border border-[#86efac] bg-[#dcfce7] px-2.5 py-0.5 text-xs font-bold text-[#166534]">
               {t("Agreement active")}
@@ -92,13 +92,13 @@ export function MatchesAgreementCard({
             <p className="inline-flex items-center gap-1.5">
               <ClockIcon className="h-3 w-3" />
               <span>
-                {formatDateRange(agreement.startDate, agreement.endDate)}
+                {formatDateRange(t, agreement.startDate, agreement.endDate)}
               </span>
             </p>
             <p className="inline-flex items-center gap-1.5">
               <CheckBadgeIcon className="h-3 w-3" />
               <span>
-                {`${t("Confirmed")} ${formatRelativeTime(agreement.confirmedAt)}`}
+                {`${t("Confirmed")} ${formatRelativeTime(t, agreement.confirmedAt)}`}
               </span>
             </p>
           </div>

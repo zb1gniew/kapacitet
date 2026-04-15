@@ -109,7 +109,9 @@ export function ActiveProcessesSection({
         )}
         aside={
           <span className="text-xs text-neutral-500">
-            {loading ? "..." : `${processes.length} ongoing`}
+            {loading
+              ? t("Loading...")
+              : t("{{count}} ongoing", { count: processes.length })}
           </span>
         }
       />

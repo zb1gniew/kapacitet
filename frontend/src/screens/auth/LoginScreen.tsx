@@ -141,14 +141,14 @@ export function LoginScreen() {
 
       if (!response.ok) {
         throw new Error(
-          await getResponseMessage(response, "Unable to set password."),
+          await getResponseMessage(response, t("Unable to set password.")),
         );
       }
 
       setState({ step: "password-set", email: state.email });
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to set password.",
+        error instanceof Error ? error.message : t("Unable to set password."),
       );
     } finally {
       setLoading(false);
@@ -242,7 +242,7 @@ export function LoginScreen() {
             id="password"
             label={t("New password")}
             type="password"
-            placeholder="Min. 8 characters"
+            placeholder={t("Min. 8 characters")}
             autoComplete="new-password"
             icon={<LockIcon className="h-[18px] w-[18px]" />}
           />
@@ -250,7 +250,7 @@ export function LoginScreen() {
             id="confirmPassword"
             label={t("Confirm password")}
             type="password"
-            placeholder="Repeat your password"
+            placeholder={t("Repeat your password")}
             autoComplete="new-password"
             icon={<LockIcon className="h-[18px] w-[18px]" />}
           />
@@ -315,7 +315,7 @@ export function LoginScreen() {
             <BrandIcon className="h-8 w-8" />
           </div>
           <h1 className="text-center text-2xl font-bold tracking-[0.0703px] text-neutral-900">
-            KapacitetNet
+            {t("KapacitetNet")}
           </h1>
           <p className="mt-2 text-center text-sm tracking-[-0.1504px] text-neutral-600">
             {t("Capacity coordination")}

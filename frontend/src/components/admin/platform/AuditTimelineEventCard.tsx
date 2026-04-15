@@ -1,8 +1,10 @@
 import type { AuditTimelineEvent } from "@/types/admin";
+import type { TranslateFn } from "@/types/i18n";
 import { formatPlatformDateTime } from "./utils";
 
 type AuditTimelineEventCardProps = {
   event: AuditTimelineEvent;
+  t: TranslateFn;
   highlighted?: boolean;
 };
 
@@ -21,6 +23,7 @@ function getEventClasses(type: AuditTimelineEvent["type"]) {
 
 export function AuditTimelineEventCard({
   event,
+  t,
   highlighted = false,
 }: AuditTimelineEventCardProps) {
   return (
@@ -43,7 +46,7 @@ export function AuditTimelineEventCard({
                 event.type,
               )}`}
             >
-              {event.type}
+              {t(event.type)}
             </span>
           </div>
 
@@ -54,7 +57,7 @@ export function AuditTimelineEventCard({
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Company
+                {t("Company")}
               </p>
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {event.companyName}
@@ -62,7 +65,7 @@ export function AuditTimelineEventCard({
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 sm:col-span-2 2xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Contact
+                {t("Contact")}
               </p>
               <p className="mt-1 break-all text-[13px] font-medium leading-5 text-neutral-900">
                 {event.contactEmail}
@@ -70,15 +73,15 @@ export function AuditTimelineEventCard({
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 sm:col-span-2 2xl:col-span-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Actor
+                {t("Actor")}
               </p>
               <p className="mt-1 break-all text-[13px] font-medium leading-5 text-neutral-900">
-                {event.actor ?? "system"}
+                {event.actor ?? t("system")}
               </p>
             </div>
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                Timestamp
+                {t("Timestamp")}
               </p>
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {formatPlatformDateTime(event.timestamp)}
@@ -89,15 +92,17 @@ export function AuditTimelineEventCard({
 
         <div className="w-full shrink-0 xl:max-w-[190px]">
           <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 text-sm text-neutral-700">
-            <p className="font-semibold text-neutral-900">Reference</p>
+            <p className="font-semibold text-neutral-900">{t("Reference")}</p>
             <p className="mt-1 break-words leading-[22.75px] tracking-[-0.1504px]">
               {event.requestId
-                ? `Request ID ${event.requestId}`
-                : "No request reference"}
+                ? t("Request ID {{id}}", { id: event.requestId })
+                : t("No request reference")}
               {event.provisionedCompanyId
-                ? ` · Company ID ${event.provisionedCompanyId}`
+                ? t(" · Company ID {{id}}", {
+                    id: event.provisionedCompanyId,
+                  })
                 : event.companyId
-                  ? ` · Company ID ${event.companyId}`
+                  ? t(" · Company ID {{id}}", { id: event.companyId })
                   : ""}
             </p>
           </div>

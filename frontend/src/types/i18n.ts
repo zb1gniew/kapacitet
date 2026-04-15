@@ -1,1 +1,4 @@
-export type TranslateFn = (key: string) => string;
+export type TranslateFn = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;

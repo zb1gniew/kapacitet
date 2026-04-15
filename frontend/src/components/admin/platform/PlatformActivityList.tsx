@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { TranslateFn } from "@/types/i18n";
 
 type PlatformActivityTone = "neutral" | "success" | "warning" | "danger";
 
@@ -13,6 +14,7 @@ type PlatformActivityItem = {
 };
 
 type PlatformActivityListProps = {
+  t: TranslateFn;
   items: PlatformActivityItem[];
   emptyMessage: string;
   ctaLabel?: string;
@@ -32,12 +34,13 @@ function getStatusClasses(tone: PlatformActivityTone = "neutral") {
 }
 
 export function PlatformActivityList({
+  t,
   items,
   emptyMessage,
   ctaLabel = "Open",
 }: PlatformActivityListProps) {
   if (items.length === 0) {
-    return <p className="text-sm text-neutral-600">{emptyMessage}</p>;
+    return <p className="text-sm text-neutral-600">{t(emptyMessage)}</p>;
   }
 
   return (
@@ -56,7 +59,7 @@ export function PlatformActivityList({
                       item.statusTone,
                     )}`}
                   >
-                    {item.statusLabel}
+                    {t(item.statusLabel)}
                   </span>
                 ) : null}
               </div>
@@ -67,7 +70,7 @@ export function PlatformActivityList({
             </div>
             {item.href ? (
               <span className="text-sm font-semibold text-[#1d4ed8]">
-                {ctaLabel}
+                {t(ctaLabel)}
               </span>
             ) : null}
           </>

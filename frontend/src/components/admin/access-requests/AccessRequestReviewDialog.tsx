@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import type { TranslateFn } from "@/types/i18n";
 
 type AccessRequestReviewDialogProps = {
+  t: TranslateFn;
   title: string;
   description: string;
   children?: ReactNode;
@@ -12,6 +14,7 @@ type AccessRequestReviewDialogProps = {
 };
 
 export function AccessRequestReviewDialog({
+  t,
   title,
   description,
   children,
@@ -39,7 +42,7 @@ export function AccessRequestReviewDialog({
             disabled={submitting}
             className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"
@@ -47,7 +50,7 @@ export function AccessRequestReviewDialog({
             disabled={submitting}
             className={`inline-flex h-11 items-center justify-center rounded-[10px] px-4 text-sm font-semibold text-white transition disabled:opacity-50 ${confirmClassName}`}
           >
-            {submitting ? "Processing..." : confirmLabel}
+            {submitting ? t("Processing...") : t(confirmLabel)}
           </button>
         </div>
       </div>

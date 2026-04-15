@@ -19,14 +19,16 @@ export function DashboardHeader({
   user,
   showSignOut = true,
 }: DashboardHeaderProps) {
-  const roleBadge = isPlatformAdmin(user) ? "Platform admin" : "Company user";
+  const roleBadge = isPlatformAdmin(user)
+    ? t("Platform admin")
+    : t("Company user");
 
   return (
     <header className="border-b border-[#45556c66] bg-[linear-gradient(to_right,#314158_0%,#43536a_35%,#8693a3_70%,#f5f5f5_100%)] px-5 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <h1 className="text-base font-semibold tracking-[-0.3125px] text-neutral-100">
-            KapacitetNet
+            {t("KapacitetNet")}
           </h1>
           <span className="text-base text-[#62748e]">·</span>
           <span className="text-sm text-[#90a1b9]">
@@ -44,7 +46,7 @@ export function DashboardHeader({
                 {getDisplayName(user)}
               </p>
               <span className="rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                {t(roleBadge)}
+                {roleBadge}
               </span>
               {showSignOut ? (
                 <form action={APP_ROUTES.authLogoutApi} method="post">

@@ -51,21 +51,21 @@ export function PlatformAdminLayout({
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-[760px]">
                   <div className="inline-flex items-center rounded-full border border-[#bedbff] bg-[#eff6ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#1c398e]">
-                    {badge}
+                    {t(badge)}
                   </div>
                   <h1 className="mt-4 text-[28px] font-bold leading-9 tracking-[-0.4492px] text-neutral-900">
-                    {title}
+                    {t(title)}
                   </h1>
                   <p className="mt-3 text-sm leading-[24px] tracking-[-0.1504px] text-neutral-600">
-                    {description}
+                    {t(description)}
                   </p>
                 </div>
 
                 {sidebarNote ? (
                   <div className="rounded-[14px] border border-[#dbeafe] bg-[#f8fbff] px-4 py-3 text-sm text-[#1e3a8a] shadow-[0_10px_15px_rgba(0,0,0,0.08),0_4px_6px_rgba(0,0,0,0.08)]">
-                    <p className="font-semibold">Current focus</p>
+                    <p className="font-semibold">{t("Current focus")}</p>
                     <p className="mt-1 leading-[22.75px] tracking-[-0.1504px]">
-                      {sidebarNote}
+                      {t(sidebarNote)}
                     </p>
                   </div>
                 ) : null}
