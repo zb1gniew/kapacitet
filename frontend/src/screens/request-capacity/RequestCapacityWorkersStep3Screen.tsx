@@ -7,10 +7,7 @@ import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFi
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
-import {
-  AlertIcon,
-  CalendarIcon,
-} from "@/components/availability/icons";
+import { AlertIcon, CalendarIcon } from "@/components/availability/icons";
 import {
   AVAILABILITY_RADIUS_MAX_KM,
   AVAILABILITY_RADIUS_MIN_KM,
