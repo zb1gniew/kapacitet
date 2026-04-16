@@ -1,3 +1,4 @@
+import { isSupportedCity } from "@/constants/cities";
 import type { WorkflowCatalog } from "@/lib/backend/catalog";
 import type {
   AvailabilityDraft,
@@ -108,10 +109,10 @@ export function getWorkerPeriodStepErrors(
 
   if (!locationCity) {
     errors.push("Enter a location.");
-  }
-
-  if (locationCity.length > 32) {
+  } else if (locationCity.length > 32) {
     errors.push("Location must be 32 characters or fewer.");
+  } else if (!isSupportedCity(locationCity)) {
+    errors.push("Please select a city from the suggestions.");
   }
 
   return errors;
@@ -186,11 +187,12 @@ function validateSharedDraftFields(
   if (!locationCity) {
     errors.push("Enter a location.");
     fieldErrors.locationCity = ["Enter a location."];
-  }
-
-  if (locationCity.length > 32) {
+  } else if (locationCity.length > 32) {
     errors.push("Location must be 32 characters or fewer.");
     fieldErrors.locationCity = ["Location must be 32 characters or fewer."];
+  } else if (!isSupportedCity(locationCity)) {
+    errors.push("Please select a city from the suggestions.");
+    fieldErrors.locationCity = ["Please select a city from the suggestions."];
   }
 
   if (draft.experienceLevel && !experienceLevel) {

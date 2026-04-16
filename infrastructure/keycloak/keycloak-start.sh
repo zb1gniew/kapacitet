@@ -1,6 +1,7 @@
 #!/bin/sh
-# Inject secrets from environment variables into the realm template before import.
-# The template uses __OIDC_CLIENT_SECRET__ as a placeholder.
+# Inject the OIDC client secret into the realm template before import.
+# /opt/keycloak/data/import is mounted as a tmpfs (see docker-compose.yml),
+# so it is always writable and never has permission issues from a stale volume.
 mkdir -p /opt/keycloak/data/import
 sed "s/__OIDC_CLIENT_SECRET__/${OIDC_CLIENT_SECRET}/g" \
   /opt/keycloak/kapacitet-realm.json.template \

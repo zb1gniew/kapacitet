@@ -29,6 +29,10 @@ services:
       - "8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+      # tmpfs shadows the import subdirectory so the start script can always
+      # write the processed realm template without hitting volume permission errors.
+      - type: tmpfs
+        target: /opt/keycloak/data/import
       - ./keycloak/kapacitet-realm.json:/opt/keycloak/kapacitet-realm.json.template:ro
       - ./keycloak/themes:/opt/keycloak/themes:ro
       - ./keycloak/keycloak-start.sh:/opt/keycloak/keycloak-start.sh:ro

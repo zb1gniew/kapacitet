@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using Kapacitet.Domain.Entities;
 
 namespace Kapacitet.Application.Features.Matching.Services;
@@ -169,21 +168,8 @@ public sealed class MatchEvaluationService
             $"Within radius at {distanceKm.ToString("0.#", CultureInfo.InvariantCulture)} km.");
     }
 
-    private static string NormalizeLocation(string value)
-    {
-        var normalized = value.Trim().Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder(normalized.Length);
-
-        foreach (var character in normalized)
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark)
-            {
-                builder.Append(character);
-            }
-        }
-
-        return builder.ToString().Normalize(NormalizationForm.FormC).ToUpperInvariant();
-    }
+    private static string NormalizeLocation(string value) =>
+        MatchingCityCoordinateCatalog.NormalizeForLookup(value);
 
     private static double CalculateDistanceKm(GeoPoint from, GeoPoint to)
     {
