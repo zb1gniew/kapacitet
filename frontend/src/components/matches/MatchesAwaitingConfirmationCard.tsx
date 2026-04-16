@@ -8,6 +8,7 @@ import {
 import { formatDateRange, formatMatchTitle } from "@/lib/matches/derive";
 import type { MatchOfferResponse } from "@/types/api-matches";
 import type { TranslateFn } from "@/types/i18n";
+import { MatchesWhyDrawer } from "./MatchesWhyDrawer";
 
 type MatchesAwaitingConfirmationCardProps = {
   offer: MatchOfferResponse;
@@ -20,7 +21,7 @@ export function MatchesAwaitingConfirmationCard({
   highlighted = false,
   t,
 }: MatchesAwaitingConfirmationCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
+  const [showWhyDrawer, setShowWhyDrawer] = useState(false);
   const description =
     offer.perspective === "Requester"
       ? t(
@@ -86,56 +87,21 @@ export function MatchesAwaitingConfirmationCard({
           <div className="mt-4">
             <button
               type="button"
-              onClick={() => setShowDetails((current) => !current)}
+              onClick={() => setShowWhyDrawer(true)}
               className="h-10 rounded-[10px] border border-neutral-300 bg-white px-4 text-sm font-semibold tracking-[-0.1504px] text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]"
             >
-              {t(showDetails ? "Hide details" : "Review details")}
+              {t("Why this match?")}
             </button>
           </div>
-
-          {showDetails ? (
-            <div className="mt-4 rounded-[12px] border border-[#fde68a] bg-white/70 px-4 py-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
-                    {t("Skills")}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {offer.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-[8px] bg-white px-2 py-1 text-xs font-medium text-neutral-700 shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
-                    {t("Offer summary")}
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm leading-5 text-neutral-700">
-                    <li>{`${t("Offered quantity")}: ${offer.offeredQuantity}`}</li>
-                    <li>{`${t("Perspective")}: ${t(offer.perspective)}`}</li>
-                    <li>{`${t("Status")}: ${t(offer.status)}`}</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <p className="text-xs font-medium uppercase tracking-[0.05em] text-neutral-500">
-                  {t("Matching explanation")}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-neutral-700">
-                  {offer.explanation}
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
+
+      <MatchesWhyDrawer
+        offer={offer}
+        onClose={() => setShowWhyDrawer(false)}
+        open={showWhyDrawer}
+        t={t}
+      />
     </article>
   );
 }

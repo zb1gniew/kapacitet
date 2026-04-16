@@ -18,6 +18,7 @@ export const MATCH_STATUS = {
 } as const;
 
 export type MatchPerspective = "Requester" | "Supplier";
+export type MatchUrgency = "Low" | "Medium" | "High" | "Critical";
 
 export type MatchOfferResponse = {
   id: number;
@@ -37,6 +38,11 @@ export type MatchOfferResponse = {
   coversFullPeriod: boolean;
   isPartial: boolean;
   locationCity: string;
+  requestLocationCity: string;
+  requestLocationRadiusKm: number;
+  availabilityLocationCity: string;
+  availabilityLocationRadiusKm: number;
+  requestUrgency: MatchUrgency;
   requestStartDate: string;
   requestEndDate: string;
   availabilityStartDate: string;
