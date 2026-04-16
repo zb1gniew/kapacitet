@@ -21,6 +21,11 @@ public class MatchOfferDto
     public bool CoversFullPeriod { get; set; }
     public bool IsPartial { get; set; }
     public string LocationCity { get; set; } = null!;
+    public string RequestLocationCity { get; set; } = null!;
+    public int RequestLocationRadiusKm { get; set; }
+    public string AvailabilityLocationCity { get; set; } = null!;
+    public int AvailabilityLocationRadiusKm { get; set; }
+    public UrgencyLevel RequestUrgency { get; set; }
     public DateTime RequestStartDate { get; set; }
     public DateTime RequestEndDate { get; set; }
     public DateTime AvailabilityStartDate { get; set; }
