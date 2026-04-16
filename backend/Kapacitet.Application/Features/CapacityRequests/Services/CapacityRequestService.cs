@@ -21,6 +21,7 @@ public class CapacityRequestService
 
     public async Task<CapacityRequestDto> CreateAsync(CreateCapacityRequestDto dto, int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
 
@@ -53,6 +54,7 @@ public class CapacityRequestService
         CreateCapacityRequestDto dto,
         int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
         var clientDraftKey = NormalizeClientDraftKey(dto.ClientDraftKey);
@@ -133,6 +135,7 @@ public class CapacityRequestService
 
     public async Task<CapacityRequestDto> UpdateAsync(int id, UpdateCapacityRequestDto dto, int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var request = await _db.CapacityRequests
             .Include(r => r.Skills)
             .Include(r => r.Certificates)
@@ -192,6 +195,17 @@ public class CapacityRequestService
         await _matchingService.GenerateMatchesForRequestAsync(request.Id);
 
         return MapToDto(request);
+    }
+
+    private static void ValidateCityName(string locationCity)
+    {
+        if (!MatchingCityCoordinateCatalog.IsSupportedCity(locationCity))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["locationCity"] = [$"'{locationCity}' is not a supported city. Please select a city from the suggestions."]
+            });
+        }
     }
 
     private async Task<List<Skill>> LoadSkillsAsync(IEnumerable<int> requestedSkillIds)

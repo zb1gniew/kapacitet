@@ -21,6 +21,7 @@ public class AvailabilityDeclarationService
 
     public async Task<AvailabilityDeclarationDto> CreateAsync(CreateAvailabilityDeclarationDto dto, int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
 
@@ -52,6 +53,7 @@ public class AvailabilityDeclarationService
         CreateAvailabilityDeclarationDto dto,
         int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
         var clientDraftKey = NormalizeClientDraftKey(dto.ClientDraftKey);
@@ -131,6 +133,7 @@ public class AvailabilityDeclarationService
 
     public async Task<AvailabilityDeclarationDto> UpdateAsync(int id, UpdateAvailabilityDeclarationDto dto, int companyId)
     {
+        ValidateCityName(dto.LocationCity);
         var declaration = await _db.AvailabilityDeclarations
             .Include(d => d.Skills)
             .Include(d => d.Certificates)
@@ -188,6 +191,17 @@ public class AvailabilityDeclarationService
         await _db.SaveChangesAsync();
 
         return MapToDto(declaration);
+    }
+
+    private static void ValidateCityName(string locationCity)
+    {
+        if (!MatchingCityCoordinateCatalog.IsSupportedCity(locationCity))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["locationCity"] = [$"'{locationCity}' is not a supported city. Please select a city from the suggestions."]
+            });
+        }
     }
 
     private async Task<List<Skill>> LoadSkillsAsync(IEnumerable<int> requestedSkillIds)

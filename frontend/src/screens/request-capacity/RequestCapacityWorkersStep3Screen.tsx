@@ -6,11 +6,8 @@ import { AvailabilityActionBar } from "@/components/availability/AvailabilityAct
 import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFieldLabel";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
-import {
-  AlertIcon,
-  CalendarIcon,
-  LocationIcon,
-} from "@/components/availability/icons";
+import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
+import { AlertIcon, CalendarIcon } from "@/components/availability/icons";
 import {
   AVAILABILITY_RADIUS_MAX_KM,
   AVAILABILITY_RADIUS_MIN_KM,
@@ -162,18 +159,11 @@ export function RequestCapacityWorkersStep3Screen({
 
           <div className="space-y-2">
             <AvailabilityFieldLabel label={t("Location")} />
-            <div className="relative">
-              <LocationIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-neutral-400" />
-              <input
-                type="text"
-                value={draft.locationCity}
-                onChange={(event) =>
-                  setField("locationCity", event.target.value)
-                }
-                placeholder={t("e.g., Sønderborg, Aabenraa, Syddanmark")}
-                className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none"
-              />
-            </div>
+            <CityAutocomplete
+              value={draft.locationCity}
+              onChange={(city) => setField("locationCity", city)}
+              placeholder={t("e.g., Sønderborg, Kolding, Aarhus")}
+            />
           </div>
 
           <div className="space-y-3">
