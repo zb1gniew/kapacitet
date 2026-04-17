@@ -71,7 +71,12 @@ export function DashboardScreen({ user }: DashboardScreenProps) {
               </div>
             </div>
           ) : null}
-          <DashboardContent t={t} dashboard={dashboard} loading={loading} />
+          <DashboardContent
+            t={t}
+            dashboard={dashboard}
+            loading={loading}
+            userId={user.sub}
+          />
         </div>
       </div>
     </main>

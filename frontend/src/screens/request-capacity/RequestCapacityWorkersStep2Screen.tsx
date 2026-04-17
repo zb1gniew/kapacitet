@@ -7,7 +7,9 @@ import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFi
 import { AvailabilityMultiSelectMenu } from "@/components/availability/AvailabilityMultiSelectMenu";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
+import { WorkflowHintsPanel } from "@/components/availability/WorkflowHintsPanel";
 import { AlertIcon } from "@/components/availability/icons";
+import { getStep2Hints } from "@/lib/workflows/hints";
 import { REQUEST_CAPACITY_STEPS } from "@/constants/request-capacity";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
@@ -39,6 +41,7 @@ export function RequestCapacityWorkersStep2Screen({
   );
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const canContinue = isWorkerDetailsStepComplete(draft);
+  const hints = getStep2Hints(draft, catalog ?? null);
 
   function handleContinue() {
     if (!canContinue) {
@@ -182,6 +185,8 @@ export function RequestCapacityWorkersStep2Screen({
               clearAllLabel={t("Clear all")}
             />
           </div>
+
+          <WorkflowHintsPanel hints={hints} />
 
           {isLoading ? (
             <p className="text-sm text-neutral-600">
