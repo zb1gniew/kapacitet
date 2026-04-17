@@ -29,6 +29,7 @@ export type CapacityRequestDraft = {
 export type StoredDraft<T> = {
   _v: number;
   _createdAt: string;
+  _updatedAt?: string;
   _clientKey: string;
   data: T;
 };

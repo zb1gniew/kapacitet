@@ -25,6 +25,7 @@ export function useStoredWorkflowDraft<TDraft extends WorkflowDraft>(
     <TKey extends keyof TDraft>(field: TKey, value: TDraft[TKey]) => {
       setStoredDraft((current) => ({
         ...normalizeStoredDraft(current, initialValue),
+        _updatedAt: new Date().toISOString(),
         data: {
           ...normalizeStoredDraft(current, initialValue).data,
           [field]: value,
@@ -48,6 +49,7 @@ export function useStoredWorkflowDraft<TDraft extends WorkflowDraft>(
 
         return {
           ...normalized,
+          _updatedAt: new Date().toISOString(),
           data: {
             ...normalized.data,
             [field]: entries.includes(value)
@@ -71,6 +73,7 @@ export function useStoredWorkflowDraft<TDraft extends WorkflowDraft>(
 
         return {
           ...normalized,
+          _updatedAt: new Date().toISOString(),
           data: nextDraft,
         };
       });
