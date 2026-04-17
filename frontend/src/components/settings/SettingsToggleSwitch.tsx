@@ -19,8 +19,8 @@ export function SettingsToggleSwitch({
       {...props}
     >
       <span
-        className={`h-5 w-5 rounded-[5px] bg-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition-transform ${
-          checked ? "translate-x-5" : "translate-x-0"
+        className={`h-[18px] w-[18px] shrink-0 rounded-[5px] bg-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition-transform ${
+          checked ? "translate-x-[18px]" : "translate-x-0"
         }`}
       />
     </button>
