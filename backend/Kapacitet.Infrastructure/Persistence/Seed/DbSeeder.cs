@@ -13,67 +13,91 @@ public static class DbSeeder
         if (await db.Companies.AnyAsync())
             return;
 
-        var requesterCompany = new Company
-        {
-            Name = "Test Company",
-            Industry = "Construction",
-            DefaultLocation = "Sonderborg",
-            Status = CompanyStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        };
+        var now = DateTime.UtcNow;
+        var today = now.Date;
 
-        var supplierCompany = new Company
-        {
-            Name = "Nordic Capacity Partners",
-            Industry = "Construction",
-            DefaultLocation = "Sonderborg",
-            Status = CompanyStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        };
+        var platformCompany = CreateCompany(
+            "Kapacitet Platform Operations",
+            "Platform services",
+            "Copenhagen",
+            now,
+            "+45 70 20 30 40");
+        var requesterCompany = CreateCompany(
+            "Test Company A/S",
+            "Construction",
+            "Sonderborg",
+            now,
+            "+45 70 11 22 33");
+        var supplierCompany = CreateCompany(
+            "Nordic Capacity Partners",
+            "Construction",
+            "Sonderborg",
+            now,
+            "+45 70 44 55 66");
+        var partnerCompany = CreateCompany(
+            "Southern Field Services",
+            "Industrial services",
+            "Esbjerg",
+            now,
+            "+45 70 77 88 99");
 
-        db.Companies.AddRange(requesterCompany, supplierCompany);
+        db.Companies.AddRange(
+            platformCompany,
+            requesterCompany,
+            supplierCompany,
+            partnerCompany);
         await db.SaveChangesAsync();
 
-        var users = new[]
-        {
-            new User
-            {
-                CompanyId = requesterCompany.Id,
-                Email = "testuser@kapacitet.net",
-                Role = UserRole.Admin,
-                CreatedAt = DateTime.UtcNow,
-                OnboardingCompletedAt = DateTime.UtcNow
-            },
-            new User
-            {
-                CompanyId = supplierCompany.Id,
-                Email = "supplier@kapacitet.net",
-                Role = UserRole.Admin,
-                CreatedAt = DateTime.UtcNow,
-                OnboardingCompletedAt = DateTime.UtcNow
-            }
-        };
+        db.CompanySettings.AddRange(
+            CreateCompanySettings(platformCompany),
+            CreateCompanySettings(requesterCompany),
+            CreateCompanySettings(supplierCompany),
+            CreateCompanySettings(partnerCompany));
 
-        db.Users.AddRange(users);
+        db.NotificationPreferences.AddRange(
+            CreateNotificationPreferences(platformCompany),
+            CreateNotificationPreferences(requesterCompany),
+            CreateNotificationPreferences(supplierCompany),
+            CreateNotificationPreferences(partnerCompany));
+
+        db.Users.AddRange(
+            CreateUser(platformCompany, "platform-admin@kapacitet.net", UserRole.Admin, now),
+            CreateUser(requesterCompany, "testuser@kapacitet.net", UserRole.Admin, now),
+            CreateUser(requesterCompany, "request.manager@kapacitet.net", UserRole.Manager, now),
+            CreateUser(requesterCompany, "request.viewer@kapacitet.net", UserRole.Viewer, now),
+            CreateUser(supplierCompany, "supplier@kapacitet.net", UserRole.Admin, now),
+            CreateUser(supplierCompany, "supplier.manager@kapacitet.net", UserRole.Manager, now),
+            CreateUser(supplierCompany, "supplier.viewer@kapacitet.net", UserRole.Viewer, now),
+            CreateUser(partnerCompany, "partner.admin@kapacitet.net", UserRole.Admin, now),
+            CreateUser(partnerCompany, "partner.manager@kapacitet.net", UserRole.Manager, now),
+            CreateUser(partnerCompany, "partner.viewer@kapacitet.net", UserRole.Viewer, now));
+
         await db.SaveChangesAsync();
+
         var weldingSkill = await db.Skills.FirstAsync(skill => skill.Code == "welding");
+        var scaffoldingSkill = await db.Skills.FirstAsync(skill => skill.Code == "scaffolding");
+        var cablePullingSkill = await db.Skills.FirstAsync(skill => skill.Code == "cable-pulling");
         var hotWorkCertificate = await db.Certificates
             .FirstAsync(certificate => certificate.Code == "hot-work");
         var workingAtHeightsCertificate = await db.Certificates
             .FirstAsync(certificate => certificate.Code == "working-at-heights");
+        var scaffoldUserCertificate = await db.Certificates
+            .FirstAsync(certificate => certificate.Code == "scaffold-user");
+        var lowVoltageSafetyCertificate = await db.Certificates
+            .FirstAsync(certificate => certificate.Code == "low-voltage-safety");
 
         var supplierAvailability = new AvailabilityDeclaration
         {
             CompanyId = supplierCompany.Id,
             ResourceType = ResourceType.Worker,
-            StartDate = DateTime.UtcNow.Date.AddDays(7),
-            EndDate = DateTime.UtcNow.Date.AddDays(30),
+            StartDate = today.AddDays(7),
+            EndDate = today.AddDays(30),
             LocationCity = "Sonderborg",
             LocationRadiusKm = 50,
             Quantity = 3,
             Status = ListingStatus.Active,
-            CreatedAt = DateTime.UtcNow,
-            PublishedAt = DateTime.UtcNow,
+            CreatedAt = now.AddDays(-3),
+            PublishedAt = now.AddDays(-3),
             Skills = [weldingSkill],
             Certificates =
             [
@@ -82,8 +106,207 @@ public static class DbSeeder
             ]
         };
 
-        db.AvailabilityDeclarations.Add(supplierAvailability);
+        var supplierElectricalAvailability = new AvailabilityDeclaration
+        {
+            CompanyId = supplierCompany.Id,
+            ResourceType = ResourceType.Worker,
+            StartDate = today.AddDays(10),
+            EndDate = today.AddDays(35),
+            LocationCity = "Odense",
+            LocationRadiusKm = 60,
+            Quantity = 4,
+            Status = ListingStatus.Active,
+            CreatedAt = now.AddDays(-6),
+            PublishedAt = now.AddDays(-6),
+            Skills = [cablePullingSkill],
+            Certificates = [lowVoltageSafetyCertificate]
+        };
+
+        var partnerAvailability = new AvailabilityDeclaration
+        {
+            CompanyId = partnerCompany.Id,
+            ResourceType = ResourceType.Worker,
+            StartDate = today.AddDays(12),
+            EndDate = today.AddDays(40),
+            LocationCity = "Esbjerg",
+            LocationRadiusKm = 80,
+            Quantity = 6,
+            Status = ListingStatus.Active,
+            CreatedAt = now.AddDays(-8),
+            PublishedAt = now.AddDays(-8),
+            Skills = [scaffoldingSkill],
+            Certificates = [scaffoldUserCertificate]
+        };
+
+        var openCapacityRequest = new CapacityRequest
+        {
+            CompanyId = requesterCompany.Id,
+            ResourceType = ResourceType.Worker,
+            StartDate = today.AddDays(7),
+            EndDate = today.AddDays(30),
+            LocationCity = "Sonderborg",
+            LocationRadiusKm = 50,
+            Quantity = 2,
+            Status = ListingStatus.Active,
+            CreatedAt = now.AddDays(-1),
+            PublishedAt = now.AddDays(-1),
+            Urgency = UrgencyLevel.Medium,
+            Skills = [weldingSkill],
+            Certificates = [hotWorkCertificate]
+        };
+
+        var agreementCapacityRequest = new CapacityRequest
+        {
+            CompanyId = requesterCompany.Id,
+            ResourceType = ResourceType.Worker,
+            StartDate = today.AddDays(14),
+            EndDate = today.AddDays(28),
+            LocationCity = "Esbjerg",
+            LocationRadiusKm = 75,
+            Quantity = 3,
+            Status = ListingStatus.Active,
+            CreatedAt = now.AddDays(-5),
+            PublishedAt = now.AddDays(-5),
+            Urgency = UrgencyLevel.Low,
+            Skills = [scaffoldingSkill],
+            Certificates = [scaffoldUserCertificate]
+        };
+
+        db.AvailabilityDeclarations.AddRange(
+            supplierAvailability,
+            supplierElectricalAvailability,
+            partnerAvailability);
+        db.CapacityRequests.AddRange(openCapacityRequest, agreementCapacityRequest);
         await db.SaveChangesAsync();
+
+        var openMatchOffer = new MatchOffer
+        {
+            RequestId = openCapacityRequest.Id,
+            AvailabilityId = supplierAvailability.Id,
+            OfferedQuantity = 2,
+            MatchScore = 94,
+            SkillScore = 100,
+            CertificateScore = 100,
+            DateScore = 95,
+            LocationScore = 95,
+            QuantityScore = 80,
+            MatchedSkillCount = 1,
+            RequiredSkillCount = 1,
+            MatchedCertificateCount = 1,
+            RequiredCertificateCount = 1,
+            CoversFullPeriod = true,
+            IsPartial = false,
+            Explanation = "Strong overlap in skills, safety certifications, time window, and travel radius.",
+            Status = MatchStatus.PendingRequesterReview,
+            CreatedAt = now.AddHours(-18),
+            ExpiresAt = now.AddDays(6)
+        };
+
+        var agreementMatchOffer = new MatchOffer
+        {
+            RequestId = agreementCapacityRequest.Id,
+            AvailabilityId = partnerAvailability.Id,
+            OfferedQuantity = 2,
+            MatchScore = 89,
+            SkillScore = 100,
+            CertificateScore = 100,
+            DateScore = 88,
+            LocationScore = 84,
+            QuantityScore = 75,
+            MatchedSkillCount = 1,
+            RequiredSkillCount = 1,
+            MatchedCertificateCount = 1,
+            RequiredCertificateCount = 1,
+            CoversFullPeriod = true,
+            IsPartial = true,
+            Explanation = "Partner availability covers the requested scaffold work and required certification with enough partial capacity to proceed.",
+            Status = MatchStatus.AgreementCreated,
+            CreatedAt = now.AddDays(-4),
+            ExpiresAt = now.AddDays(3),
+            RequesterReviewedAt = now.AddDays(-4).AddHours(2),
+            SupplierReviewedAt = now.AddDays(-4).AddHours(5)
+        };
+
+        db.MatchOffers.AddRange(openMatchOffer, agreementMatchOffer);
+        await db.SaveChangesAsync();
+
+        db.CooperationAgreements.Add(new CooperationAgreement
+        {
+            MatchOfferId = agreementMatchOffer.Id,
+            RequestId = agreementCapacityRequest.Id,
+            AvailabilityId = partnerAvailability.Id,
+            SupplierCompanyId = partnerCompany.Id,
+            RequesterCompanyId = requesterCompany.Id,
+            StartDate = agreementCapacityRequest.StartDate,
+            EndDate = agreementCapacityRequest.EndDate,
+            Quantity = 2,
+            Status = AgreementStatus.Active,
+            CreatedAt = now.AddDays(-4),
+            ConfirmedAt = now.AddDays(-4).AddHours(5)
+        });
+
+        await db.SaveChangesAsync();
+    }
+
+    private static Company CreateCompany(
+        string name,
+        string industry,
+        string defaultLocation,
+        DateTime createdAt,
+        string contactPhone)
+    {
+        return new Company
+        {
+            Name = name,
+            Industry = industry,
+            DefaultLocation = defaultLocation,
+            ContactPhone = contactPhone,
+            Status = CompanyStatus.Active,
+            CreatedAt = createdAt
+        };
+    }
+
+    private static User CreateUser(
+        Company company,
+        string email,
+        UserRole role,
+        DateTime createdAt)
+    {
+        return new User
+        {
+            CompanyId = company.Id,
+            Email = email,
+            Role = role,
+            CreatedAt = createdAt,
+            OnboardingCompletedAt = createdAt
+        };
+    }
+
+    private static CompanySettings CreateCompanySettings(Company company)
+    {
+        return new CompanySettings
+        {
+            CompanyId = company.Id,
+            ReceiveCapacityRequests = true,
+            ParticipateInNetworkWide = true,
+            AllowPartialMatches = true
+        };
+    }
+
+    private static NotificationPreferences CreateNotificationPreferences(Company company)
+    {
+        return new NotificationPreferences
+        {
+            CompanyId = company.Id,
+            EmailNewMatches = true,
+            EmailActionsRequired = true,
+            EmailUpcomingCooperation = true,
+            InAppNewMatches = true,
+            InAppActionsRequired = true,
+            InAppUpcomingCooperation = true,
+            EmailNetworkRequests = true,
+            InAppNetworkRequests = true
+        };
     }
 
     private static async Task SeedCatalogAsync(AppDbContext db)

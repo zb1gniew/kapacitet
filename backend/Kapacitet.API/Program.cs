@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 using Resend;
 using System.Text.Json;
 
@@ -42,9 +43,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             options.Audience = audience;
         }
-        // In production, Keycloak's Authority URL is HTTPS so metadata must be fetched over HTTPS.
-        // In development, the internal Docker network uses HTTP so we relax this requirement.
-        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        // The browser-facing authority stays HTTPS, but Docker server-to-server
+        // metadata is intentionally fetched over the internal HTTP network.
+        options.RequireHttpsMetadata =
+            string.IsNullOrWhiteSpace(metadataAddress) ||
+            !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -58,9 +61,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = ctx =>
             {
-                Console.WriteLine("TOKEN VALIDATED OK");
+                var logger = ctx.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("Kapacitet.API.Authentication");
 
                 var identity = ctx.Principal?.Identity as System.Security.Claims.ClaimsIdentity;
+                var subject = ctx.Principal?.FindFirst("sub")?.Value;
 
                 // Map roles with Keycloak
                 var realmAccess = ctx.Principal?.FindFirst("realm_access")?.Value;
@@ -81,13 +87,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     ?? ctx.Principal?.FindFirst("email")?.Value
                     ?? ctx.Principal?.FindFirst("preferred_username")?.Value;
                 if (email != null)
+                {
                     identity?.AddClaim(new System.Security.Claims.Claim("email", email));
+                }
+
+                logger.LogDebug(
+                    "JWT token validated for subject {Subject} with email {Email}",
+                    subject,
+                    email);
 
                 return Task.CompletedTask;
             },
             OnAuthenticationFailed = ctx =>
             {
-                Console.WriteLine($"AUTH FAILED: {ctx.Exception.Message}");
+                var logger = ctx.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("Kapacitet.API.Authentication");
+
+                logger.LogWarning(
+                    ctx.Exception,
+                    "JWT authentication failed for request {Method} {Path}",
+                    ctx.Request.Method,
+                    ctx.Request.Path);
+
                 return Task.CompletedTask;
             }
         };
