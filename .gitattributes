@@ -1,0 +1,8 @@
+# Default: normalize line endings to LF in the repo
+* text=auto eol=lf
+
+# Shell scripts must always be LF — CRLF breaks them in Linux containers
+*.sh text eol=lf
+
+# JSON realm templates mounted into Linux containers must be LF
+infrastructure/keycloak/*.json text eol=lf

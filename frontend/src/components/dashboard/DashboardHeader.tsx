@@ -43,7 +43,7 @@ export function DashboardHeader({
 
         <div className="flex items-center gap-3">
           <div className="rounded-[10px] border border-[#62748e4d] bg-[#45556c66] px-4 py-2">
-            <p className="text-[10px] uppercase tracking-[0.05em] text-[#90a1b9]">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-white/60">
               {t("Logged in as")}
             </p>
             <div className="mt-1 flex items-center gap-2">
