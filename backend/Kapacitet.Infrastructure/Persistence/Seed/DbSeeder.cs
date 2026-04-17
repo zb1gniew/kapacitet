@@ -84,6 +84,8 @@ public static class DbSeeder
 
         db.AvailabilityDeclarations.Add(supplierAvailability);
         await db.SaveChangesAsync();
+            Email = email,
+            Role = role,
     }
 
     private static async Task SeedCatalogAsync(AppDbContext db)
