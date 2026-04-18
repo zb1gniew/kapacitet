@@ -263,7 +263,8 @@ public class CompanyService
                 .ThenInclude(c => c.CompanySettings)
             .Include(u => u.Company)
                 .ThenInclude(c => c.NotificationPreferences)
-            .FirstOrDefaultAsync(u => u.Email == email)
+            .WhereEmailMatches(email)
+            .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");
     }
 

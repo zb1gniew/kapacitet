@@ -17,6 +17,7 @@ using Kapacitet.Application.Features.Notifications.Services;
 using Kapacitet.Application.Features.Retention;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
+using Kapacitet.Domain.Utilities;
 using Kapacitet.Infrastructure.Keycloak;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -97,9 +98,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (email != null)
                 {
                     var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                    var normalizedEmail = EmailAddressNormalizer.NormalizeForLookup(email);
                     var appUser = await db.Users
                         .AsNoTracking()
-                        .FirstOrDefaultAsync(user => user.Email == email);
+                        .FirstOrDefaultAsync(user =>
+                            EF.Property<string>(user, PersistenceModelConstants.NormalizedEmailProperty) == normalizedEmail);
 
                     if (appUser != null)
                     {

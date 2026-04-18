@@ -17,7 +17,7 @@ public class CurrentUserService
     {
         var user = await _db.Users
             .AsNoTracking()
-            .Where(u => u.Email == email)
+            .WhereEmailMatches(email)
             .Select(u => new CurrentUserContext(u.Id, u.CompanyId, u.Role))
             .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");

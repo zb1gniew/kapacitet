@@ -1,6 +1,7 @@
 using Kapacitet.Application.Features.AccessRequests.DTOs;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
+using Kapacitet.Domain.Utilities;
 using Kapacitet.Infrastructure.Keycloak;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -30,8 +31,11 @@ public class AccessRequestService
 
     public async Task<AccessRequestDto> SubmitAsync(SubmitAccessRequestDto dto)
     {
+        var contactEmail = EmailAddressNormalizer.Canonicalize(dto.ContactEmail);
+
         var existingPending = await _db.AccessRequests
-            .AnyAsync(r => r.ContactEmail == dto.ContactEmail && r.Status == AccessRequestStatus.Pending);
+            .WhereContactEmailMatches(contactEmail)
+            .AnyAsync(r => r.Status == AccessRequestStatus.Pending);
 
         if (existingPending)
             throw new InvalidOperationException("An access request with this email is already pending review.");
@@ -41,14 +45,23 @@ public class AccessRequestService
             Name = dto.Name,
             Industry = dto.Industry,
             Location = dto.Location,
-            ContactEmail = dto.ContactEmail,
+            ContactEmail = contactEmail,
             Message = dto.Message,
             Status = AccessRequestStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
 
         _db.AccessRequests.Add(accessRequest);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsPendingAccessRequestDuplicate(ex))
+        {
+            throw new InvalidOperationException(
+                "An access request with this email is already pending review.",
+                ex);
+        }
 
         _logger.LogInformation(
             "Access request submitted: RequestId={RequestId}, Email={Email}, CompanyName={CompanyName}",
@@ -95,7 +108,17 @@ public class AccessRequestService
             await using var transaction = await _db.Database.BeginTransactionAsync();
 
             await ProvisionCompanyAndUserAsync(request);
-            await _db.SaveChangesAsync();
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUserEmailDuplicate(ex))
+            {
+                throw new InvalidOperationException(
+                    $"A user with email {request.ContactEmail} already exists.",
+                    ex);
+            }
 
             // Keycloak is provisioned BEFORE committing the transaction.
             // If it throws, the transaction rolls back and no orphaned DB accounts are created.
@@ -131,7 +154,10 @@ public class AccessRequestService
 
     private async Task ProvisionCompanyAndUserAsync(AccessRequest request)
     {
-        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.ContactEmail);
+        var existingUser = await _db.Users
+            .WhereEmailMatches(request.ContactEmail)
+            .FirstOrDefaultAsync();
+
         if (existingUser != null)
             throw new InvalidOperationException(
                 $"A user with email {request.ContactEmail} already exists.");
@@ -192,6 +218,39 @@ public class AccessRequestService
         var result = MapToDto(entity);
         result.TemporaryPassword = temporaryPassword;
         return result;
+    }
+
+    private static bool IsPendingAccessRequestDuplicate(DbUpdateException exception)
+    {
+        return IsUniqueConstraintViolation(
+            exception,
+            PersistenceModelConstants.AccessRequestsPendingNormalizedContactEmailIndex);
+    }
+
+    private static bool IsUserEmailDuplicate(DbUpdateException exception)
+    {
+        return IsUniqueConstraintViolation(
+            exception,
+            PersistenceModelConstants.UsersNormalizedEmailIndex);
+    }
+
+    private static bool IsUniqueConstraintViolation(
+        DbUpdateException exception,
+        string constraintName)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            var sqlState = current.GetType().GetProperty("SqlState")?.GetValue(current) as string;
+            var currentConstraintName =
+                current.GetType().GetProperty("ConstraintName")?.GetValue(current) as string;
+
+            if (sqlState == "23505" && currentConstraintName == constraintName)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static AccessRequestDto MapToDto(AccessRequest entity) => new()

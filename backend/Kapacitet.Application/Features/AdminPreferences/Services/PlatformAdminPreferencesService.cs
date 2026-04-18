@@ -64,7 +64,8 @@ public class PlatformAdminPreferencesService
     {
         return await _db.Users
             .Include(user => user.PlatformAdminPreferences)
-            .FirstOrDefaultAsync(user => user.Email == email)
+            .WhereEmailMatches(email)
+            .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");
     }
 

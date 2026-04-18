@@ -28,6 +28,10 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
             .IsRequired()
             .HasMaxLength(254);
 
+        builder.Property<string>(PersistenceModelConstants.NormalizedContactEmailProperty)
+            .HasMaxLength(254)
+            .HasComputedColumnSql("lower(btrim(\"ContactEmail\"))", stored: true);
+
         builder.Property(a => a.Message)
             .HasMaxLength(2000);
 
@@ -48,5 +52,10 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
             .HasForeignKey(a => a.ProvisionedCompanyId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(PersistenceModelConstants.NormalizedContactEmailProperty)
+            .IsUnique()
+            .HasDatabaseName(PersistenceModelConstants.AccessRequestsPendingNormalizedContactEmailIndex)
+            .HasFilter("\"Status\" = 'Pending'");
     }
 }

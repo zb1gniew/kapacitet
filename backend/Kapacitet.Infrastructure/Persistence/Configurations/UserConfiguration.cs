@@ -16,6 +16,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(254);
 
+        builder.Property<string>(PersistenceModelConstants.NormalizedEmailProperty)
+            .HasMaxLength(254)
+            .HasComputedColumnSql("lower(btrim(\"Email\"))", stored: true);
+
         builder.Property(u => u.Role)
             .HasConversion<string>();
 
@@ -34,5 +38,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(p => p.User)
             .HasForeignKey<PlatformAdminPreferences>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(PersistenceModelConstants.NormalizedEmailProperty)
+            .IsUnique()
+            .HasDatabaseName(PersistenceModelConstants.UsersNormalizedEmailIndex);
     }
 }
