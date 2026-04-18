@@ -1,4 +1,5 @@
 using Kapacitet.Application.Features.CompanySettings.DTOs;
+using Kapacitet.Application.Features.Common.Errors;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
@@ -29,29 +30,50 @@ public class CompanyService
     {
         var user = await LoadUserWithCompanyAsync(email);
         var company = user.Company;
+        var fieldErrors = new Dictionary<string, string[]>();
 
         if (dto.Industry is not null)
         {
             var industry = dto.Industry.Trim();
             if (industry.Length > 100)
-                throw new ArgumentException("Industry must be 100 characters or fewer.");
-            company.Industry = industry;
+            {
+                fieldErrors["industry"] = ["Industry must be 100 characters or fewer."];
+            }
+            else
+            {
+                company.Industry = industry;
+            }
         }
 
         if (dto.DefaultLocation is not null)
         {
             var location = dto.DefaultLocation.Trim();
             if (location.Length > 100)
-                throw new ArgumentException("Location must be 100 characters or fewer.");
-            company.DefaultLocation = location;
+            {
+                fieldErrors["defaultLocation"] = ["Location must be 100 characters or fewer."];
+            }
+            else
+            {
+                company.DefaultLocation = location;
+            }
         }
 
         if (dto.ContactPhone is not null)
         {
             var phone = dto.ContactPhone.Trim();
             if (phone.Length > 50)
-                throw new ArgumentException("Contact phone must be 50 characters or fewer.");
-            company.ContactPhone = string.IsNullOrWhiteSpace(phone) ? null : phone;
+            {
+                fieldErrors["contactPhone"] = ["Contact phone must be 50 characters or fewer."];
+            }
+            else
+            {
+                company.ContactPhone = string.IsNullOrWhiteSpace(phone) ? null : phone;
+            }
+        }
+
+        if (fieldErrors.Count > 0)
+        {
+            throw new ValidationException(fieldErrors, "Please correct the highlighted company details.");
         }
 
         await _db.SaveChangesAsync();

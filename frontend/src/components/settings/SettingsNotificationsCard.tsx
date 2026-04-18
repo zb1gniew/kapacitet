@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { CircleCheckIcon, EmailIcon } from "@/components/auth/icons";
 import { BellIcon } from "@/components/dashboard/icons";
+import { parseProblemDetails } from "@/lib/backend/errors";
 import type { TranslateFn } from "@/types/i18n";
 import { SettingsPreferenceCard } from "./SettingsPreferenceCard";
 
@@ -22,17 +23,6 @@ type NotificationPreferences = {
   inAppNetworkRequests: boolean;
 };
 
-const DEFAULT: NotificationPreferences = {
-  emailNewMatches: true,
-  emailActionsRequired: true,
-  emailUpcomingCooperation: true,
-  inAppNewMatches: true,
-  inAppActionsRequired: true,
-  inAppUpcomingCooperation: true,
-  emailNetworkRequests: true,
-  inAppNetworkRequests: true,
-};
-
 function GroupLabel({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -47,45 +37,118 @@ function GroupLabel({ icon, label }: { icon: ReactNode; label: string }) {
 export function SettingsNotificationsCard({
   t,
 }: SettingsNotificationsCardProps) {
-  const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT);
-  const [loaded, setLoaded] = useState(false);
+  const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadPreferences = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
+
+    try {
+      const response = await fetch("/api/company/notifications", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error((await parseProblemDetails(response)).message);
+      }
+
+      const data = (await response.json()) as NotificationPreferences;
+      setPrefs(data);
+    } catch (error) {
+      setPrefs(null);
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : t("Unable to load notification preferences right now."),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    fetch("/api/company/notifications")
-      .then((r) => r.json())
-      .then((data: NotificationPreferences) => {
-        setPrefs(data);
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
-  }, []);
+    void loadPreferences();
+  }, [loadPreferences]);
 
   function toggle(field: keyof NotificationPreferences) {
-    setPrefs((prev) => ({ ...prev, [field]: !prev[field] }));
+    setPrefs((prev) =>
+      prev ? { ...prev, [field]: !prev[field] } : prev,
+    );
     setStatus("idle");
+    setErrorMessage("");
   }
 
   async function handleSave() {
+    if (!prefs) return;
+
     setSaving(true);
     setStatus("idle");
+    setErrorMessage("");
     try {
       const res = await fetch("/api/company/notifications", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(prefs),
       });
-      setStatus(res.ok ? "saved" : "error");
       if (res.ok) {
         const updated: NotificationPreferences = await res.json();
         setPrefs(updated);
+        setStatus("saved");
+      } else {
+        setErrorMessage((await parseProblemDetails(res)).message);
+        setStatus("error");
       }
-    } catch {
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t("Unable to save notification preferences right now."),
+      );
       setStatus("error");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+        <div className="h-6 w-40 animate-pulse rounded bg-neutral-200" />
+        <div className="mt-5 space-y-3">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="h-20 animate-pulse rounded-[10px] bg-neutral-100"
+            />
+          ))}
+        </div>
+      </article>
+    );
+  }
+
+  if (loadError || !prefs) {
+    return (
+      <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+        <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
+          {t("Notifications")}
+        </h2>
+        <div className="mt-5 rounded-[10px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p>{loadError || t("Unable to load notification preferences right now.")}</p>
+          <button
+            type="button"
+            onClick={() => void loadPreferences()}
+            className="mt-3 inline-flex h-10 items-center rounded-[10px] border border-red-200 bg-white px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            {t("Try again")}
+          </button>
+        </div>
+      </article>
+    );
   }
 
   return (
@@ -100,7 +163,7 @@ export function SettingsNotificationsCard({
       </p>
 
       <div
-        className={`mt-5 space-y-4 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}
+        className={`mt-5 space-y-4 ${saving ? "opacity-75" : ""}`}
       >
         <section>
           <GroupLabel
@@ -198,16 +261,16 @@ export function SettingsNotificationsCard({
           {t("Notification preferences saved.")}
         </p>
       )}
-      {status === "error" && (
-        <p className="mt-3 text-sm font-medium text-red-600">
-          {t("Failed to save. Please try again.")}
-        </p>
-      )}
+        {status === "error" && (
+          <p className="mt-3 text-sm font-medium text-red-600">
+            {t(errorMessage || "Failed to save. Please try again.")}
+          </p>
+        )}
 
       <div className="mt-5 border-t border-neutral-200 pt-4">
         <button
           type="button"
-          disabled={saving || !loaded}
+          disabled={saving || loading || !prefs}
           onClick={handleSave}
           className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
         >
