@@ -20,20 +20,20 @@ public class CooperationReminderService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken ct)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!ct.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                await ProcessRemindersAsync(ct);
+                await ProcessRemindersAsync(stoppingToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing cooperation reminders");
             }
 
-            await Task.Delay(TimeSpan.FromHours(1), ct);
+            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }
     }
 
@@ -42,7 +42,7 @@ public class CooperationReminderService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
-
+        
         var now = DateTime.UtcNow;
         var windowStart = now.AddHours(47);
         var windowEnd = now.AddHours(49);
@@ -76,7 +76,7 @@ public class CooperationReminderService : BackgroundService
         if (agreements.Count > 0)
             await db.SaveChangesAsync(ct);
     }
-    
+
     // For testing only
     public Task TestProcessReminders(CancellationToken ct) => ProcessRemindersAsync(ct);
 }
