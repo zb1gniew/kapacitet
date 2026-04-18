@@ -59,9 +59,18 @@ services:
       - postgres
       - keycloak
 
+  redis:
+    image: redis:7-alpine
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
   frontend:
     build: ../frontend
     environment:
+      REDIS_URL: redis://redis:6379
       # Internal Docker network call — stays HTTP.
       BACKEND_API_URL: http://backend:8080
       # Public URL of the frontend app (used to build OIDC redirect_uri and session cookies).
@@ -83,6 +92,7 @@ services:
       - "3000"
     depends_on:
       - backend
+      - redis
 
   # -----------------------------------------------------------
   # Caddy — Reverse proxy and TLS termination
@@ -113,5 +123,6 @@ services:
 volumes:
   postgres_data:
   keycloak_data:
+  redis_data:
   caddy_data:
   caddy_config:

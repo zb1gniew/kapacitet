@@ -1,81 +1,74 @@
+import { Redis } from "ioredis";
 import type { AuthSession } from "@/types/auth";
-
-type StoredSession = {
-  session: AuthSession;
-  updatedAt: number;
-};
-
-type SessionStore = Map<string, StoredSession>;
-
-declare global {
-  var __kapacitetAuthSessionStore: SessionStore | undefined;
-}
-
-function getSessionStore(): SessionStore {
-  if (!globalThis.__kapacitetAuthSessionStore) {
-    globalThis.__kapacitetAuthSessionStore = new Map();
-  }
-
-  return globalThis.__kapacitetAuthSessionStore;
-}
 
 function nowInSeconds() {
   return Math.floor(Date.now() / 1000);
 }
 
-function isStoredSessionExpired(storedSession: StoredSession): boolean {
-  const { session } = storedSession;
-  const cutoff = session.refreshExpiresAt ?? session.expiresAt;
-  return cutoff <= nowInSeconds();
+let _redis: Redis | null = null;
+
+function getRedis(): Redis {
+  if (!_redis) {
+    _redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+      lazyConnect: false,
+      enableReadyCheck: true,
+    });
+  }
+  return _redis;
 }
 
-function pruneExpiredSessions(store: SessionStore) {
-  for (const [sessionId, storedSession] of store.entries()) {
-    if (isStoredSessionExpired(storedSession)) {
-      store.delete(sessionId);
-    }
-  }
+function sessionKey(id: string) {
+  return `kapacitet:session:${id}`;
+}
+
+function ttlSeconds(session: AuthSession): number {
+  const cutoff = session.refreshExpiresAt ?? session.expiresAt;
+  return Math.max(60, cutoff - nowInSeconds());
 }
 
 export async function createServerSession(
   session: AuthSession,
 ): Promise<string> {
-  const store = getSessionStore();
-  pruneExpiredSessions(store);
-
   const sessionId = crypto.randomUUID();
-  store.set(sessionId, { session, updatedAt: Date.now() });
-
+  await getRedis().set(
+    sessionKey(sessionId),
+    JSON.stringify(session),
+    "EX",
+    ttlSeconds(session),
+  );
   return sessionId;
 }
 
 export async function getServerSession(
   sessionId: string,
 ): Promise<AuthSession | null> {
-  const store = getSessionStore();
-  const storedSession = store.get(sessionId);
-
-  if (!storedSession) {
+  const raw = await getRedis().get(sessionKey(sessionId));
+  if (!raw) {
     return null;
   }
 
-  if (isStoredSessionExpired(storedSession)) {
-    store.delete(sessionId);
+  const session = JSON.parse(raw) as AuthSession;
+
+  if ((session.refreshExpiresAt ?? session.expiresAt) <= nowInSeconds()) {
+    await getRedis().del(sessionKey(sessionId));
     return null;
   }
 
-  return storedSession.session;
+  return session;
 }
 
 export async function updateServerSession(
   sessionId: string,
   session: AuthSession,
 ): Promise<void> {
-  const store = getSessionStore();
-  store.set(sessionId, { session, updatedAt: Date.now() });
+  await getRedis().set(
+    sessionKey(sessionId),
+    JSON.stringify(session),
+    "EX",
+    ttlSeconds(session),
+  );
 }
 
 export async function deleteServerSession(sessionId: string): Promise<void> {
-  const store = getSessionStore();
-  store.delete(sessionId);
+  await getRedis().del(sessionKey(sessionId));
 }

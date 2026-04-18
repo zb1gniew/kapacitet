@@ -5,6 +5,9 @@ import { isPlatformAdmin } from "@/lib/auth/roles";
 import { parseSessionCookieValue } from "@/lib/auth/session";
 import { getServerSession } from "@/lib/auth/session-store";
 
+// ioredis uses Node.js net/tls — opt out of Edge Runtime
+export const runtime = "nodejs";
+
 export const config = {
   matcher: ["/dashboard/:path*", "/onboarding/:path*"],
 };
