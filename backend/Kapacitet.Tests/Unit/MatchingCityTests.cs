@@ -13,22 +13,22 @@ public class MatchingCityTests
     // ── NormalizeForLookup ────────────────────────────────────────────────────
 
     [Theory]
-    [InlineData("Aarhus",      "AARHUS")]      // plain ASCII
-    [InlineData("aarhus",      "AARHUS")]      // lowercase
+    [InlineData("Aarhus", "AARHUS")]      // plain ASCII
+    [InlineData("aarhus", "AARHUS")]      // lowercase
     [InlineData("  Aalborg  ", "AALBORG")]     // leading/trailing spaces
-    [InlineData("Sønderborg",  "SØNDERBORG")]  // ø does NOT decompose → stays
-    [InlineData("Sonderborg",  "SONDERBORG")]  // ASCII variant of the same city
-    [InlineData("Hillerød",    "HILLERØD")]    // ø stays
-    [InlineData("Hillerod",    "HILLEROD")]    // ASCII variant
-    [InlineData("Göteborg",    "GOTEBORG")]    // ö DOES decompose → stripped to o
-    [InlineData("Malmö",       "MALMO")]       // ö → o
-    [InlineData("Næstved",     "NÆSTVED")]     // æ does NOT decompose → stays
-    [InlineData("Holbæk",      "HOLBÆK")]      // æ stays
-    [InlineData("Grenå",       "GRENA")]       // å DOES decompose → stripped to a
-    [InlineData("Allerød",     "ALLERØD")]     // ø stays
-    [InlineData("Køge",        "KØGE")]        // ø stays
+    [InlineData("Sønderborg", "SØNDERBORG")]  // ø does NOT decompose → stays
+    [InlineData("Sonderborg", "SONDERBORG")]  // ASCII variant of the same city
+    [InlineData("Hillerød", "HILLERØD")]    // ø stays
+    [InlineData("Hillerod", "HILLEROD")]    // ASCII variant
+    [InlineData("Göteborg", "GOTEBORG")]    // ö DOES decompose → stripped to o
+    [InlineData("Malmö", "MALMO")]       // ö → o
+    [InlineData("Næstved", "NÆSTVED")]     // æ does NOT decompose → stays
+    [InlineData("Holbæk", "HOLBÆK")]      // æ stays
+    [InlineData("Grenå", "GRENA")]       // å DOES decompose → stripped to a
+    [InlineData("Allerød", "ALLERØD")]     // ø stays
+    [InlineData("Køge", "KØGE")]        // ø stays
     [InlineData("Brønderslev", "BRØNDERSLEV")] // ø stays
-    [InlineData("Tønder",      "TØNDER")]      // ø stays
+    [InlineData("Tønder", "TØNDER")]      // ø stays
     public void NormalizeForLookup_ProducesExpectedKey(string input, string expected)
     {
         MatchingCityCoordinateCatalog.NormalizeForLookup(input)
@@ -39,32 +39,32 @@ public class MatchingCityTests
 
     [Theory]
     // Cities present in the catalog
-    [InlineData("Aarhus",           true)]
-    [InlineData("AARHUS",           true)]  // case-insensitive
-    [InlineData("aarhus",           true)]
-    [InlineData("Sønderborg",       true)]
-    [InlineData("Sonderborg",       true)]  // ASCII fallback key
-    [InlineData("Hillerød",         true)]
-    [InlineData("Hillerod",         true)]  // ASCII fallback key
-    [InlineData("Aabenraa",         true)]  // newly added
-    [InlineData("Horsens",          true)]  // newly added
-    [InlineData("Silkeborg",        true)]  // newly added
-    [InlineData("Næstved",          true)]  // newly added
-    [InlineData("Holbæk",           true)]  // newly added, æ stays
-    [InlineData("Grenå",            true)]  // newly added, å→a → GRENA
-    [InlineData("Malmö",            true)]  // ö→o → MALMO
-    [InlineData("Göteborg",         true)]  // ö→o → GOTEBORG
-    [InlineData("Copenhagen",       true)]  // English alias
-    [InlineData("København",        true)]  // Danish name
-    [InlineData("Oslo",             true)]
-    [InlineData("Stockholm",        true)]
+    [InlineData("Aarhus", true)]
+    [InlineData("AARHUS", true)]  // case-insensitive
+    [InlineData("aarhus", true)]
+    [InlineData("Sønderborg", true)]
+    [InlineData("Sonderborg", true)]  // ASCII fallback key
+    [InlineData("Hillerød", true)]
+    [InlineData("Hillerod", true)]  // ASCII fallback key
+    [InlineData("Aabenraa", true)]  // newly added
+    [InlineData("Horsens", true)]  // newly added
+    [InlineData("Silkeborg", true)]  // newly added
+    [InlineData("Næstved", true)]  // newly added
+    [InlineData("Holbæk", true)]  // newly added, æ stays
+    [InlineData("Grenå", true)]  // newly added, å→a → GRENA
+    [InlineData("Malmö", true)]  // ö→o → MALMO
+    [InlineData("Göteborg", true)]  // ö→o → GOTEBORG
+    [InlineData("Copenhagen", true)]  // English alias
+    [InlineData("København", true)]  // Danish name
+    [InlineData("Oslo", true)]
+    [InlineData("Stockholm", true)]
     // Cities NOT in the catalog
-    [InlineData("Warsaw",           false)]
-    [InlineData("Syddanmark",       false)] // was in old placeholder — must fail
-    [InlineData("",                 false)]
-    [InlineData("   ",              false)]
-    [InlineData("xyz",              false)]
-    [InlineData("Berlin",           false)]
+    [InlineData("Warsaw", false)]
+    [InlineData("Syddanmark", false)] // was in old placeholder — must fail
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    [InlineData("xyz", false)]
+    [InlineData("Berlin", false)]
     public void IsSupportedCity_ReturnsExpectedResult(string cityName, bool expected)
     {
         MatchingCityCoordinateCatalog.IsSupportedCity(cityName)
@@ -77,24 +77,34 @@ public class MatchingCityTests
 
     private static CapacityRequest MakeRequest(string city, int radiusKm) => new()
     {
-        Id = 1, CompanyId = 1,
+        Id = 1,
+        CompanyId = 1,
         ResourceType = ResourceType.Worker,
         StartDate = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-        EndDate   = new DateTime(2026, 6, 30, 0, 0, 0, DateTimeKind.Utc),
-        LocationCity = city, LocationRadiusKm = radiusKm,
-        Quantity = 5, Status = ListingStatus.Active, CreatedAt = DateTime.UtcNow,
-        Skills = [], Certificates = []
+        EndDate = new DateTime(2026, 6, 30, 0, 0, 0, DateTimeKind.Utc),
+        LocationCity = city,
+        LocationRadiusKm = radiusKm,
+        Quantity = 5,
+        Status = ListingStatus.Active,
+        CreatedAt = DateTime.UtcNow,
+        Skills = [],
+        Certificates = []
     };
 
     private static AvailabilityDeclaration MakeAvailability(string city, int radiusKm) => new()
     {
-        Id = 2, CompanyId = 2,
+        Id = 2,
+        CompanyId = 2,
         ResourceType = ResourceType.Worker,
         StartDate = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc),
-        EndDate   = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-        LocationCity = city, LocationRadiusKm = radiusKm,
-        Quantity = 5, Status = ListingStatus.Active, CreatedAt = DateTime.UtcNow,
-        Skills = [], Certificates = []
+        EndDate = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+        LocationCity = city,
+        LocationRadiusKm = radiusKm,
+        Quantity = 5,
+        Status = ListingStatus.Active,
+        CreatedAt = DateTime.UtcNow,
+        Skills = [],
+        Certificates = []
     };
 
     [Fact]
@@ -174,8 +184,8 @@ public class MatchingCityTests
     {
         // Aarhus–Horsens (~40 km, close) vs Aarhus–Copenhagen (~180 km, far)
         // Both within a large radius — but closer pair should score higher.
-        var closeResult  = _svc.Evaluate(MakeRequest("Aarhus", 150), MakeAvailability("Horsens",    150), 5, 5);
-        var farResult    = _svc.Evaluate(MakeRequest("Aarhus", 150), MakeAvailability("Copenhagen", 150), 5, 5);
+        var closeResult = _svc.Evaluate(MakeRequest("Aarhus", 150), MakeAvailability("Horsens", 150), 5, 5);
+        var farResult = _svc.Evaluate(MakeRequest("Aarhus", 150), MakeAvailability("Copenhagen", 150), 5, 5);
 
         closeResult.Should().NotBeNull();
         farResult.Should().NotBeNull();

@@ -12,8 +12,14 @@ export function NotificationBell({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, loading, markAsRead, markAllAsRead } =
-    useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -45,6 +51,7 @@ export function NotificationBell({
         <NotificationPanel
           notifications={notifications}
           loading={loading}
+          error={error}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
           onNavigate={() => setOpen(false)}

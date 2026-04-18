@@ -42,11 +42,18 @@ public class CooperationReminderServiceTests
         var offer = new MatchOffer { Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1, Status = MatchStatus.AgreementCreated, Explanation = "Test match" };
         var agreement = new CooperationAgreement
         {
-            Id = 1, MatchOfferId = 1, RequestId = 1, AvailabilityId = 1,
-            RequesterCompanyId = 1, SupplierCompanyId = 2,
-            StartDate = startDate, EndDate = startDate.AddDays(30),
-            Quantity = 1, Status = AgreementStatus.Active,
-            CreatedAt = DateTime.UtcNow, ConfirmedAt = DateTime.UtcNow,
+            Id = 1,
+            MatchOfferId = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            RequesterCompanyId = 1,
+            SupplierCompanyId = 2,
+            StartDate = startDate,
+            EndDate = startDate.AddDays(30),
+            Quantity = 1,
+            Status = AgreementStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            ConfirmedAt = DateTime.UtcNow,
             ReminderEmailSentAt = reminderSentAt
         };
 

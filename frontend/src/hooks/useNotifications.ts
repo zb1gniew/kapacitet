@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseProblemDetails } from "@/lib/backend/errors";
 import type { NotificationResponse } from "@/types/api-notifications";
 
 export function useNotifications() {
@@ -30,26 +31,52 @@ export function useNotifications() {
 
   const markAsRead = useCallback(
     async (id: number) => {
+      const previousNotifications = notifications;
+
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
       try {
-        await fetch(`/api/notifications/${id}/read`, { method: "POST" });
-      } catch {
-        void refresh();
+        const response = await fetch(`/api/notifications/${id}/read`, {
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error((await parseProblemDetails(response)).message);
+        }
+        setError(null);
+      } catch (err) {
+        setNotifications(previousNotifications);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to update notification state.",
+        );
       }
     },
-    [refresh],
+    [notifications],
   );
 
   const markAllAsRead = useCallback(async () => {
+    const previousNotifications = notifications;
+
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     try {
-      await fetch("/api/notifications/read-all", { method: "POST" });
-    } catch {
-      void refresh();
+      const response = await fetch("/api/notifications/read-all", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error((await parseProblemDetails(response)).message);
+      }
+      setError(null);
+    } catch (err) {
+      setNotifications(previousNotifications);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update notification state.",
+      );
     }
-  }, [refresh]);
+  }, [notifications]);
 
   useEffect(() => {
     void refresh();

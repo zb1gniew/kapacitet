@@ -25,10 +25,15 @@ public class MatchingAllocationServiceTests
         var svc = new MatchingAllocationService(db);
         var request = new CapacityRequest
         {
-            Id = 1, CompanyId = 1, Quantity = 5,
+            Id = 1,
+            CompanyId = 1,
+            Quantity = 5,
             ResourceType = ResourceType.Worker,
-            StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddDays(30),
-            LocationCity = "Warsaw", Status = ListingStatus.Active, CreatedAt = DateTime.UtcNow
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(30),
+            LocationCity = "Warsaw",
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow
         };
 
         // qty=5, allocated=5 → remaining=0
@@ -44,10 +49,15 @@ public class MatchingAllocationServiceTests
         var svc = new MatchingAllocationService(db);
         var request = new CapacityRequest
         {
-            Id = 1, CompanyId = 1, Quantity = 5,
+            Id = 1,
+            CompanyId = 1,
+            Quantity = 5,
             ResourceType = ResourceType.Worker,
-            StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddDays(30),
-            LocationCity = "Warsaw", Status = ListingStatus.Fulfilled, CreatedAt = DateTime.UtcNow
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(30),
+            LocationCity = "Warsaw",
+            Status = ListingStatus.Fulfilled,
+            CreatedAt = DateTime.UtcNow
         };
 
         // qty=5, allocated=2 → remaining=3
@@ -63,10 +73,15 @@ public class MatchingAllocationServiceTests
         var svc = new MatchingAllocationService(db);
         var request = new CapacityRequest
         {
-            Id = 1, CompanyId = 1, Quantity = 5,
+            Id = 1,
+            CompanyId = 1,
+            Quantity = 5,
             ResourceType = ResourceType.Worker,
-            StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddDays(30),
-            LocationCity = "Warsaw", Status = ListingStatus.Active, CreatedAt = DateTime.UtcNow
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(30),
+            LocationCity = "Warsaw",
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow
         };
 
         await svc.EnsureListingStatusConsistencyAsync(request, MakeSnapshot(1, 5, 2));
@@ -82,8 +97,12 @@ public class MatchingAllocationServiceTests
         var db = TestDbFactory.Create();
         db.MatchOffers.Add(new MatchOffer
         {
-            Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1,
-            Status = MatchStatus.PendingRequesterReview, Explanation = "Test"
+            Id = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            OfferedQuantity = 1,
+            Status = MatchStatus.PendingRequesterReview,
+            Explanation = "Test"
         });
         await db.SaveChangesAsync();
 
@@ -98,8 +117,12 @@ public class MatchingAllocationServiceTests
         var db = TestDbFactory.Create();
         db.MatchOffers.Add(new MatchOffer
         {
-            Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1,
-            Status = MatchStatus.PendingSupplierConfirmation, Explanation = "Test"
+            Id = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            OfferedQuantity = 1,
+            Status = MatchStatus.PendingSupplierConfirmation,
+            Explanation = "Test"
         });
         await db.SaveChangesAsync();
 
@@ -114,8 +137,12 @@ public class MatchingAllocationServiceTests
         var db = TestDbFactory.Create();
         db.MatchOffers.Add(new MatchOffer
         {
-            Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1,
-            Status = MatchStatus.RequesterDeclined, Explanation = "Test"
+            Id = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            OfferedQuantity = 1,
+            Status = MatchStatus.RequesterDeclined,
+            Explanation = "Test"
         });
         await db.SaveChangesAsync();
 
@@ -140,8 +167,12 @@ public class MatchingAllocationServiceTests
         var db = TestDbFactory.Create();
         db.MatchOffers.Add(new MatchOffer
         {
-            Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1,
-            Status = MatchStatus.PendingRequesterReview, Explanation = "Test",
+            Id = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            OfferedQuantity = 1,
+            Status = MatchStatus.PendingRequesterReview,
+            Explanation = "Test",
             ExpiresAt = DateTime.UtcNow.AddMinutes(-1) // already past
         });
         await db.SaveChangesAsync();
@@ -157,8 +188,12 @@ public class MatchingAllocationServiceTests
         var db = TestDbFactory.Create();
         db.MatchOffers.Add(new MatchOffer
         {
-            Id = 1, RequestId = 1, AvailabilityId = 1, OfferedQuantity = 1,
-            Status = MatchStatus.PendingRequesterReview, Explanation = "Test",
+            Id = 1,
+            RequestId = 1,
+            AvailabilityId = 1,
+            OfferedQuantity = 1,
+            Status = MatchStatus.PendingRequesterReview,
+            Explanation = "Test",
             ExpiresAt = DateTime.UtcNow.AddDays(7) // future
         });
         await db.SaveChangesAsync();

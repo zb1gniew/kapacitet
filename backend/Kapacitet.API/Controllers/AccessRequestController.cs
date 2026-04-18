@@ -43,8 +43,8 @@ public class AccessRequestController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var reviewedBy = User.FindFirst("email")?.Value 
-        ?? User.FindFirst("preferred_username")?.Value 
+        var reviewedBy = User.FindFirst("email")?.Value
+        ?? User.FindFirst("preferred_username")?.Value
         ?? "unknown";
 
         var result = await _service.ReviewAsync(id, dto, reviewedBy);

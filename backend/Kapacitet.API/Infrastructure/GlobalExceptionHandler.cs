@@ -57,6 +57,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 "Conflict",
                 "conflict",
                 exception.Message),
+            ArgumentException => CreateProblemDetails(
+                StatusCodes.Status422UnprocessableEntity,
+                "Validation failed",
+                "validation-error",
+                exception.Message),
             UnauthorizedAccessException => CreateProblemDetails(
                 StatusCodes.Status403Forbidden,
                 "Forbidden",

@@ -14,8 +14,12 @@ public class NetworkEscalationServiceTests
     {
         db.Companies.Add(new Company
         {
-            Id = id, Name = $"Co{id}", Industry = "IT", DefaultLocation = "Warsaw",
-            Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow
+            Id = id,
+            Name = $"Co{id}",
+            Industry = "IT",
+            DefaultLocation = "Warsaw",
+            Status = CompanyStatus.Active,
+            CreatedAt = DateTime.UtcNow
         });
     }
 
@@ -27,15 +31,22 @@ public class NetworkEscalationServiceTests
     {
         db.CapacityRequests.Add(new CapacityRequest
         {
-            Id = requestId, CompanyId = requesterCompanyId,
-            ResourceType = ResourceType.Worker, Quantity = 1,
-            StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddDays(30),
-            LocationCity = "Warsaw", Status = ListingStatus.Active, CreatedAt = DateTime.UtcNow
+            Id = requestId,
+            CompanyId = requesterCompanyId,
+            ResourceType = ResourceType.Worker,
+            Quantity = 1,
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddDays(30),
+            LocationCity = "Warsaw",
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow
         });
         db.NetworkEscalations.Add(new NetworkEscalation
         {
-            Id = requestId, RequestId = requestId,
-            TriggeredAt = DateTime.UtcNow, Status = status
+            Id = requestId,
+            RequestId = requestId,
+            TriggeredAt = DateTime.UtcNow,
+            Status = status
         });
     }
 

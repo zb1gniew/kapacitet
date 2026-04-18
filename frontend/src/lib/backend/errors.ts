@@ -1,6 +1,7 @@
 type ProblemDetailsPayload = {
   title?: string;
   detail?: string;
+  message?: string;
   fieldErrors?: Record<string, string[]>;
   errors?: Record<string, string[]>;
 };
@@ -24,7 +25,8 @@ export async function parseProblemDetails(response: Response): Promise<{
 
   const payload = (await response.json()) as ProblemDetailsPayload;
   const fieldErrors = payload.fieldErrors ?? payload.errors ?? {};
-  const message = payload.detail ?? payload.title ?? "The request failed.";
+  const message =
+    payload.detail ?? payload.message ?? payload.title ?? "The request failed.";
 
   return {
     message,

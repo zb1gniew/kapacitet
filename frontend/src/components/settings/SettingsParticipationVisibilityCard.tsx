@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CircleCheckIcon } from "@/components/auth/icons";
+import { parseProblemDetails } from "@/lib/backend/errors";
 import type { TranslateFn } from "@/types/i18n";
 import { SettingsPreferenceCard } from "./SettingsPreferenceCard";
 
@@ -15,54 +16,121 @@ type ParticipationSettings = {
   allowPartialMatches: boolean;
 };
 
-const DEFAULT: ParticipationSettings = {
-  receiveCapacityRequests: true,
-  participateInNetworkWide: true,
-  allowPartialMatches: false,
-};
-
 export function SettingsParticipationVisibilityCard({
   t,
 }: SettingsParticipationVisibilityCardProps) {
-  const [settings, setSettings] = useState<ParticipationSettings>(DEFAULT);
-  const [loaded, setLoaded] = useState(false);
+  const [settings, setSettings] = useState<ParticipationSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
+
+    try {
+      const response = await fetch("/api/company/settings", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error((await parseProblemDetails(response)).message);
+      }
+
+      const data = (await response.json()) as ParticipationSettings;
+      setSettings(data);
+    } catch (error) {
+      setSettings(null);
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : t("Unable to load participation settings right now."),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    fetch("/api/company/settings")
-      .then((r) => r.json())
-      .then((data: ParticipationSettings) => {
-        setSettings(data);
-        setLoaded(true);
-      })
-      .catch(() => setLoaded(true));
-  }, []);
+    void loadSettings();
+  }, [loadSettings]);
 
   function toggle(field: keyof ParticipationSettings) {
-    setSettings((prev) => ({ ...prev, [field]: !prev[field] }));
+    setSettings((prev) => (prev ? { ...prev, [field]: !prev[field] } : prev));
     setStatus("idle");
+    setErrorMessage("");
   }
 
   async function handleSave() {
+    if (!settings) return;
+
     setSaving(true);
     setStatus("idle");
+    setErrorMessage("");
     try {
       const res = await fetch("/api/company/settings", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(settings),
       });
-      setStatus(res.ok ? "saved" : "error");
       if (res.ok) {
         const updated: ParticipationSettings = await res.json();
         setSettings(updated);
+        setStatus("saved");
+      } else {
+        setErrorMessage((await parseProblemDetails(res)).message);
+        setStatus("error");
       }
-    } catch {
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t("Unable to save participation settings right now."),
+      );
       setStatus("error");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loading) {
+    return (
+      <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+        <div className="h-6 w-52 animate-pulse rounded bg-neutral-200" />
+        <div className="mt-5 space-y-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-20 animate-pulse rounded-[10px] bg-neutral-100"
+            />
+          ))}
+        </div>
+      </article>
+    );
+  }
+
+  if (loadError || !settings) {
+    return (
+      <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
+        <h2 className="text-xl font-bold leading-7 tracking-[-0.4492px] text-neutral-900">
+          {t("Participation & visibility")}
+        </h2>
+        <div className="mt-5 rounded-[10px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p>
+            {loadError || t("Unable to load participation settings right now.")}
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadSettings()}
+            className="mt-3 inline-flex h-10 items-center rounded-[10px] border border-red-200 bg-white px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            {t("Try again")}
+          </button>
+        </div>
+      </article>
+    );
   }
 
   return (
@@ -76,9 +144,7 @@ export function SettingsParticipationVisibilityCard({
         )}
       </p>
 
-      <div
-        className={`mt-5 space-y-3 ${!loaded ? "opacity-50 pointer-events-none" : ""}`}
-      >
+      <div className={`mt-5 space-y-3 ${saving ? "opacity-75" : ""}`}>
         <SettingsPreferenceCard
           title={t("Receive capacity requests")}
           description={t(
@@ -118,14 +184,14 @@ export function SettingsParticipationVisibilityCard({
       )}
       {status === "error" && (
         <p className="mt-3 text-sm font-medium text-red-600">
-          {t("Failed to save. Please try again.")}
+          {t(errorMessage || "Failed to save. Please try again.")}
         </p>
       )}
 
       <div className="mt-5 border-t border-neutral-200 pt-4">
         <button
           type="button"
-          disabled={saving || !loaded}
+          disabled={saving || loading || !settings}
           onClick={handleSave}
           className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
         >
