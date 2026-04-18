@@ -24,6 +24,7 @@ public class CapacityRequestService
         ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(startDate, endDate);
 
         var request = new CapacityRequest
         {
@@ -57,6 +58,7 @@ public class CapacityRequestService
         ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(startDate, endDate);
         var clientDraftKey = NormalizeClientDraftKey(dto.ClientDraftKey);
         if (clientDraftKey is not null)
         {
@@ -147,6 +149,7 @@ public class CapacityRequestService
 
         request.StartDate = NormalizeDateTime(dto.StartDate);
         request.EndDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(request.StartDate, request.EndDate);
         request.LocationCity = dto.LocationCity;
         request.LocationRadiusKm = dto.LocationRadiusKm;
         request.Quantity = dto.Quantity;
@@ -172,6 +175,20 @@ public class CapacityRequestService
             throw new InvalidOperationException("Request is already cancelled");
 
         request.Status = ListingStatus.Cancelled;
+
+        // Withdraw all open offers so suppliers cannot confirm against a cancelled request.
+        var openOffers = await _db.MatchOffers
+            .Where(m => m.RequestId == id && MatchingAllocationService.OpenStatuses.Contains(m.Status))
+            .ToListAsync();
+        foreach (var offer in openOffers)
+            offer.Status = MatchStatus.Withdrawn;
+
+        // Resolve any open network escalation tied to this request.
+        var escalation = await _db.NetworkEscalations
+            .FirstOrDefaultAsync(e => e.RequestId == id && e.Status == NetworkEscalationStatus.Open);
+        if (escalation is not null)
+            escalation.Status = NetworkEscalationStatus.Resolved;
+
         await _db.SaveChangesAsync();
 
         return MapToDto(request);
@@ -204,6 +221,17 @@ public class CapacityRequestService
             throw new ValidationException(new Dictionary<string, string[]>
             {
                 ["locationCity"] = [$"'{locationCity}' is not a supported city. Please select a city from the suggestions."]
+            });
+        }
+    }
+
+    private static void ValidateDateRange(DateTime startDate, DateTime endDate)
+    {
+        if (endDate <= startDate)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["endDate"] = ["End date must be after start date."]
             });
         }
     }

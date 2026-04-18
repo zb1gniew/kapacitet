@@ -24,6 +24,7 @@ public class AvailabilityDeclarationService
         ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(startDate, endDate);
 
         var declaration = new AvailabilityDeclaration
         {
@@ -56,6 +57,7 @@ public class AvailabilityDeclarationService
         ValidateCityName(dto.LocationCity);
         var startDate = NormalizeDateTime(dto.StartDate);
         var endDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(startDate, endDate);
         var clientDraftKey = NormalizeClientDraftKey(dto.ClientDraftKey);
         if (clientDraftKey is not null)
         {
@@ -145,6 +147,7 @@ public class AvailabilityDeclarationService
 
         declaration.StartDate = NormalizeDateTime(dto.StartDate);
         declaration.EndDate = NormalizeDateTime(dto.EndDate);
+        ValidateDateRange(declaration.StartDate, declaration.EndDate);
         declaration.LocationCity = dto.LocationCity;
         declaration.LocationRadiusKm = dto.LocationRadiusKm;
         declaration.Quantity = dto.Quantity;
@@ -200,6 +203,17 @@ public class AvailabilityDeclarationService
             throw new ValidationException(new Dictionary<string, string[]>
             {
                 ["locationCity"] = [$"'{locationCity}' is not a supported city. Please select a city from the suggestions."]
+            });
+        }
+    }
+
+    private static void ValidateDateRange(DateTime startDate, DateTime endDate)
+    {
+        if (endDate <= startDate)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["endDate"] = ["End date must be after start date."]
             });
         }
     }

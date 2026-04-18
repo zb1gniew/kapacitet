@@ -1,8 +1,10 @@
+using System.Data;
 using Kapacitet.Application.Features.Matching.DTOs;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.Matching.Services;
@@ -15,6 +17,7 @@ public sealed class MatchingGenerationService
     private readonly MatchingEscalationService _escalationService;
     private readonly MatchingQueryService _queryService;
     private readonly NotificationService _notificationService;
+    private readonly ILogger<MatchingGenerationService> _logger;
 
     public MatchingGenerationService(
         AppDbContext db,
@@ -22,7 +25,8 @@ public sealed class MatchingGenerationService
         MatchEvaluationService evaluationService,
         MatchingEscalationService escalationService,
         MatchingQueryService queryService,
-        NotificationService notificationService)
+        NotificationService notificationService,
+        ILogger<MatchingGenerationService> logger)
     {
         _db = db;
         _allocationService = allocationService;
@@ -30,6 +34,7 @@ public sealed class MatchingGenerationService
         _escalationService = escalationService;
         _queryService = queryService;
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task<List<MatchOfferDto>> GenerateMatchesForRequestAsync(int requestId)
@@ -105,91 +110,130 @@ public sealed class MatchingGenerationService
             return;
         }
 
-        var candidates = await LoadCandidateAvailabilitiesAsync(activeRequests);
-        var existingOffers = await _db.MatchOffers
-            .Where(m => requestIds.Contains(m.RequestId))
-            .ToListAsync();
-
-        var snapshot = await _allocationService.CreateSnapshotAsync(
-            activeRequests.Select(r => r.Id),
-            candidates.Select(c => c.Id));
-
-        var newOfferPairs = new List<(MatchOffer offer, int requesterCompanyId, int supplierCompanyId)>();
-
-        foreach (var request in activeRequests)
+        // Serializable isolation ensures that all reads informing the writes are consistent.
+        // If two concurrent generations race on the same availability pool, PostgreSQL will
+        // abort one with sqlstate 40001/40P01; we swallow it — generation is best-effort and
+        // will be re-triggered on the next publish or availability refresh.
+        await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            var requestRemainingQuantity = snapshot.GetRemainingRequestQuantity(request.Id);
-            var requestOffers = existingOffers.Where(o => o.RequestId == request.Id).ToList();
+            var candidates = await LoadCandidateAvailabilitiesAsync(activeRequests);
+            var existingOffers = await _db.MatchOffers
+                .Where(m => requestIds.Contains(m.RequestId))
+                .ToListAsync();
 
-            if (requestRemainingQuantity <= 0)
+            var snapshot = await _allocationService.CreateSnapshotAsync(
+                activeRequests.Select(r => r.Id),
+                candidates.Select(c => c.Id));
+
+            var newOfferPairs = new List<(MatchOffer offer, int requesterCompanyId, int supplierCompanyId)>();
+
+            foreach (var request in activeRequests)
             {
-                foreach (var offer in requestOffers.Where(o => MatchingAllocationService.OpenStatuses.Contains(o.Status)))
+                var requestRemainingQuantity = snapshot.GetRemainingRequestQuantity(request.Id);
+                var requestOffers = existingOffers.Where(o => o.RequestId == request.Id).ToList();
+
+                if (requestRemainingQuantity <= 0)
+                {
+                    foreach (var offer in requestOffers.Where(o => MatchingAllocationService.OpenStatuses.Contains(o.Status)))
+                    {
+                        offer.Status = MatchStatus.Withdrawn;
+                    }
+
+                    await _allocationService.EnsureListingStatusConsistencyAsync(request, snapshot);
+                    await _escalationService.UpsertAsync(request, false);
+                    continue;
+                }
+
+                var eligibleResults = candidates
+                    .Where(a => a.CompanyId != request.CompanyId)
+                    .Select(a => _evaluationService.Evaluate(
+                        request,
+                        a,
+                        requestRemainingQuantity,
+                        snapshot.GetRemainingAvailabilityQuantity(a.Id)))
+                    .Where(result => result is not null)
+                    .Cast<MatchEvaluationResult>()
+                    .OrderByDescending(result => result.Score.TotalScore)
+                    .ThenByDescending(result => result.OfferedQuantity)
+                    .ToList();
+
+                foreach (var offer in requestOffers
+                    .Where(o => MatchingAllocationService.OpenStatuses.Contains(o.Status)
+                             && eligibleResults.All(r => r.Availability.Id != o.AvailabilityId)))
                 {
                     offer.Status = MatchStatus.Withdrawn;
                 }
 
-                await _allocationService.EnsureListingStatusConsistencyAsync(request, snapshot);
-                await _escalationService.UpsertAsync(request, false);
+                foreach (var evaluation in eligibleResults)
+                {
+                    var existing = requestOffers.FirstOrDefault(o =>
+                        o.AvailabilityId == evaluation.Availability.Id &&
+                        MatchingAllocationService.OpenStatuses.Contains(o.Status));
+
+                    if (existing is null)
+                    {
+                        var createdOffer = CreateMatchOffer(request, evaluation);
+                        _db.MatchOffers.Add(createdOffer);
+                        requestOffers.Add(createdOffer);
+                        newOfferPairs.Add((createdOffer, request.CompanyId, evaluation.Availability.CompanyId));
+                        continue;
+                    }
+
+                    if (existing.Status == MatchStatus.PendingSupplierConfirmation)
+                    {
+                        continue;
+                    }
+
+                    ApplyEvaluation(existing, evaluation);
+                }
+
+                await _escalationService.UpsertAsync(request, eligibleResults.Count == 0);
+            }
+
+            await _db.SaveChangesAsync();
+
+            foreach (var (offer, requesterCompanyId, supplierCompanyId) in newOfferPairs)
+            {
+                await _notificationService.QueueNewMatchNotificationsAsync(requesterCompanyId, supplierCompanyId, offer.Id);
+            }
+            if (newOfferPairs.Count > 0)
+            {
+                await _db.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex) when (IsTransientConflict(ex))
+        {
+            // Npgsql automatically rolls back the transaction on a serialization failure
+            // (sqlstate 40001/40P01). Calling RollbackAsync() again would throw
+            // "transaction has completed", so we let the await-using dispose handle cleanup.
+            _logger.LogWarning(
+                ex,
+                "Match generation skipped due to serialization conflict for requests [{RequestIds}]. " +
+                "Matches will be regenerated on the next publish or availability refresh.",
+                string.Join(", ", requestIds));
+        }
+    }
+
+    private static bool IsTransientConflict(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current.GetType().FullName != "Npgsql.PostgresException")
+            {
                 continue;
             }
 
-            var eligibleResults = candidates
-                .Where(a => a.CompanyId != request.CompanyId)
-                .Select(a => _evaluationService.Evaluate(
-                    request,
-                    a,
-                    requestRemainingQuantity,
-                    snapshot.GetRemainingAvailabilityQuantity(a.Id)))
-                .Where(result => result is not null)
-                .Cast<MatchEvaluationResult>()
-                .OrderByDescending(result => result.Score.TotalScore)
-                .ThenByDescending(result => result.OfferedQuantity)
-                .ToList();
-
-            foreach (var offer in requestOffers.Where(o => MatchingAllocationService.OpenStatuses.Contains(o.Status)))
+            var sqlState = current.GetType().GetProperty("SqlState")?.GetValue(current) as string;
+            if (sqlState is "40001" or "40P01")
             {
-                if (eligibleResults.All(r => r.Availability.Id != offer.AvailabilityId))
-                {
-                    offer.Status = MatchStatus.Withdrawn;
-                }
+                return true;
             }
-
-            foreach (var evaluation in eligibleResults)
-            {
-                var existing = requestOffers.FirstOrDefault(o =>
-                    o.AvailabilityId == evaluation.Availability.Id &&
-                    MatchingAllocationService.OpenStatuses.Contains(o.Status));
-
-                if (existing is null)
-                {
-                    var createdOffer = CreateMatchOffer(request, evaluation);
-                    _db.MatchOffers.Add(createdOffer);
-                    requestOffers.Add(createdOffer);
-                    newOfferPairs.Add((createdOffer, request.CompanyId, evaluation.Availability.CompanyId));
-                    continue;
-                }
-
-                if (existing.Status == MatchStatus.PendingSupplierConfirmation)
-                {
-                    continue;
-                }
-
-                ApplyEvaluation(existing, evaluation);
-            }
-
-            await _escalationService.UpsertAsync(request, eligibleResults.Count == 0);
         }
 
-        await _db.SaveChangesAsync();
-
-        foreach (var (offer, requesterCompanyId, supplierCompanyId) in newOfferPairs)
-        {
-            await _notificationService.QueueNewMatchNotificationsAsync(requesterCompanyId, supplierCompanyId, offer.Id);
-        }
-        if (newOfferPairs.Count > 0)
-        {
-            await _db.SaveChangesAsync();
-        }
+        return false;
     }
 
     private async Task<List<AvailabilityDeclaration>> LoadCandidateAvailabilitiesAsync(
@@ -207,6 +251,7 @@ public sealed class MatchingGenerationService
             .Where(a =>
                 a.Status == ListingStatus.Active &&
                 a.Company.Status == CompanyStatus.Active &&
+                (a.Company.CompanySettings == null || a.Company.CompanySettings.ReceiveCapacityRequests) &&
                 resourceTypes.Contains(a.ResourceType) &&
                 a.EndDate >= minStart &&
                 a.StartDate <= maxEnd)
