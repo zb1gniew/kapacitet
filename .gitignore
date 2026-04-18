@@ -47,6 +47,9 @@ CodeCoverage/
 .env.*
 !.env.example
 
+# Node lockfiles belong to the frontend workspace, not the repo root
+/package-lock.json
+
 # MSBuild Binary and Structured Log
 *.binlog
 
@@ -64,6 +67,5 @@ nunit-*.xml. v s /
 .claude
 
 ./vs
-
 
 
