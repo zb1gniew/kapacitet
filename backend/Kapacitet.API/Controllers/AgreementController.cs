@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.Matching.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace Kapacitet.API.Controllers;
 
 [ApiController]
 [Route("api/agreements")]
-[Authorize]
+[Authorize(Policy = AuthorizationRoles.CompanyViewerPolicy)]
 public class AgreementController : ControllerBase
 {
     private readonly MatchingService _matchingService;
