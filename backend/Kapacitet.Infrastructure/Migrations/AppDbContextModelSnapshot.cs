@@ -95,6 +95,13 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)");
 
+                    b.Property<string>("NormalizedContactEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasComputedColumnSql("lower(btrim(\"ContactEmail\"))", true);
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -136,6 +143,11 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedContactEmail")
+                        .IsUnique()
+                        .HasDatabaseName("IX_access_requests_pending_normalized_contact_email")
+                        .HasFilter("\"Status\" = 'Pending'");
 
                     b.HasIndex("ProvisionedCompanyId");
 
@@ -732,6 +744,13 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)");
 
+                    b.Property<string>("NormalizedEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasComputedColumnSql("lower(btrim(\"Email\"))", true);
+
                     b.Property<DateTime?>("OnboardingCompletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -742,6 +761,10 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("IX_users_normalized_email");
 
                     b.ToTable("users", (string)null);
                 });

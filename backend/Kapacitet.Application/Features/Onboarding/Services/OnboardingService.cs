@@ -17,7 +17,8 @@ public class OnboardingService
     {
         var user = await _db.Users
             .Include(u => u.Company)
-            .FirstOrDefaultAsync(u => u.Email == email)
+            .WhereEmailMatches(email)
+            .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");
 
         return new OnboardingStatusDto
@@ -37,7 +38,8 @@ public class OnboardingService
     {
         var user = await _db.Users
             .Include(u => u.Company)
-            .FirstOrDefaultAsync(u => u.Email == email)
+            .WhereEmailMatches(email)
+            .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");
 
         if (user.OnboardingCompletedAt.HasValue)
