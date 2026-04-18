@@ -38,11 +38,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             options.MetadataAddress = metadataAddress;
         }
-        var audience = builder.Configuration["Keycloak:Audience"];
-        if (!string.IsNullOrWhiteSpace(audience))
-        {
-            options.Audience = audience;
-        }
         // The browser-facing authority stays HTTPS, but Docker server-to-server
         // metadata is intentionally fetched over the internal HTTP network.
         options.RequireHttpsMetadata =
@@ -53,7 +48,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["Keycloak:Authority"],
-            ValidateAudience = false,
+            ValidateAudience = true,
+            // Accept both the Keycloak default audience ("account") and the client ID
+            // ("kapacitet-app") to support Keycloak realms that add the client as audience.
+            ValidAudiences = new[]
+            {
+                builder.Configuration["Keycloak:Audience"],
+                builder.Configuration["Keycloak:ClientId"]
+            }.Where(a => !string.IsNullOrWhiteSpace(a)),
             ValidateLifetime = true,
             RoleClaimType = "roles"
         };
@@ -299,4 +301,4 @@ static string ToCamelCase(string value)
 }
 
 // Expose Program as public so WebApplicationFactory<Program> works in the E2E test project.
-public partial class Program { }
+public partial class Program { protected Program() { } }
