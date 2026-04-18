@@ -58,9 +58,7 @@ export function SettingsParticipationVisibilityCard({
   }, [loadSettings]);
 
   function toggle(field: keyof ParticipationSettings) {
-    setSettings((prev) =>
-      prev ? { ...prev, [field]: !prev[field] } : prev,
-    );
+    setSettings((prev) => (prev ? { ...prev, [field]: !prev[field] } : prev));
     setStatus("idle");
     setErrorMessage("");
   }
@@ -120,7 +118,9 @@ export function SettingsParticipationVisibilityCard({
           {t("Participation & visibility")}
         </h2>
         <div className="mt-5 rounded-[10px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p>{loadError || t("Unable to load participation settings right now.")}</p>
+          <p>
+            {loadError || t("Unable to load participation settings right now.")}
+          </p>
           <button
             type="button"
             onClick={() => void loadSettings()}
@@ -144,9 +144,7 @@ export function SettingsParticipationVisibilityCard({
         )}
       </p>
 
-      <div
-        className={`mt-5 space-y-3 ${saving ? "opacity-75" : ""}`}
-      >
+      <div className={`mt-5 space-y-3 ${saving ? "opacity-75" : ""}`}>
         <SettingsPreferenceCard
           title={t("Receive capacity requests")}
           description={t(

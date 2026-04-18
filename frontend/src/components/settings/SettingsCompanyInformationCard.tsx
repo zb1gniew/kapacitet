@@ -65,9 +65,7 @@ function Input({
           error
             ? "border-red-300 focus:border-red-500"
             : "border-neutral-300 focus:border-blue-600"
-        } ${
-          icon ? "pl-11" : "pl-4"
-        }`}
+        } ${icon ? "pl-11" : "pl-4"}`}
       />
     </div>
   );
@@ -202,7 +200,9 @@ export function SettingsCompanyInformationCard({
           {t("Company information")}
         </h2>
         <div className="mt-5 rounded-[10px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p>{loadError || t("Unable to load company information right now.")}</p>
+          <p>
+            {loadError || t("Unable to load company information right now.")}
+          </p>
           <button
             type="button"
             onClick={() => void loadInformation()}
@@ -259,7 +259,9 @@ export function SettingsCompanyInformationCard({
             error={industryError}
           />
           {industryError ? (
-            <p className="text-[11px] leading-4 text-red-600">{t(industryError)}</p>
+            <p className="text-[11px] leading-4 text-red-600">
+              {t(industryError)}
+            </p>
           ) : null}
         </div>
 

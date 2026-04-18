@@ -76,9 +76,7 @@ export function SettingsNotificationsCard({
   }, [loadPreferences]);
 
   function toggle(field: keyof NotificationPreferences) {
-    setPrefs((prev) =>
-      prev ? { ...prev, [field]: !prev[field] } : prev,
-    );
+    setPrefs((prev) => (prev ? { ...prev, [field]: !prev[field] } : prev));
     setStatus("idle");
     setErrorMessage("");
   }
@@ -138,7 +136,10 @@ export function SettingsNotificationsCard({
           {t("Notifications")}
         </h2>
         <div className="mt-5 rounded-[10px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p>{loadError || t("Unable to load notification preferences right now.")}</p>
+          <p>
+            {loadError ||
+              t("Unable to load notification preferences right now.")}
+          </p>
           <button
             type="button"
             onClick={() => void loadPreferences()}
@@ -162,9 +163,7 @@ export function SettingsNotificationsCard({
         )}
       </p>
 
-      <div
-        className={`mt-5 space-y-4 ${saving ? "opacity-75" : ""}`}
-      >
+      <div className={`mt-5 space-y-4 ${saving ? "opacity-75" : ""}`}>
         <section>
           <GroupLabel
             icon={<EmailIcon className="h-4 w-4" />}
@@ -261,11 +260,11 @@ export function SettingsNotificationsCard({
           {t("Notification preferences saved.")}
         </p>
       )}
-        {status === "error" && (
-          <p className="mt-3 text-sm font-medium text-red-600">
-            {t(errorMessage || "Failed to save. Please try again.")}
-          </p>
-        )}
+      {status === "error" && (
+        <p className="mt-3 text-sm font-medium text-red-600">
+          {t(errorMessage || "Failed to save. Please try again.")}
+        </p>
+      )}
 
       <div className="mt-5 border-t border-neutral-200 pt-4">
         <button

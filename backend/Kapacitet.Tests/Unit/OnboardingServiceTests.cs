@@ -14,12 +14,19 @@ public class OnboardingServiceTests
     {
         var company = new Company
         {
-            Id = 1, Name = "Test", Industry = "IT", DefaultLocation = "Warsaw",
-            Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow
+            Id = 1,
+            Name = "Test",
+            Industry = "IT",
+            DefaultLocation = "Warsaw",
+            Status = CompanyStatus.Active,
+            CreatedAt = DateTime.UtcNow
         };
         var user = new User
         {
-            Id = 1, CompanyId = 1, Email = "admin@test.com", Role = UserRole.Admin,
+            Id = 1,
+            CompanyId = 1,
+            Email = "admin@test.com",
+            Role = UserRole.Admin,
             CreatedAt = DateTime.UtcNow,
             OnboardingCompletedAt = completed ? DateTime.UtcNow : null
         };

@@ -129,7 +129,7 @@ public class EmailService
         await SendAsync(email, subject, body);
     }
 
-        // ── Trigger 5a: Requester — their requests is in the network ──────────────────
+    // ── Trigger 5a: Requester — their requests is in the network ──────────────────
     public async Task SendNetworkEscalationEmailIfEnabledAsync(int requesterCompanyId, int requestId)
     {
         if (!await IsEmailEnabledAsync(requesterCompanyId, p => p.EmailNetworkRequests))

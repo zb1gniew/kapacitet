@@ -42,7 +42,7 @@ public class CooperationReminderService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
-        
+
         var now = DateTime.UtcNow;
         var windowStart = now.AddHours(47);
         var windowEnd = now.AddHours(49);
