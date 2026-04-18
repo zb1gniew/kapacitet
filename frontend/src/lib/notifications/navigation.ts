@@ -11,7 +11,9 @@ type ParsedNotificationMetadata = {
   requestId?: number;
 };
 
-function parseMetadata(metadata: string | null): ParsedNotificationMetadata {
+export function parseNotificationMetadata(
+  metadata: string | null,
+): ParsedNotificationMetadata {
   if (!metadata) {
     return {};
   }
@@ -29,8 +31,26 @@ function appendQuery(path: string, key: string, value: number) {
   return `${path}?${search.toString()}`;
 }
 
+export function getNotificationActionLabel(notification: NotificationResponse) {
+  const metadata = parseNotificationMetadata(notification.metadata);
+
+  if (metadata.agreementId) {
+    return "Go to agreement";
+  }
+
+  if (metadata.matchOfferId || metadata.matchId) {
+    return "Go to match";
+  }
+
+  if (metadata.requestId) {
+    return "Go to request";
+  }
+
+  return "Open";
+}
+
 export function getNotificationHref(notification: NotificationResponse) {
-  const metadata = parseMetadata(notification.metadata);
+  const metadata = parseNotificationMetadata(notification.metadata);
 
   if (metadata.agreementId) {
     return appendQuery(APP_ROUTES.matches, "agreementId", metadata.agreementId);
