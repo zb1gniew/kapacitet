@@ -1,4 +1,5 @@
 using Kapacitet.Infrastructure.Persistence;
+using Kapacitet.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kapacitet.Application.Features.Common.Services;
@@ -12,12 +13,22 @@ public class CurrentUserService
         _db = db;
     }
 
-    public async Task<int> GetCompanyIdAsync(string email)
+    public async Task<CurrentUserContext> GetCurrentUserAsync(string email)
     {
         var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Email == email)
+            .AsNoTracking()
+            .Where(u => u.Email == email)
+            .Select(u => new CurrentUserContext(u.Id, u.CompanyId, u.Role))
+            .FirstOrDefaultAsync()
             ?? throw new UnauthorizedAccessException($"User {email} not found");
 
-        return user.CompanyId;
+        return user;
+    }
+
+    public async Task<int> GetCompanyIdAsync(string email)
+    {
+        return (await GetCurrentUserAsync(email)).CompanyId;
     }
 }
+
+public sealed record CurrentUserContext(int Id, int CompanyId, UserRole Role);

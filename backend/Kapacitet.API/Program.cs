@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Resend;
 using System.Text.Json;
 
@@ -61,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.Events = new JwtBearerEvents
         {
-            OnTokenValidated = ctx =>
+            OnTokenValidated = async ctx =>
             {
                 var logger = ctx.HttpContext.RequestServices
                     .GetRequiredService<ILoggerFactory>()
@@ -93,12 +94,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     identity?.AddClaim(new System.Security.Claims.Claim("email", email));
                 }
 
+                if (email != null)
+                {
+                    var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                    var appUser = await db.Users
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(user => user.Email == email);
+
+                    if (appUser != null)
+                    {
+                        identity?.AddClaim(new System.Security.Claims.Claim(
+                            AuthorizationRoles.AppRoleClaimType,
+                            appUser.Role.ToString()));
+                    }
+                }
+
                 logger.LogDebug(
                     "JWT token validated for subject {Subject} with email {Email}",
                     subject,
                     email);
-
-                return Task.CompletedTask;
             },
             OnAuthenticationFailed = ctx =>
             {
@@ -122,6 +136,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
         .ConfigureWarnings(warnings =>
             warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+
+builder.Services.Configure<DevelopmentFeaturesOptions>(
+    builder.Configuration.GetSection("DevelopmentFeatures"));
 
 // Keycloak Admin Client
 builder.Services.Configure<KeycloakAdminOptions>(builder.Configuration.GetSection("KeycloakAdmin"));
@@ -184,6 +201,19 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(
         AuthorizationRoles.PlatformAdminPolicy,
         policy => policy.RequireRole(AuthorizationRoles.Admin, AuthorizationRoles.LegacyOperatorAdmin));
+    options.AddPolicy(
+        AuthorizationRoles.CompanyViewerPolicy,
+        policy => policy.RequireClaim(
+            AuthorizationRoles.AppRoleClaimType,
+            AuthorizationRoles.Admin,
+            AuthorizationRoles.Manager,
+            AuthorizationRoles.Viewer));
+    options.AddPolicy(
+        AuthorizationRoles.CompanyManagerPolicy,
+        policy => policy.RequireClaim(
+            AuthorizationRoles.AppRoleClaimType,
+            AuthorizationRoles.Admin,
+            AuthorizationRoles.Manager));
 });
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -278,12 +308,24 @@ app.MapHealthChecks("/ready", new HealthCheckOptions
     }
 }).AllowAnonymous();
 
-// Auto-migration when started
-using (var scope = app.Services.CreateScope())
+var developmentFeatures = app.Services
+    .GetRequiredService<IOptions<DevelopmentFeaturesOptions>>()
+    .Value;
+
+if (developmentFeatures.ApplyMigrations || developmentFeatures.SeedDemoData)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db);
+
+    if (developmentFeatures.ApplyMigrations)
+    {
+        await db.Database.MigrateAsync();
+    }
+
+    if (developmentFeatures.SeedDemoData)
+    {
+        await DbSeeder.SeedAsync(db);
+    }
 }
 
 await app.RunAsync();

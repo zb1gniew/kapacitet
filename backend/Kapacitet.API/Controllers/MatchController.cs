@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.Matching.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace Kapacitet.API.Controllers;
 
 [ApiController]
 [Route("api/matches")]
-[Authorize]
+[Authorize(Policy = AuthorizationRoles.CompanyViewerPolicy)]
 public class MatchController : ControllerBase
 {
     private readonly MatchingService _matchingService;
@@ -48,6 +49,7 @@ public class MatchController : ControllerBase
     }
 
     [HttpPost("{id}/accept")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> Accept(int id)
     {
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
@@ -56,6 +58,7 @@ public class MatchController : ControllerBase
     }
 
     [HttpPost("{id}/decline")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> Decline(int id)
     {
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
@@ -64,6 +67,7 @@ public class MatchController : ControllerBase
     }
 
     [HttpPost("{id}/supplier-confirm")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> SupplierConfirm(int id)
     {
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
@@ -72,6 +76,7 @@ public class MatchController : ControllerBase
     }
 
     [HttpPost("{id}/supplier-decline")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> SupplierDecline(int id)
     {
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());

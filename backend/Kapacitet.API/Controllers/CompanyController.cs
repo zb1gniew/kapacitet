@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.CompanySettings.DTOs;
 using Kapacitet.Application.Features.CompanySettings.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace Kapacitet.API.Controllers;
 
 [ApiController]
 [Route("api/company")]
-[Authorize]
+[Authorize(Policy = AuthorizationRoles.CompanyViewerPolicy)]
 public class CompanyController : ControllerBase
 {
     private readonly CompanyService _service;
@@ -29,6 +30,7 @@ public class CompanyController : ControllerBase
     }
 
     [HttpPut("information")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> UpdateInformation(
         [FromBody] UpdateCompanyInformationDto dto)
     {
@@ -44,6 +46,7 @@ public class CompanyController : ControllerBase
     }
 
     [HttpPut("settings")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> UpdateParticipationSettings(
         [FromBody] CompanyParticipationSettingsDto dto)
     {
@@ -59,6 +62,7 @@ public class CompanyController : ControllerBase
     }
 
     [HttpPut("notifications")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> UpdateNotificationPreferences(
         [FromBody] NotificationPreferencesDto dto)
     {

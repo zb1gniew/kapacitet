@@ -1,6 +1,7 @@
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.NetworkEscalations.DTOs;
 using Kapacitet.Application.Features.NetworkEscalations.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,7 @@ namespace Kapacitet.API.Controllers;
 
 [ApiController]
 [Route("api/network-escalations")]
-[Authorize]
+[Authorize(Policy = AuthorizationRoles.CompanyViewerPolicy)]
 public class NetworkEscalationController : ControllerBase
 {
     private readonly NetworkEscalationService _service;
@@ -35,6 +36,7 @@ public class NetworkEscalationController : ControllerBase
     }
 
     [HttpPost("{id}/respond")]
+    [Authorize(Policy = AuthorizationRoles.CompanyManagerPolicy)]
     public async Task<IActionResult> Respond(
         int id,
         [FromBody] SubmitNetworkResponseDto dto)

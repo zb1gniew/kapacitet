@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.Common.Services;
 using Kapacitet.Application.Features.Notifications.Services;
+using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace Kapacitet.API.Controllers;
 
 [ApiController]
 [Route("api/notifications")]
-[Authorize]
+[Authorize(Policy = AuthorizationRoles.CompanyViewerPolicy)]
 public class NotificationController : ControllerBase
 {
     private readonly NotificationService _notificationService;
