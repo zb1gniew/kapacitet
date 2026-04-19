@@ -106,11 +106,11 @@ public class OnboardingServiceTests
     {
         var db = TestDbFactory.Create();
         var user = SeedUser(db);
-        var dto = new CompleteOnboardingDto { Industry = "Finance", DefaultLocation = "Krakow" };
+        var dto = new CompleteOnboardingDto { Industry = "Finance", DefaultLocation = "Aarhus" };
         await new OnboardingService(db).CompleteOnboardingAsync(user.Email, dto);
         var company = db.Companies.Single();
         company.Industry.Should().Be("Finance");
-        company.DefaultLocation.Should().Be("Krakow");
+        company.DefaultLocation.Should().Be("Aarhus");
     }
 
     [Fact]

@@ -13,7 +13,8 @@ public static class QueryExtensions
         var normalizedEmail = EmailAddressNormalizer.NormalizeForLookup(email);
 
         return query.Where(user =>
-            EF.Property<string>(user, PersistenceModelConstants.NormalizedEmailProperty) == normalizedEmail);
+            (EF.Property<string?>(user, PersistenceModelConstants.NormalizedEmailProperty)
+                ?? user.Email.Trim().ToLower()) == normalizedEmail);
     }
 
     public static IQueryable<AccessRequest> WhereContactEmailMatches(
@@ -23,6 +24,7 @@ public static class QueryExtensions
         var normalizedEmail = EmailAddressNormalizer.NormalizeForLookup(email);
 
         return query.Where(request =>
-            EF.Property<string>(request, PersistenceModelConstants.NormalizedContactEmailProperty) == normalizedEmail);
+            (EF.Property<string?>(request, PersistenceModelConstants.NormalizedContactEmailProperty)
+                ?? request.ContactEmail.Trim().ToLower()) == normalizedEmail);
     }
 }
