@@ -171,6 +171,7 @@ builder.Services.AddScoped<CompanyService>();
 
 // Matching and agreements
 builder.Services.AddScoped<MatchingService>();
+builder.Services.AddScoped<IMatchingOrchestrator>(sp => sp.GetRequiredService<MatchingService>());
 builder.Services.AddScoped<MatchingAllocationService>();
 builder.Services.AddScoped<MatchingEscalationService>();
 builder.Services.AddScoped<NetworkEscalationOutreachService>();

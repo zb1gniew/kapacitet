@@ -1,10 +1,12 @@
 using FluentAssertions;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.NetworkEscalations.DTOs;
 using Kapacitet.Application.Features.NetworkEscalations.Services;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Kapacitet.Tests.Helpers;
+using Moq;
 
 namespace Kapacitet.Tests.Unit;
 
@@ -58,7 +60,7 @@ public class NetworkEscalationServiceTests
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
-        var act = async () => await new NetworkEscalationService(db)
+        var act = async () => await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>())
             .SubmitResponseAsync(1, 1, new SubmitNetworkResponseDto { ResponseType = NetworkResponseType.CanHelp });
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
@@ -73,7 +75,7 @@ public class NetworkEscalationServiceTests
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1, status: NetworkEscalationStatus.Resolved);
         await db.SaveChangesAsync();
 
-        var act = async () => await new NetworkEscalationService(db)
+        var act = async () => await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>())
             .SubmitResponseAsync(1, 2, new SubmitNetworkResponseDto { ResponseType = NetworkResponseType.CanHelp });
 
         await act.Should().ThrowAsync<InvalidOperationException>();
@@ -88,7 +90,7 @@ public class NetworkEscalationServiceTests
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
-        await new NetworkEscalationService(db)
+        await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>())
             .SubmitResponseAsync(1, 2, new SubmitNetworkResponseDto { ResponseType = NetworkResponseType.CanHelp });
 
         db.NetworkResponses.Count().Should().Be(1);
@@ -103,7 +105,7 @@ public class NetworkEscalationServiceTests
         SeedCompany(db, 2);
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
-        var svc = new NetworkEscalationService(db);
+        var svc = new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>());
         await svc.SubmitResponseAsync(1, 2, new SubmitNetworkResponseDto { ResponseType = NetworkResponseType.CanHelp });
 
         var act = async () => await svc.SubmitResponseAsync(1, 2, new SubmitNetworkResponseDto { ResponseType = NetworkResponseType.CanHelp });
@@ -119,7 +121,7 @@ public class NetworkEscalationServiceTests
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
-        var result = await new NetworkEscalationService(db).GetForCompanyAsync(1);
+        var result = await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>()).GetForCompanyAsync(1);
 
         result.Should().BeEmpty();
     }
@@ -128,7 +130,7 @@ public class NetworkEscalationServiceTests
     public async Task GetForCompany_WhenCompanyNotFound_ThrowsUnauthorized()
     {
         var db = TestDbFactory.Create();
-        var act = async () => await new NetworkEscalationService(db).GetForCompanyAsync(999);
+        var act = async () => await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>()).GetForCompanyAsync(999);
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
     }
 
@@ -141,7 +143,7 @@ public class NetworkEscalationServiceTests
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
-        var result = await new NetworkEscalationService(db).GetForCompanyAsync(2);
+        var result = await new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>()).GetForCompanyAsync(2);
 
         result.Should().HaveCount(1);
     }

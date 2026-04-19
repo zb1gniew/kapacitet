@@ -52,6 +52,7 @@ services:
       Email__ApiKey: ${Email__ApiKey:-}
       Email__FromAddress: ${Email__FromAddress:-onboarding@resend.dev}
       Email__DevMode: ${Email__DevMode:-true}
+      Email__AppUrl: ${APP_PUBLIC_URL:-https://localhost}
     # Backend is internal-only. Never exposed to the internet.
     expose:
       - "8080"

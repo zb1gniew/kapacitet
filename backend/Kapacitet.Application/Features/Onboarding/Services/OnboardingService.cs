@@ -1,3 +1,4 @@
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.DTOs;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +62,8 @@ public class OnboardingService
             {
                 if (dto.DefaultLocation.Length > 100)
                     errors.Add("Location must be 100 characters or fewer.");
+                else if (!MatchingCityCoordinateCatalog.IsSupportedCity(dto.DefaultLocation))
+                    errors.Add($"'{dto.DefaultLocation}' is not a supported city. Please select a city from the suggestions.");
                 else
                     user.Company.DefaultLocation = dto.DefaultLocation;
             }

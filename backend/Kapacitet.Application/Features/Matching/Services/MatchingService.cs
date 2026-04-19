@@ -8,7 +8,7 @@ using Kapacitet.Application.Features.Notifications.Services;
 
 namespace Kapacitet.Application.Features.Matching.Services;
 
-public class MatchingService
+public class MatchingService : IMatchingOrchestrator
 {
     private readonly AppDbContext _db;
     private readonly MatchingAllocationService _allocationService;

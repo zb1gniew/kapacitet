@@ -8,12 +8,15 @@ type CityAutocompleteProps = {
   value: string;
   onChange: (city: string) => void;
   placeholder?: string;
+  /** Use "sm" in compact forms (h-[42px]). Defaults to h-[50px]. */
+  size?: "sm" | "md";
 };
 
 export function CityAutocomplete({
   value,
   onChange,
   placeholder,
+  size = "md",
 }: CityAutocompleteProps) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +100,7 @@ export function CityAutocomplete({
         onBlur={() => setOpen(false)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none"
+        className={`${size === "sm" ? "h-[42px] text-sm" : "h-[50px] text-base"} w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none`}
       />
       {open && suggestions.length > 0 && (
         <ul
