@@ -29,6 +29,7 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
             .HasMaxLength(254);
 
         builder.Property<string>(PersistenceModelConstants.NormalizedContactEmailProperty)
+            .IsRequired(false)
             .HasMaxLength(254)
             .HasComputedColumnSql("lower(btrim(\"ContactEmail\"))", stored: true);
 

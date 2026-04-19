@@ -17,6 +17,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(254);
 
         builder.Property<string>(PersistenceModelConstants.NormalizedEmailProperty)
+            .IsRequired(false)
             .HasMaxLength(254)
             .HasComputedColumnSql("lower(btrim(\"Email\"))", stored: true);
 
