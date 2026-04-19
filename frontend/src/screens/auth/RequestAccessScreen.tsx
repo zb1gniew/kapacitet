@@ -15,7 +15,6 @@ import {
   CircleCheckIcon,
   EmailIcon,
   InfoIcon,
-  MapPinIcon,
 } from "@/components/auth/icons";
 import type { TranslateFn } from "@/types/i18n";
 import type { AccessRequestSuccess } from "@/types/workflows";
