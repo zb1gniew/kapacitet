@@ -28,13 +28,16 @@ public class EmailService
     // ── Trigger 1: User approved ──────────────────────────────────────────────
     public async Task SendApprovalEmailAsync(string toEmail, string companyName, string temporaryPassword)
     {
-        var subject = "Welcome to Kapacitet — your account is ready";
+        var loginUrl = System.Net.WebUtility.HtmlEncode(_options.AppUrl);
+        var subject = "You're approved — welcome to Kapacitet";
         var body = $"""
-            <h2>Welcome, {companyName}!</h2>
-            <p>Your access request has been approved. You can now log in.</p>
-            <p><strong>Email:</strong> {toEmail}<br/>
-               <strong>Temporary password:</strong> {temporaryPassword}</p>
-            <p>You will be asked to change your password on first login.</p>
+            <h2>Welcome to Kapacitet, {System.Net.WebUtility.HtmlEncode(companyName)}!</h2>
+            <p>Your access request has been approved and your account is ready.</p>
+            <p>
+              Head to <a href="{loginUrl}">{loginUrl}</a> and log in with your email address
+              (<strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong>).
+              You will be guided to set your password on first login.
+            </p>
             """;
 
         await SendAsync(toEmail, subject, body);

@@ -1,4 +1,6 @@
 using Kapacitet.Application.Features.AccessRequests.DTOs;
+using Kapacitet.Application.Features.Common.Errors;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Domain.Utilities;
@@ -31,6 +33,14 @@ public class AccessRequestService
 
     public async Task<AccessRequestDto> SubmitAsync(SubmitAccessRequestDto dto)
     {
+        if (!MatchingCityCoordinateCatalog.IsSupportedCity(dto.Location))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["location"] = [$"'{dto.Location}' is not a supported city. Please select a city from the suggestions."]
+            });
+        }
+
         var contactEmail = EmailAddressNormalizer.Canonicalize(dto.ContactEmail);
 
         var existingPending = await _db.AccessRequests
@@ -215,9 +225,10 @@ public class AccessRequestService
         AccessRequest entity,
         string? temporaryPassword)
     {
-        var result = MapToDto(entity);
-        result.TemporaryPassword = temporaryPassword;
-        return result;
+        // TemporaryPassword is intentionally not included in the API response —
+        // it is sent to the user via email only.
+        _ = temporaryPassword;
+        return MapToDto(entity);
     }
 
     private static bool IsPendingAccessRequestDuplicate(DbUpdateException exception)

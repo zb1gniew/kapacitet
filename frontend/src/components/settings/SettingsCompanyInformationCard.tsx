@@ -7,6 +7,7 @@ import {
   InfoIcon,
   MapPinIcon,
 } from "@/components/auth/icons";
+import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { parseProblemDetails } from "@/lib/backend/errors";
 import type { TranslateFn } from "@/types/i18n";
 
@@ -267,11 +268,11 @@ export function SettingsCompanyInformationCard({
 
         <div className="space-y-2">
           <Label label={t("Primary location")} />
-          <Input
+          <CityAutocomplete
             value={draft.defaultLocation}
             onChange={(v) => patch("defaultLocation", v)}
-            icon="location"
-            error={defaultLocationError}
+            placeholder={t("Start typing a city…")}
+            size="sm"
           />
           {defaultLocationError ? (
             <p className="text-[11px] leading-4 text-red-600">

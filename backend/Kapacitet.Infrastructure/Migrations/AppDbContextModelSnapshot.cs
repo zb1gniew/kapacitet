@@ -95,13 +95,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)");
 
-                    b.Property<string>("NormalizedContactEmail")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("character varying(254)")
-                        .HasComputedColumnSql("lower(btrim(\"ContactEmail\"))", true);
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -123,6 +116,12 @@ namespace Kapacitet.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NormalizedContactEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasComputedColumnSql("lower(btrim(\"ContactEmail\"))", true);
 
                     b.Property<int?>("ProvisionedCompanyId")
                         .HasColumnType("integer");
@@ -746,7 +745,6 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<string>("NormalizedEmail")
                         .ValueGeneratedOnAddOrUpdate()
-                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)")
                         .HasComputedColumnSql("lower(btrim(\"Email\"))", true);

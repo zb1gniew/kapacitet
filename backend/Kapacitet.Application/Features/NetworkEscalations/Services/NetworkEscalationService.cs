@@ -1,3 +1,4 @@
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.NetworkEscalations.DTOs;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
@@ -9,10 +10,12 @@ namespace Kapacitet.Application.Features.NetworkEscalations.Services;
 public sealed class NetworkEscalationService
 {
     private readonly AppDbContext _db;
+    private readonly IMatchingOrchestrator _matchingOrchestrator;
 
-    public NetworkEscalationService(AppDbContext db)
+    public NetworkEscalationService(AppDbContext db, IMatchingOrchestrator matchingOrchestrator)
     {
         _db = db;
+        _matchingOrchestrator = matchingOrchestrator;
     }
 
     public async Task<List<NetworkEscalationDto>> GetForCompanyAsync(int companyId)
@@ -100,7 +103,45 @@ public sealed class NetworkEscalationService
 
         await _db.SaveChangesAsync();
 
+        // FR-5.2: when a company signals they also need the same type of capacity,
+        // automatically publish a CapacityRequest on their behalf with the same
+        // parameters as the escalated request. The matching engine then runs
+        // immediately and tries to find a supplier for them too.
+        if (dto.ResponseType == NetworkResponseType.NeedCapacity)
+        {
+            await CreateDerivedCapacityRequestAsync(escalation.Request, companyId);
+        }
+
         return MapToDto(escalation, companyId);
+    }
+
+    private async Task CreateDerivedCapacityRequestAsync(CapacityRequest source, int companyId)
+    {
+        var derivedRequest = new CapacityRequest
+        {
+            CompanyId = companyId,
+            ResourceType = source.ResourceType,
+            StartDate = source.StartDate,
+            EndDate = source.EndDate,
+            LocationCity = source.LocationCity,
+            LocationRadiusKm = source.LocationRadiusKm,
+            Quantity = source.Quantity,
+            ExperienceLevel = source.ExperienceLevel,
+            Urgency = source.Urgency,
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            PublishedAt = DateTime.UtcNow,
+            // Skills and Certificates are shared catalog entities — copying the
+            // collection creates new many-to-many junction rows without duplicating
+            // the underlying skill/certificate records.
+            Skills = source.Skills.ToList(),
+            Certificates = source.Certificates.ToList()
+        };
+
+        _db.CapacityRequests.Add(derivedRequest);
+        await _db.SaveChangesAsync();
+
+        await _matchingOrchestrator.GenerateMatchesForRequestAsync(derivedRequest.Id);
     }
 
     private static NetworkEscalationDto MapToDto(NetworkEscalation escalation, int companyId)

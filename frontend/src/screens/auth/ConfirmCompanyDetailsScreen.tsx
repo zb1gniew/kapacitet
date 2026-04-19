@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { OnboardingProgressDots } from "@/components/auth/OnboardingProgressDots";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
@@ -27,6 +28,9 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({});
+  const [locationValue, setLocationValue] = useState(
+    company.defaultLocation ?? "",
+  );
 
   async function handleConfirm() {
     setErrorMessage("");
@@ -34,11 +38,11 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
 
     const formData = formRef.current ? new FormData(formRef.current) : null;
     const industry = (formData?.get("industry") as string | null)?.trim();
-    const location = (formData?.get("location") as string | null)?.trim();
+    const location = locationValue.trim();
 
     const errors = validateOnboardingDetails(t, {
       industry: industry ?? undefined,
-      location: location ?? undefined,
+      location: location || undefined,
     });
     if (hasErrors(errors)) {
       setFieldErrors(errors);
@@ -103,12 +107,27 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
             value={company.industry}
             error={fieldErrors.industry}
           />
-          <AuthField
-            id="location"
-            label={t("Primary location")}
-            value={company.defaultLocation}
-            error={fieldErrors.location}
-          />
+          <div className="space-y-2">
+            <label
+              htmlFor="location"
+              className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900"
+            >
+              {t("Primary location")}
+            </label>
+            <CityAutocomplete
+              value={locationValue}
+              onChange={(v) => {
+                setLocationValue(v);
+                setFieldErrors((prev) => ({ ...prev, location: undefined }));
+              }}
+              placeholder={t("Start typing a city…")}
+            />
+            {fieldErrors.location ? (
+              <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+                {t(fieldErrors.location)}
+              </p>
+            ) : null}
+          </div>
           <AuthField
             id="contactEmail"
             label={t("Contact email")}

@@ -1,3 +1,4 @@
+import { isSupportedCity } from "@/constants/cities";
 import type { TranslateFn } from "@/types/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,6 +45,8 @@ export function validateAccessRequest(
     });
 
   if (!payload.location) errors.location = t("Location is required.");
+  else if (!isSupportedCity(payload.location))
+    errors.location = t("Please select a city from the suggestions.");
   else if (payload.location.length > ACCESS_REQUEST_LIMITS.location)
     errors.location = t("Must be {{count}} characters or fewer.", {
       count: ACCESS_REQUEST_LIMITS.location,

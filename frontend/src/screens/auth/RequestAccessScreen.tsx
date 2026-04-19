@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
+import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import {
@@ -48,6 +49,7 @@ export function RequestAccessScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<AccessRequestFieldErrors>({});
+  const [location, setLocation] = useState("");
   const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(
     null,
   );
@@ -59,7 +61,7 @@ export function RequestAccessScreen() {
     const payload = {
       name: String(formData.get("companyName") ?? "").trim(),
       industry: String(formData.get("industry") ?? "").trim(),
-      location: String(formData.get("location") ?? "").trim(),
+      location: location.trim(),
       contactEmail: String(formData.get("contactEmail") ?? "").trim(),
       message: String(formData.get("message") ?? "").trim() || undefined,
     };
@@ -195,14 +197,28 @@ export function RequestAccessScreen() {
             icon={<BriefcaseIcon className="h-[18px] w-[18px]" />}
             error={fieldErrors.industry}
           />
-          <AuthField
-            id="location"
-            label={t("Primary location")}
-            required
-            placeholder={t("City or region")}
-            icon={<MapPinIcon className="h-[18px] w-[18px]" />}
-            error={fieldErrors.location}
-          />
+          <div className="space-y-2">
+            <label
+              htmlFor="location"
+              className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900"
+            >
+              {t("Primary location")}
+              <span className="text-red-600"> *</span>
+            </label>
+            <CityAutocomplete
+              value={location}
+              onChange={(v) => {
+                setLocation(v);
+                setFieldErrors((prev) => ({ ...prev, location: undefined }));
+              }}
+              placeholder={t("Start typing a city…")}
+            />
+            {fieldErrors.location ? (
+              <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+                {t(fieldErrors.location)}
+              </p>
+            ) : null}
+          </div>
           <AuthField
             id="contactEmail"
             label={t("Contact email")}

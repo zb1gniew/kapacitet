@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.CompanySettings.DTOs;
 using Kapacitet.Application.Features.Common.Errors;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
@@ -51,6 +52,10 @@ public class CompanyService
             if (location.Length > 100)
             {
                 fieldErrors["defaultLocation"] = ["Location must be 100 characters or fewer."];
+            }
+            else if (location.Length > 0 && !MatchingCityCoordinateCatalog.IsSupportedCity(location))
+            {
+                fieldErrors["defaultLocation"] = [$"'{location}' is not a supported city. Please select a city from the suggestions."];
             }
             else
             {
