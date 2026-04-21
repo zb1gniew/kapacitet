@@ -5,4 +5,5 @@ public class CompanyParticipationSettingsDto
     public bool ReceiveCapacityRequests { get; set; }
     public bool ParticipateInNetworkWide { get; set; }
     public bool AllowPartialMatches { get; set; }
+    public bool MatchOutsideCategory { get; set; }
 }

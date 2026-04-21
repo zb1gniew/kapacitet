@@ -1,7 +1,7 @@
 type CompleteOnboardingResult = { ok: true } | { ok: false; message: string };
 
 export async function completeOnboarding(data?: {
-  industry?: string;
+  categories?: string[];
   defaultLocation?: string;
 }): Promise<CompleteOnboardingResult> {
   try {

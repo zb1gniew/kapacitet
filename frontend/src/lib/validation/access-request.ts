@@ -1,11 +1,11 @@
 import { isSupportedCity } from "@/constants/cities";
+import { isValidCategory, MAX_CATEGORIES } from "@/constants/categories";
 import type { TranslateFn } from "@/types/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const ACCESS_REQUEST_LIMITS = {
-  name: 150,
-  industry: 100,
+  categories: MAX_CATEGORIES,
   location: 100,
   email: 254,
   message: 2000,
@@ -13,14 +13,14 @@ export const ACCESS_REQUEST_LIMITS = {
 
 export type AccessRequestFieldErrors = Partial<
   Record<
-    "companyName" | "industry" | "location" | "contactEmail" | "message",
+    "categories" | "location" | "contactEmail" | "message" | "companyName",
     string
   >
 >;
 
 export type AccessRequestPayload = {
   name: string;
-  industry: string;
+  categories: string[];
   location: string;
   contactEmail: string;
   message?: string;
@@ -33,16 +33,17 @@ export function validateAccessRequest(
   const errors: AccessRequestFieldErrors = {};
 
   if (!payload.name) errors.companyName = t("Company name is required.");
-  else if (payload.name.length > ACCESS_REQUEST_LIMITS.name)
+  else if (payload.name.length > 150)
     errors.companyName = t("Must be {{count}} characters or fewer.", {
-      count: ACCESS_REQUEST_LIMITS.name,
+      count: 150,
     });
 
-  if (!payload.industry) errors.industry = t("Industry is required.");
-  else if (payload.industry.length > ACCESS_REQUEST_LIMITS.industry)
-    errors.industry = t("Must be {{count}} characters or fewer.", {
-      count: ACCESS_REQUEST_LIMITS.industry,
-    });
+  if (!payload.categories || payload.categories.length === 0)
+    errors.categories = t("Categories are required.");
+  else if (payload.categories.length > ACCESS_REQUEST_LIMITS.categories)
+    errors.categories = t("Maximum 3 categories allowed.");
+  else if (!payload.categories.every(isValidCategory))
+    errors.categories = t("Please select from the available categories.");
 
   if (!payload.location) errors.location = t("Location is required.");
   else if (!isSupportedCity(payload.location))

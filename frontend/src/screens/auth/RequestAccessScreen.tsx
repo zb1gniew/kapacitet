@@ -5,12 +5,12 @@ import { type FormEvent, useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
+import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import {
   ArrowRightIcon,
   BrandIcon,
-  BriefcaseIcon,
   BuildingIcon,
   CircleCheckIcon,
   EmailIcon,
@@ -49,6 +49,7 @@ export function RequestAccessScreen() {
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<AccessRequestFieldErrors>({});
   const [location, setLocation] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(
     null,
   );
@@ -59,7 +60,7 @@ export function RequestAccessScreen() {
     const formData = new FormData(event.currentTarget);
     const payload = {
       name: String(formData.get("companyName") ?? "").trim(),
-      industry: String(formData.get("industry") ?? "").trim(),
+      categories,
       location: location.trim(),
       contactEmail: String(formData.get("contactEmail") ?? "").trim(),
       message: String(formData.get("message") ?? "").trim() || undefined,
@@ -188,14 +189,26 @@ export function RequestAccessScreen() {
             icon={<BuildingIcon className="h-[18px] w-[18px]" />}
             error={fieldErrors.companyName}
           />
-          <AuthField
-            id="industry"
-            label={t("Industry or primary trade")}
-            required
-            placeholder={t("e.g., Construction, Engineering, Manufacturing")}
-            icon={<BriefcaseIcon className="h-[18px] w-[18px]" />}
-            error={fieldErrors.industry}
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
+              {t("Categories")}
+              <span className="text-red-600"> *</span>
+            </label>
+            <CategoryMultiSelect
+              value={categories}
+              onChange={(v) => {
+                setCategories(v);
+                setFieldErrors((prev) => ({ ...prev, categories: undefined }));
+              }}
+              placeholder={t("Select up to 3 categories")}
+              error={Boolean(fieldErrors.categories)}
+            />
+            {fieldErrors.categories ? (
+              <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+                {fieldErrors.categories}
+              </p>
+            ) : null}
+          </div>
           <div className="space-y-2">
             <label
               htmlFor="location"

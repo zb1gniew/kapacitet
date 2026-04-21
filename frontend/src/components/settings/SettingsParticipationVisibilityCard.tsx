@@ -14,6 +14,7 @@ type ParticipationSettings = {
   receiveCapacityRequests: boolean;
   participateInNetworkWide: boolean;
   allowPartialMatches: boolean;
+  matchOutsideCategory: boolean;
 };
 
 export function SettingsParticipationVisibilityCard({
@@ -100,7 +101,7 @@ export function SettingsParticipationVisibilityCard({
       <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
         <div className="h-6 w-52 animate-pulse rounded bg-neutral-200" />
         <div className="mt-5 space-y-3">
-          {[1, 2, 3].map((item) => (
+          {[1, 2, 3, 4].map((item) => (
             <div
               key={item}
               className="h-20 animate-pulse rounded-[10px] bg-neutral-100"
@@ -173,6 +174,16 @@ export function SettingsParticipationVisibilityCard({
           )}
           checked={settings.allowPartialMatches}
           onToggle={() => toggle("allowPartialMatches")}
+          t={t}
+        />
+
+        <SettingsPreferenceCard
+          title={t("Receive matches from companies outside your category")}
+          description={t(
+            "When turned off, only companies sharing at least one trade category with you will appear as matches.",
+          )}
+          checked={settings.matchOutsideCategory}
+          onToggle={() => toggle("matchOutsideCategory")}
           t={t}
         />
       </div>

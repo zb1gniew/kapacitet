@@ -1,7 +1,7 @@
 export type AccessRequest = {
   id: number;
   name: string;
-  industry: string;
+  categories: string[];
   location: string;
   contactEmail: string;
   message?: string;
@@ -25,7 +25,7 @@ export type CompanyRegistryRecord = {
   requestId?: number;
   companyId?: number;
   companyName: string;
-  industry: string;
+  categories: string[];
   location: string;
   contactEmail: string;
   status: CompanyRegistryStatus;

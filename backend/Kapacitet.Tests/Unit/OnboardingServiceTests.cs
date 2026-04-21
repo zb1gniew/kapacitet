@@ -16,7 +16,7 @@ public class OnboardingServiceTests
         {
             Id = 1,
             Name = "Test",
-            Industry = "IT",
+            Categories = ["construction"],
             DefaultLocation = "Warsaw",
             Status = CompanyStatus.Active,
             CreatedAt = DateTime.UtcNow
@@ -82,11 +82,11 @@ public class OnboardingServiceTests
     }
 
     [Fact]
-    public async Task Complete_WithIndustryTooLong_ReturnsErrors()
+    public async Task Complete_WithTooManyCategories_ReturnsErrors()
     {
         var db = TestDbFactory.Create();
         var user = SeedUser(db);
-        var dto = new CompleteOnboardingDto { Industry = new string('A', 101) };
+        var dto = new CompleteOnboardingDto { Categories = ["construction", "electrical", "painting", "roofing"] };
         var result = await new OnboardingService(db).CompleteOnboardingAsync(user.Email, dto);
         result.Errors.Should().NotBeEmpty();
     }
@@ -106,10 +106,10 @@ public class OnboardingServiceTests
     {
         var db = TestDbFactory.Create();
         var user = SeedUser(db);
-        var dto = new CompleteOnboardingDto { Industry = "Finance", DefaultLocation = "Aarhus" };
+        var dto = new CompleteOnboardingDto { Categories = ["electrical", "painting"], DefaultLocation = "Aarhus" };
         await new OnboardingService(db).CompleteOnboardingAsync(user.Email, dto);
         var company = db.Companies.Single();
-        company.Industry.Should().Be("Finance");
+        company.Categories.Should().BeEquivalentTo(new[] { "electrical", "painting" });
         company.DefaultLocation.Should().Be("Aarhus");
     }
 

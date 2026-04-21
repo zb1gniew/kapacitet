@@ -90,6 +90,11 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string[]>("Categories")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("'{}'::text[]");
+
                     b.Property<string>("ContactEmail")
                         .IsRequired()
                         .HasMaxLength(254)
@@ -99,7 +104,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Industry")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -313,6 +317,11 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string[]>("Categories")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasDefaultValueSql("'{}'::text[]");
+
                     b.Property<string>("ContactPhone")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -326,7 +335,6 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("Industry")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -360,6 +368,9 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.Property<int>("CompanyId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("MatchOutsideCategory")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("ParticipateInNetworkWide")
                         .HasColumnType("boolean");

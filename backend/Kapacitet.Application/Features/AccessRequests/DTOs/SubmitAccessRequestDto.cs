@@ -9,8 +9,7 @@ public class SubmitAccessRequestDto
     public string Name { get; set; } = null!;
 
     [Required]
-    [MaxLength(100)]
-    public string Industry { get; set; } = null!;
+    public List<string> Categories { get; set; } = null!;
 
     [Required]
     [MaxLength(100)]

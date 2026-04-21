@@ -187,7 +187,7 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
             items={pendingRequests.map((request) => ({
               id: `pending-${request.id}`,
               title: request.name,
-              meta: `${request.industry} · ${request.location}`,
+              meta: `${request.categories.join(", ") || "—"} · ${request.location}`,
               helper: t("Submitted {{date}} · {{email}}", {
                 date: formatPlatformDate(request.createdAt),
                 email: request.contactEmail,
@@ -257,7 +257,7 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
             items={followUpCompanies.map((record) => ({
               id: `follow-up-${record.requestId}`,
               title: record.companyName,
-              meta: `${record.industry} · ${record.location}`,
+              meta: `${record.categories.join(", ") || "—"} · ${record.location}`,
               helper: t("Reviewed {{date}} · {{email}}", {
                 date: formatPlatformDateTime(record.reviewedAt),
                 email: record.contactEmail,

@@ -18,6 +18,7 @@ public class CompanySettingsConfiguration : IEntityTypeConfiguration<CompanySett
         builder.Property(s => s.ReceiveCapacityRequests).IsRequired();
         builder.Property(s => s.ParticipateInNetworkWide).IsRequired();
         builder.Property(s => s.AllowPartialMatches).IsRequired();
+        builder.Property(s => s.MatchOutsideCategory).IsRequired();
 
         builder.HasOne(s => s.Company)
             .WithOne(c => c.CompanySettings)

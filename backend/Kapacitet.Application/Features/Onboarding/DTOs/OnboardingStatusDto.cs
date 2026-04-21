@@ -9,7 +9,7 @@ public class OnboardingStatusDto
 public class CompanyDetailsDto
 {
     public string Name { get; set; } = null!;
-    public string Industry { get; set; } = null!;
+    public List<string> Categories { get; set; } = [];
     public string DefaultLocation { get; set; } = null!;
     public string ContactEmail { get; set; } = null!;
 }

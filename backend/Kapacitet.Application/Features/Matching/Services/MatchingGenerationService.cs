@@ -91,6 +91,7 @@ public sealed class MatchingGenerationService
         var requests = await _db.CapacityRequests
             .AsSplitQuery()
             .Include(r => r.Company)
+                .ThenInclude(c => c.CompanySettings)
             .Include(r => r.Skills)
             .Include(r => r.Certificates)
             .Where(r => requestIds.Contains(r.Id))
@@ -147,6 +148,7 @@ public sealed class MatchingGenerationService
 
                 var eligibleResults = candidates
                     .Where(a => a.CompanyId != request.CompanyId)
+                    .Where(a => CategoryFilterPasses(request.Company, a.Company))
                     .Select(a => _evaluationService.Evaluate(
                         request,
                         a,
@@ -215,6 +217,13 @@ public sealed class MatchingGenerationService
                 "Matches will be regenerated on the next publish or availability refresh.",
                 string.Join(", ", requestIds));
         }
+    }
+
+    private static bool CategoryFilterPasses(Company requester, Company supplier)
+    {
+        if (requester.CompanySettings?.MatchOutsideCategory == true) return true;
+        if (requester.Categories.Count == 0 || supplier.Categories.Count == 0) return true;
+        return requester.Categories.Any(c => supplier.Categories.Contains(c));
     }
 
     private static bool IsTransientConflict(Exception exception)
