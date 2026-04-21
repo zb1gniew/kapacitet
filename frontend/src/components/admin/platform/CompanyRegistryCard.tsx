@@ -67,13 +67,11 @@ export function CompanyRegistryCard({
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {record.categories.length > 0
                   ? record.categories
-                      .map(
-                        (k) =>
-                          t(
-                            CATEGORY_LABELS[
-                              k as keyof typeof CATEGORY_LABELS
-                            ] ?? k,
-                          ),
+                      .map((k) =>
+                        t(
+                          CATEGORY_LABELS[k as keyof typeof CATEGORY_LABELS] ??
+                            k,
+                        ),
                       )
                       .join(", ")
                   : "—"}

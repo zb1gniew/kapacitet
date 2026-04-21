@@ -85,13 +85,11 @@ export function AccessRequestReviewCard({
               value={
                 request.categories.length > 0
                   ? request.categories
-                      .map(
-                        (k) =>
-                          t(
-                            CATEGORY_LABELS[
-                              k as keyof typeof CATEGORY_LABELS
-                            ] ?? k,
-                          ),
+                      .map((k) =>
+                        t(
+                          CATEGORY_LABELS[k as keyof typeof CATEGORY_LABELS] ??
+                            k,
+                        ),
                       )
                       .join(", ")
                   : "—"
