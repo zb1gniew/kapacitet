@@ -6,7 +6,7 @@ public class AccessRequestDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = null!;
-    public string Industry { get; set; } = null!;
+    public List<string> Categories { get; set; } = [];
     public string Location { get; set; } = null!;
     public string ContactEmail { get; set; } = null!;
     public string? Message { get; set; }

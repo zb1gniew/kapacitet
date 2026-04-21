@@ -33,16 +33,16 @@ public class CompanyService
         var company = user.Company;
         var fieldErrors = new Dictionary<string, string[]>();
 
-        if (dto.Industry is not null)
+        if (dto.Categories is not null)
         {
-            var industry = dto.Industry.Trim();
-            if (industry.Length > 100)
+            var error = CompanyCategoryCatalog.ValidateCategoriesField(dto.Categories);
+            if (error is not null)
             {
-                fieldErrors["industry"] = ["Industry must be 100 characters or fewer."];
+                fieldErrors["categories"] = [error];
             }
             else
             {
-                company.Industry = industry;
+                company.Categories = dto.Categories;
             }
         }
 
@@ -97,7 +97,8 @@ public class CompanyService
             {
                 ReceiveCapacityRequests = true,
                 ParticipateInNetworkWide = true,
-                AllowPartialMatches = false
+                AllowPartialMatches = true,
+                MatchOutsideCategory = true
             };
     }
 
@@ -111,6 +112,7 @@ public class CompanyService
         settings.ReceiveCapacityRequests = dto.ReceiveCapacityRequests;
         settings.ParticipateInNetworkWide = dto.ParticipateInNetworkWide;
         settings.AllowPartialMatches = dto.AllowPartialMatches;
+        settings.MatchOutsideCategory = dto.MatchOutsideCategory;
 
         await _db.SaveChangesAsync();
         return MapToParticipationDto(settings);
@@ -304,7 +306,7 @@ public class CompanyService
         return new CompanyInformationDto
         {
             Name = user.Company.Name,
-            Industry = user.Company.Industry,
+            Categories = user.Company.Categories,
             DefaultLocation = user.Company.DefaultLocation,
             ContactEmail = user.Email,
             ContactPhone = user.Company.ContactPhone
@@ -318,7 +320,8 @@ public class CompanyService
         {
             ReceiveCapacityRequests = s.ReceiveCapacityRequests,
             ParticipateInNetworkWide = s.ParticipateInNetworkWide,
-            AllowPartialMatches = s.AllowPartialMatches
+            AllowPartialMatches = s.AllowPartialMatches,
+            MatchOutsideCategory = s.MatchOutsideCategory
         };
     }
 

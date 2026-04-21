@@ -41,6 +41,15 @@ public class AccessRequestService
             });
         }
 
+        var categoriesError = CompanyCategoryCatalog.ValidateCategoriesField(dto.Categories ?? []);
+        if (categoriesError is not null)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["categories"] = [categoriesError]
+            });
+        }
+
         var contactEmail = EmailAddressNormalizer.Canonicalize(dto.ContactEmail);
 
         var existingPending = await _db.AccessRequests
@@ -53,7 +62,7 @@ public class AccessRequestService
         var accessRequest = new AccessRequest
         {
             Name = dto.Name,
-            Industry = dto.Industry,
+            Categories = dto.Categories ?? [],
             Location = dto.Location,
             ContactEmail = contactEmail,
             Message = dto.Message,
@@ -175,7 +184,7 @@ public class AccessRequestService
         var company = new Company
         {
             Name = request.Name,
-            Industry = request.Industry,
+            Categories = request.Categories,
             DefaultLocation = request.Location,
             Status = CompanyStatus.Active,
             CreatedAt = DateTime.UtcNow
@@ -268,7 +277,7 @@ public class AccessRequestService
     {
         Id = entity.Id,
         Name = entity.Name,
-        Industry = entity.Industry,
+        Categories = entity.Categories,
         Location = entity.Location,
         ContactEmail = entity.ContactEmail,
         Message = entity.Message,

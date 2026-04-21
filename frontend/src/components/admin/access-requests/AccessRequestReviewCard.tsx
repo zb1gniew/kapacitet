@@ -1,6 +1,7 @@
 import { CheckBadgeIcon, EmailIcon, MapPinIcon } from "@/components/auth/icons";
 import type { AccessRequest } from "@/types/admin";
 import type { TranslateFn } from "@/types/i18n";
+import { CATEGORY_LABELS } from "@/constants/categories";
 import { AccessRequestStatusBadge } from "./AccessRequestStatusBadge";
 import { formatAccessRequestDate, formatAccessRequestDateTime } from "./utils";
 
@@ -79,7 +80,23 @@ export function AccessRequestReviewCard({
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <InfoPill label={t("Industry")} value={request.industry} />
+            <InfoPill
+              label={t("Categories")}
+              value={
+                request.categories.length > 0
+                  ? request.categories
+                      .map(
+                        (k) =>
+                          t(
+                            CATEGORY_LABELS[
+                              k as keyof typeof CATEGORY_LABELS
+                            ] ?? k,
+                          ),
+                      )
+                      .join(", ")
+                  : "—"
+              }
+            />
             <InfoPill
               label={t("Location")}
               value={request.location}

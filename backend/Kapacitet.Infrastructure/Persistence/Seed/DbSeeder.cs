@@ -259,6 +259,7 @@ public static class DbSeeder
         {
             Name = name,
             Industry = industry,
+            Categories = [],
             DefaultLocation = defaultLocation,
             ContactPhone = contactPhone,
             Status = CompanyStatus.Active,

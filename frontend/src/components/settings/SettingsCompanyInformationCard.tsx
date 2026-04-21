@@ -8,6 +8,7 @@ import {
   MapPinIcon,
 } from "@/components/auth/icons";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
+import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
 import { parseProblemDetails } from "@/lib/backend/errors";
 import type { TranslateFn } from "@/types/i18n";
 
@@ -17,7 +18,7 @@ type SettingsCompanyInformationCardProps = {
 
 type CompanyInformation = {
   name: string;
-  industry: string;
+  categories: string[];
   defaultLocation: string;
   contactEmail: string;
   contactPhone: string | null;
@@ -117,7 +118,10 @@ export function SettingsCompanyInformationCard({
     void loadInformation();
   }, [loadInformation]);
 
-  function patch(field: keyof CompanyInformation, value: string) {
+  function patch<K extends keyof CompanyInformation>(
+    field: K,
+    value: CompanyInformation[K],
+  ) {
     setDraft((prev) => (prev ? { ...prev, [field]: value } : prev));
     setStatus("idle");
     setErrorMessage("");
@@ -143,7 +147,7 @@ export function SettingsCompanyInformationCard({
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          industry: draft.industry,
+          categories: draft.categories,
           defaultLocation: draft.defaultLocation,
           contactPhone: draft.contactPhone ?? "",
         }),
@@ -216,7 +220,7 @@ export function SettingsCompanyInformationCard({
     );
   }
 
-  const industryError = fieldErrors.industry?.[0];
+  const categoriesError = fieldErrors.categories?.[0];
   const defaultLocationError = fieldErrors.defaultLocation?.[0];
   const contactPhoneError = fieldErrors.contactPhone?.[0];
 
@@ -253,15 +257,17 @@ export function SettingsCompanyInformationCard({
         </div>
 
         <div className="space-y-2">
-          <Label label={t("Industry")} />
-          <Input
-            value={draft.industry}
-            onChange={(v) => patch("industry", v)}
-            error={industryError}
+          <Label label={t("Categories")} />
+          <CategoryMultiSelect
+            value={draft.categories}
+            onChange={(v) => patch("categories", v)}
+            placeholder={t("Select up to 3 categories")}
+            size="sm"
+            error={Boolean(categoriesError)}
           />
-          {industryError ? (
+          {categoriesError ? (
             <p className="text-[11px] leading-4 text-red-600">
-              {t(industryError)}
+              {t(categoriesError)}
             </p>
           ) : null}
         </div>

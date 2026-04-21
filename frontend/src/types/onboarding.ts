@@ -1,6 +1,6 @@
 export type CompanyDetails = {
   name: string;
-  industry: string;
+  categories: string[];
   defaultLocation: string;
   contactEmail: string;
 };

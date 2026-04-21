@@ -16,9 +16,14 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
             .IsRequired()
             .HasMaxLength(150);
 
-        builder.Property(a => a.Industry)
+        builder.Property(a => a.Categories)
+            .HasColumnType("text[]")
             .IsRequired()
-            .HasMaxLength(100);
+            .HasDefaultValueSql("'{}'::text[]");
+
+        builder.Property(a => a.Industry)
+            .HasMaxLength(100)
+            .IsRequired(false);
 
         builder.Property(a => a.Location)
             .IsRequired()

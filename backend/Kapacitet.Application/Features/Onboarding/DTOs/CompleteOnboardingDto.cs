@@ -2,6 +2,6 @@ namespace Kapacitet.Application.Features.Onboarding.DTOs;
 
 public class CompleteOnboardingDto
 {
-    public string? Industry { get; set; }
+    public List<string>? Categories { get; set; }
     public string? DefaultLocation { get; set; }
 }

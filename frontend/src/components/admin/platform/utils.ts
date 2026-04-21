@@ -38,7 +38,7 @@ export function deriveCompanyRegistryRecords(
     .map((request) => ({
       requestId: request.id,
       companyName: request.name,
-      industry: request.industry,
+      categories: request.categories,
       location: request.location,
       contactEmail: request.contactEmail,
       status: request.provisionedCompanyId

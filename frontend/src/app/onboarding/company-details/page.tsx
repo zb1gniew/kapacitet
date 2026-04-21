@@ -14,7 +14,7 @@ export default async function CompanyDetailsPage() {
 
   const company = status?.company ?? {
     name: "",
-    industry: "",
+    categories: [],
     defaultLocation: "",
     contactEmail: "",
   };

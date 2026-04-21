@@ -28,7 +28,7 @@ public class OnboardingService
             Company = new CompanyDetailsDto
             {
                 Name = user.Company.Name,
-                Industry = user.Company.Industry,
+                Categories = user.Company.Categories,
                 DefaultLocation = user.Company.DefaultLocation,
                 ContactEmail = user.Email
             }
@@ -50,12 +50,13 @@ public class OnboardingService
 
         if (dto is not null)
         {
-            if (!string.IsNullOrWhiteSpace(dto.Industry))
+            if (dto.Categories is { Count: > 0 })
             {
-                if (dto.Industry.Length > 100)
-                    errors.Add("Industry must be 100 characters or fewer.");
+                var error = CompanyCategoryCatalog.ValidateCategoriesField(dto.Categories);
+                if (error is not null)
+                    errors.Add(error);
                 else
-                    user.Company.Industry = dto.Industry;
+                    user.Company.Categories = dto.Categories;
             }
 
             if (!string.IsNullOrWhiteSpace(dto.DefaultLocation))

@@ -128,7 +128,7 @@ export function PlatformCompaniesScreen({
           [
             record.companyName,
             record.contactEmail,
-            record.industry,
+            record.categories.join(" "),
             record.location,
             record.reviewedBy,
           ]
@@ -184,7 +184,7 @@ export function PlatformCompaniesScreen({
         t={t}
         searchValue={searchValue}
         searchPlaceholder={t(
-          "Search by company, contact email, industry, or location",
+          "Search by company, contact email, categories, or location",
         )}
         onSearchChange={setSearchValue}
         activeFilter={activeFilter}

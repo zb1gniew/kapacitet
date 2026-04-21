@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
+import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
 import { OnboardingProgressDots } from "@/components/auth/OnboardingProgressDots";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
@@ -24,24 +25,24 @@ type Props = {
 export function ConfirmCompanyDetailsScreen({ company }: Props) {
   const { t } = useLocalizedScreen();
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<OnboardingFieldErrors>({});
   const [locationValue, setLocationValue] = useState(
     company.defaultLocation ?? "",
   );
+  const [categories, setCategories] = useState<string[]>(
+    company.categories ?? [],
+  );
 
   async function handleConfirm() {
     setErrorMessage("");
     setFieldErrors({});
 
-    const formData = formRef.current ? new FormData(formRef.current) : null;
-    const industry = (formData?.get("industry") as string | null)?.trim();
     const location = locationValue.trim();
 
     const errors = validateOnboardingDetails(t, {
-      industry: industry ?? undefined,
+      categories: categories.length > 0 ? categories : undefined,
       location: location || undefined,
     });
     if (hasErrors(errors)) {
@@ -51,7 +52,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
 
     setSubmitting(true);
     const result = await completeOnboarding({
-      industry: industry || undefined,
+      categories: categories.length > 0 ? categories : undefined,
       defaultLocation: location || undefined,
     });
 
@@ -93,7 +94,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
           </p>
         </header>
 
-        <form ref={formRef} className="mt-8 space-y-5">
+        <div className="mt-8 space-y-5">
           <AuthField
             id="companyName"
             label={t("Company name")}
@@ -101,12 +102,25 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
             readOnly
             helperText={t("Contact platform support to change company name")}
           />
-          <AuthField
-            id="industry"
-            label={t("Industry")}
-            value={company.industry}
-            error={fieldErrors.industry}
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
+              {t("Categories")}
+            </label>
+            <CategoryMultiSelect
+              value={categories}
+              onChange={(v) => {
+                setCategories(v);
+                setFieldErrors((prev) => ({ ...prev, categories: undefined }));
+              }}
+              placeholder={t("Select up to 3 categories")}
+              error={Boolean(fieldErrors.categories)}
+            />
+            {fieldErrors.categories ? (
+              <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+                {t(fieldErrors.categories)}
+              </p>
+            ) : null}
+          </div>
           <div className="space-y-2">
             <label
               htmlFor="location"
@@ -134,7 +148,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
             value={company.contactEmail}
             readOnly
           />
-        </form>
+        </div>
 
         <div className="mt-6 border-t border-neutral-200 pt-6">
           {errorMessage && (

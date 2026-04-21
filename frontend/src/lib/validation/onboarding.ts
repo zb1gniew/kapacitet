@@ -1,28 +1,31 @@
 import { isSupportedCity } from "@/constants/cities";
+import { isValidCategory, MAX_CATEGORIES } from "@/constants/categories";
 import type { TranslateFn } from "@/types/i18n";
 
 export const ONBOARDING_LIMITS = {
-  industry: 100,
+  categories: MAX_CATEGORIES,
   location: 100,
 } as const;
 
 export type OnboardingFieldErrors = Partial<
-  Record<"industry" | "location", string>
+  Record<"categories" | "location", string>
 >;
 
 export function validateOnboardingDetails(
   t: TranslateFn,
   data: {
-    industry?: string;
+    categories?: string[];
     location?: string;
   },
 ): OnboardingFieldErrors {
   const errors: OnboardingFieldErrors = {};
 
-  if (data.industry && data.industry.length > ONBOARDING_LIMITS.industry)
-    errors.industry = t("Must be {{count}} characters or fewer.", {
-      count: ONBOARDING_LIMITS.industry,
-    });
+  if (data.categories && data.categories.length > 0) {
+    if (data.categories.length > ONBOARDING_LIMITS.categories)
+      errors.categories = t("Maximum 3 categories allowed.");
+    else if (!data.categories.every(isValidCategory))
+      errors.categories = t("Please select from the available categories.");
+  }
 
   if (data.location && !isSupportedCity(data.location))
     errors.location = t("Please select a city from the suggestions.");
