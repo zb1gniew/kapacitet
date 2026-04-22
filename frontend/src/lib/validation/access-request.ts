@@ -1,8 +1,13 @@
 import { isSupportedCity } from "@/constants/cities";
 import { isValidCategory, MAX_CATEGORIES } from "@/constants/categories";
+import {
+  isValidPhoneDigitCount,
+  parsePhoneValue,
+} from "@/constants/eu-phone-prefixes";
 import type { TranslateFn } from "@/types/i18n";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CVR_RE = /^\d{8}$/;
 
 export const ACCESS_REQUEST_LIMITS = {
   categories: MAX_CATEGORIES,
@@ -13,15 +18,23 @@ export const ACCESS_REQUEST_LIMITS = {
 
 export type AccessRequestFieldErrors = Partial<
   Record<
-    "categories" | "location" | "contactEmail" | "message" | "companyName",
+    | "companyName"
+    | "cvr"
+    | "categories"
+    | "location"
+    | "contactPhone"
+    | "contactEmail"
+    | "message",
     string
   >
 >;
 
 export type AccessRequestPayload = {
   name: string;
+  cvr: string;
   categories: string[];
   location: string;
+  contactPhone: string;
   contactEmail: string;
   message?: string;
 };
@@ -38,6 +51,10 @@ export function validateAccessRequest(
       count: 150,
     });
 
+  if (!payload.cvr) errors.cvr = t("CVR is required.");
+  else if (!CVR_RE.test(payload.cvr))
+    errors.cvr = t("CVR must be exactly 8 digits.");
+
   if (!payload.categories || payload.categories.length === 0)
     errors.categories = t("Categories are required.");
   else if (payload.categories.length > ACCESS_REQUEST_LIMITS.categories)
@@ -52,6 +69,17 @@ export function validateAccessRequest(
     errors.location = t("Must be {{count}} characters or fewer.", {
       count: ACCESS_REQUEST_LIMITS.location,
     });
+
+  if (!payload.contactPhone) {
+    errors.contactPhone = t("Phone number is required.");
+  } else {
+    const { country, localNumber } = parsePhoneValue(payload.contactPhone);
+    if (!localNumber || !isValidPhoneDigitCount(country, localNumber)) {
+      errors.contactPhone = t(
+        "Enter a valid phone number for the selected country.",
+      );
+    }
+  }
 
   if (!payload.contactEmail) errors.contactEmail = t("Email is required.");
   else if (!EMAIL_RE.test(payload.contactEmail))

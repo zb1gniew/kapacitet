@@ -3,6 +3,7 @@ type CompleteOnboardingResult = { ok: true } | { ok: false; message: string };
 export async function completeOnboarding(data?: {
   categories?: string[];
   defaultLocation?: string;
+  contactPhone?: string;
 }): Promise<CompleteOnboardingResult> {
   try {
     const response = await fetch("/api/onboarding/complete", {

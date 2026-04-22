@@ -9,11 +9,19 @@ public class SubmitAccessRequestDto
     public string Name { get; set; } = null!;
 
     [Required]
+    [RegularExpression(@"^\d{8}$", ErrorMessage = "CVR must be exactly 8 digits.")]
+    public string Cvr { get; set; } = null!;
+
+    [Required]
     public List<string> Categories { get; set; } = null!;
 
     [Required]
     [MaxLength(100)]
     public string Location { get; set; } = null!;
+
+    [Required]
+    [MaxLength(50)]
+    public string ContactPhone { get; set; } = null!;
 
     [Required]
     [EmailAddress]

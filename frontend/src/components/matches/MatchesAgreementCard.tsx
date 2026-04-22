@@ -62,6 +62,16 @@ export function MatchesAgreementCard({
             </div>
 
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {agreement.partnerCvr ? (
+                <div className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-neutral-500">
+                    {t("CVR")}
+                  </p>
+                  <p className="mt-1 font-mono text-sm font-semibold leading-5 text-neutral-900">
+                    {agreement.partnerCvr}
+                  </p>
+                </div>
+              ) : null}
               {agreement.partnerContactPhone ? (
                 <div className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2.5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-neutral-500">

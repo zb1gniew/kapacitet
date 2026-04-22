@@ -9,6 +9,7 @@ import {
 } from "@/components/auth/icons";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { parseProblemDetails } from "@/lib/backend/errors";
 import type { TranslateFn } from "@/types/i18n";
 
@@ -18,6 +19,7 @@ type SettingsCompanyInformationCardProps = {
 
 type CompanyInformation = {
   name: string;
+  cvr: string | null;
   categories: string[];
   defaultLocation: string;
   contactEmail: string;
@@ -187,7 +189,7 @@ export function SettingsCompanyInformationCard({
       <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
         <div className="h-6 w-48 animate-pulse rounded bg-neutral-200" />
         <div className="mt-5 space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="space-y-2">
               <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
               <div className="h-[42px] animate-pulse rounded-[10px] bg-neutral-100" />
@@ -256,6 +258,16 @@ export function SettingsCompanyInformationCard({
           </p>
         </div>
 
+        {draft.cvr ? (
+          <div className="space-y-2">
+            <Label label={t("CVR number")} />
+            <Input value={draft.cvr} disabled />
+            <p className="text-[11px] leading-4 text-neutral-500">
+              {t("Company registration number — cannot be changed")}
+            </p>
+          </div>
+        ) : null}
+
         <div className="space-y-2">
           <Label label={t("Categories")} />
           <CategoryMultiSelect
@@ -302,11 +314,11 @@ export function SettingsCompanyInformationCard({
 
         <div className="space-y-2">
           <Label label={t("Contact phone")} />
-          <Input
+          <PhoneInput
             value={draft.contactPhone ?? ""}
-            onChange={(v) => patch("contactPhone", v)}
-            type="tel"
-            error={contactPhoneError}
+            onChange={(v) => patch("contactPhone", v || null)}
+            error={Boolean(contactPhoneError)}
+            size="sm"
           />
           {contactPhoneError ? (
             <p className="text-[11px] leading-4 text-red-600">

@@ -16,6 +16,14 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
             .IsRequired()
             .HasMaxLength(150);
 
+        builder.Property(a => a.Cvr)
+            .HasMaxLength(8)
+            .IsRequired(false);
+
+        builder.Property(a => a.ContactPhone)
+            .HasMaxLength(50)
+            .IsRequired(false);
+
         builder.Property(a => a.Categories)
             .HasColumnType("text[]")
             .IsRequired()

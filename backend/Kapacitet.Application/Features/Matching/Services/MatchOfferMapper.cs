@@ -68,6 +68,7 @@ internal static class MatchOfferMapper
             AvailabilityId = agreement.AvailabilityId,
             PartnerCompanyId = partnerCompany.Id,
             PartnerCompanyName = partnerCompany.Name,
+            PartnerCvr = partnerCompany.Cvr,
             PartnerContactPhone = partnerCompany.ContactPhone,
             PartnerContactEmail = partnerContactEmail,
             SupplierCompanyId = agreement.SupplierCompanyId,

@@ -71,6 +71,7 @@ export type AgreementResponse = {
   availabilityId: number;
   partnerCompanyId: number | null;
   partnerCompanyName: string | null;
+  partnerCvr: string | null;
   partnerContactPhone: string | null;
   partnerContactEmail: string | null;
   supplierCompanyId: number;

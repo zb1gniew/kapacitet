@@ -19,6 +19,10 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(c => c.LogoUrl)
             .HasColumnType("text");
 
+        builder.Property(c => c.Cvr)
+            .HasMaxLength(8)
+            .IsRequired(false);
+
         builder.Property(c => c.Categories)
             .HasColumnType("text[]")
             .IsRequired()

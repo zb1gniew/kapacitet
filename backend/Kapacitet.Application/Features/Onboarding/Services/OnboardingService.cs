@@ -28,9 +28,11 @@ public class OnboardingService
             Company = new CompanyDetailsDto
             {
                 Name = user.Company.Name,
+                Cvr = user.Company.Cvr,
                 Categories = user.Company.Categories,
                 DefaultLocation = user.Company.DefaultLocation,
-                ContactEmail = user.Email
+                ContactEmail = user.Email,
+                ContactPhone = user.Company.ContactPhone
             }
         };
     }
@@ -67,6 +69,15 @@ public class OnboardingService
                     errors.Add($"'{dto.DefaultLocation}' is not a supported city. Please select a city from the suggestions.");
                 else
                     user.Company.DefaultLocation = dto.DefaultLocation;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.ContactPhone))
+            {
+                var phone = dto.ContactPhone.Trim();
+                if (!phone.StartsWith('+') || phone.Length is < 8 or > 16 || !phone[1..].All(char.IsAsciiDigit))
+                    errors.Add("Enter a valid international phone number (e.g. +4512345678).");
+                else
+                    user.Company.ContactPhone = phone;
             }
         }
 

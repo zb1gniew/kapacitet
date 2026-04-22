@@ -1,8 +1,10 @@
 export type AccessRequest = {
   id: number;
   name: string;
+  cvr?: string;
   categories: string[];
   location: string;
+  contactPhone?: string;
   contactEmail: string;
   message?: string;
   status: "Pending" | "Approved" | "Rejected";
@@ -25,8 +27,10 @@ export type CompanyRegistryRecord = {
   requestId?: number;
   companyId?: number;
   companyName: string;
+  cvr?: string;
   categories: string[];
   location: string;
+  contactPhone?: string;
   contactEmail: string;
   status: CompanyRegistryStatus;
   createdAt: string;
