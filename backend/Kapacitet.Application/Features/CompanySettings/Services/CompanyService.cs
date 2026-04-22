@@ -66,13 +66,17 @@ public class CompanyService
         if (dto.ContactPhone is not null)
         {
             var phone = dto.ContactPhone.Trim();
-            if (phone.Length > 50)
+            if (string.IsNullOrWhiteSpace(phone))
             {
-                fieldErrors["contactPhone"] = ["Contact phone must be 50 characters or fewer."];
+                company.ContactPhone = null;
+            }
+            else if (!phone.StartsWith('+') || phone.Length is < 8 or > 16 || !phone[1..].All(char.IsAsciiDigit))
+            {
+                fieldErrors["contactPhone"] = ["Enter a valid international phone number (e.g. +4512345678)."];
             }
             else
             {
-                company.ContactPhone = string.IsNullOrWhiteSpace(phone) ? null : phone;
+                company.ContactPhone = phone;
             }
         }
 
@@ -306,6 +310,7 @@ public class CompanyService
         return new CompanyInformationDto
         {
             Name = user.Company.Name,
+            Cvr = user.Company.Cvr,
             Categories = user.Company.Categories,
             DefaultLocation = user.Company.DefaultLocation,
             ContactEmail = user.Email,

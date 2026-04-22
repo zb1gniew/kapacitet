@@ -6,8 +6,10 @@ public class AccessRequestDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = null!;
+    public string? Cvr { get; set; }
     public List<string> Categories { get; set; } = [];
     public string Location { get; set; } = null!;
+    public string? ContactPhone { get; set; }
     public string ContactEmail { get; set; } = null!;
     public string? Message { get; set; }
     public AccessRequestStatus Status { get; set; }

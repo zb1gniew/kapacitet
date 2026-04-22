@@ -10,6 +10,7 @@ public class AgreementDto
     public int AvailabilityId { get; set; }
     public int? PartnerCompanyId { get; set; }
     public string? PartnerCompanyName { get; set; }
+    public string? PartnerCvr { get; set; }
     public string? PartnerContactPhone { get; set; }
     public string? PartnerContactEmail { get; set; }
     public int SupplierCompanyId { get; set; }

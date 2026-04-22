@@ -6,6 +6,7 @@ import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { OnboardingProgressDots } from "@/components/auth/OnboardingProgressDots";
 import { ArrowRightIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
@@ -34,6 +35,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
   const [categories, setCategories] = useState<string[]>(
     company.categories ?? [],
   );
+  const [contactPhone, setContactPhone] = useState(company.contactPhone ?? "");
 
   async function handleConfirm() {
     setErrorMessage("");
@@ -54,6 +56,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
     const result = await completeOnboarding({
       categories: categories.length > 0 ? categories : undefined,
       defaultLocation: location || undefined,
+      contactPhone: contactPhone || undefined,
     });
 
     if (result.ok) {
@@ -102,6 +105,17 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
             readOnly
             helperText={t("Contact platform support to change company name")}
           />
+
+          {company.cvr ? (
+            <AuthField
+              id="cvr"
+              label={t("CVR number")}
+              value={company.cvr}
+              readOnly
+              helperText={t("Company registration number — cannot be changed")}
+            />
+          ) : null}
+
           <div className="space-y-2">
             <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
               {t("Categories")}
@@ -121,6 +135,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
               </p>
             ) : null}
           </div>
+
           <div className="space-y-2">
             <label
               htmlFor="location"
@@ -142,12 +157,24 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
               </p>
             ) : null}
           </div>
+
           <AuthField
             id="contactEmail"
             label={t("Contact email")}
             value={company.contactEmail}
             readOnly
           />
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
+              {t("Contact phone")}
+            </label>
+            <PhoneInput
+              value={contactPhone}
+              onChange={setContactPhone}
+              size="md"
+            />
+          </div>
         </div>
 
         <div className="mt-6 border-t border-neutral-200 pt-6">

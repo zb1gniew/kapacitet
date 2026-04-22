@@ -41,12 +41,28 @@ public class AccessRequestService
             });
         }
 
+        if (!IsValidCvr(dto.Cvr))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["cvr"] = ["CVR must be exactly 8 digits."]
+            });
+        }
+
         var categoriesError = CompanyCategoryCatalog.ValidateCategoriesField(dto.Categories ?? []);
         if (categoriesError is not null)
         {
             throw new ValidationException(new Dictionary<string, string[]>
             {
                 ["categories"] = [categoriesError]
+            });
+        }
+
+        if (!IsValidPhone(dto.ContactPhone))
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["contactPhone"] = ["Enter a valid international phone number (e.g. +4512345678)."]
             });
         }
 
@@ -62,8 +78,10 @@ public class AccessRequestService
         var accessRequest = new AccessRequest
         {
             Name = dto.Name,
+            Cvr = dto.Cvr,
             Categories = dto.Categories ?? [],
             Location = dto.Location,
+            ContactPhone = dto.ContactPhone,
             ContactEmail = contactEmail,
             Message = dto.Message,
             Status = AccessRequestStatus.Pending,
@@ -184,8 +202,10 @@ public class AccessRequestService
         var company = new Company
         {
             Name = request.Name,
+            Cvr = request.Cvr,
             Categories = request.Categories,
             DefaultLocation = request.Location,
+            ContactPhone = request.ContactPhone,
             Status = CompanyStatus.Active,
             CreatedAt = DateTime.UtcNow
         };
@@ -273,12 +293,25 @@ public class AccessRequestService
         return false;
     }
 
+    private static bool IsValidCvr(string? cvr) =>
+        cvr is { Length: 8 } && cvr.All(char.IsAsciiDigit);
+
+    private static bool IsValidPhone(string? phone)
+    {
+        if (string.IsNullOrEmpty(phone)) return false;
+        return phone.StartsWith('+') &&
+               phone.Length is >= 8 and <= 16 &&
+               phone[1..].All(char.IsAsciiDigit);
+    }
+
     private static AccessRequestDto MapToDto(AccessRequest entity) => new()
     {
         Id = entity.Id,
         Name = entity.Name,
+        Cvr = entity.Cvr,
         Categories = entity.Categories,
         Location = entity.Location,
+        ContactPhone = entity.ContactPhone,
         ContactEmail = entity.ContactEmail,
         Message = entity.Message,
         Status = entity.Status,

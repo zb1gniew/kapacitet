@@ -6,6 +6,7 @@ import { AuthField } from "@/components/auth/AuthField";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import {
@@ -50,6 +51,7 @@ export function RequestAccessScreen() {
   const [fieldErrors, setFieldErrors] = useState<AccessRequestFieldErrors>({});
   const [location, setLocation] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
+  const [contactPhone, setContactPhone] = useState("");
   const [submittedRequestId, setSubmittedRequestId] = useState<number | null>(
     null,
   );
@@ -60,8 +62,10 @@ export function RequestAccessScreen() {
     const formData = new FormData(event.currentTarget);
     const payload = {
       name: String(formData.get("companyName") ?? "").trim(),
+      cvr: String(formData.get("cvr") ?? "").trim(),
       categories,
       location: location.trim(),
+      contactPhone,
       contactEmail: String(formData.get("contactEmail") ?? "").trim(),
       message: String(formData.get("message") ?? "").trim() || undefined,
     };
@@ -189,6 +193,16 @@ export function RequestAccessScreen() {
             icon={<BuildingIcon className="h-[18px] w-[18px]" />}
             error={fieldErrors.companyName}
           />
+
+          <AuthField
+            id="cvr"
+            label={t("CVR number")}
+            required
+            placeholder="12345678"
+            helperText={t("8-digit company registration number")}
+            error={fieldErrors.cvr}
+          />
+
           <div className="space-y-2">
             <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
               {t("Categories")}
@@ -209,6 +223,7 @@ export function RequestAccessScreen() {
               </p>
             ) : null}
           </div>
+
           <div className="space-y-2">
             <label
               htmlFor="location"
@@ -231,6 +246,31 @@ export function RequestAccessScreen() {
               </p>
             ) : null}
           </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
+              {t("Contact phone")}
+              <span className="text-red-600"> *</span>
+            </label>
+            <PhoneInput
+              value={contactPhone}
+              onChange={(v) => {
+                setContactPhone(v);
+                setFieldErrors((prev) => ({
+                  ...prev,
+                  contactPhone: undefined,
+                }));
+              }}
+              error={Boolean(fieldErrors.contactPhone)}
+              size="md"
+            />
+            {fieldErrors.contactPhone ? (
+              <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">
+                {fieldErrors.contactPhone}
+              </p>
+            ) : null}
+          </div>
+
           <AuthField
             id="contactEmail"
             label={t("Contact email")}

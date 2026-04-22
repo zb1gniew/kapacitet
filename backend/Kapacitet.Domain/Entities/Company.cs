@@ -7,6 +7,7 @@ public class Company
     public int Id { get; set; }
     public string Name { get; set; } = null!;
     public string? LogoUrl { get; set; }
+    public string? Cvr { get; set; }
     public List<string> Categories { get; set; } = [];
     public string? Industry { get; set; }
     public string DefaultLocation { get; set; } = null!;

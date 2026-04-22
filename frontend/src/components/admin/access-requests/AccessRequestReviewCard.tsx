@@ -80,6 +80,9 @@ export function AccessRequestReviewCard({
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {request.cvr ? (
+              <InfoPill label={t("CVR")} value={request.cvr} />
+            ) : null}
             <InfoPill
               label={t("Categories")}
               value={
@@ -100,6 +103,9 @@ export function AccessRequestReviewCard({
               value={request.location}
               icon="location"
             />
+            {request.contactPhone ? (
+              <InfoPill label={t("Phone")} value={request.contactPhone} />
+            ) : null}
             <InfoPill
               label={t("Contact email")}
               value={request.contactEmail}
