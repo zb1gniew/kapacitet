@@ -120,6 +120,56 @@ public class EmailServiceTests
         _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    // ── SendSupplierConfirmationEmailIfEnabledAsync ──────────────────────────
+
+    [Fact]
+    public async Task SendSupplierConfirmation_WhenEmailActionsRequiredTrue_SendsEmail()
+    {
+        var db = TestDbFactory.Create();
+        var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
+        var user = new User { Id = 1, CompanyId = 1, Email = "sup@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
+        db.Companies.Add(company);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db, devMode: false);
+        await svc.SendSupplierConfirmationEmailIfEnabledAsync(1, 42);
+
+        _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendSupplierConfirmation_WhenEmailActionsRequiredFalse_SkipsEmail()
+    {
+        var db = TestDbFactory.Create();
+        var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
+        var user = new User { Id = 1, CompanyId = 1, Email = "sup@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
+        var prefs = new NotificationPreferences { Id = 1, CompanyId = 1, EmailActionsRequired = false };
+        db.Companies.Add(company);
+        db.Users.Add(user);
+        db.NotificationPreferences.Add(prefs);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db, devMode: false);
+        await svc.SendSupplierConfirmationEmailIfEnabledAsync(1, 42);
+
+        _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SendSupplierConfirmation_WhenNoAdminUser_SkipsEmail()
+    {
+        var db = TestDbFactory.Create();
+        var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
+        db.Companies.Add(company);
+        await db.SaveChangesAsync();
+
+        var svc = CreateService(db, devMode: false);
+        await svc.SendSupplierConfirmationEmailIfEnabledAsync(1, 42);
+
+        _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Fact]
     public async Task SendAgreementConfirmed_SendsEmailToBothCompanies()
     {

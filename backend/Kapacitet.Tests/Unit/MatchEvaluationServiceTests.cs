@@ -133,4 +133,76 @@ public class MatchEvaluationServiceTests
         avail.EndDate = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
         _svc.Evaluate(BaseRequest(), avail, 5, 5).Should().NotBeNull();
     }
+
+    // ── Certificate matching ─────────────────────────────────────────────────
+
+    [Fact]
+    public void Evaluate_WhenRequiredCertificateMissingFromAvailability_ReturnsNull()
+    {
+        var request = BaseRequest();
+        request.Certificates = [new Certificate { Id = 1, Name = "SafetyPass" }];
+        // availability has no certificates → required cert not covered
+        _svc.Evaluate(request, BaseAvailability(), 5, 5).Should().BeNull();
+    }
+
+    [Fact]
+    public void Evaluate_WhenAllCertificatesMatch_ReturnsResult()
+    {
+        var request = BaseRequest();
+        var avail = BaseAvailability();
+        request.Certificates = [new Certificate { Id = 1, Name = "SafetyPass" }];
+        avail.Certificates = [new Certificate { Id = 1, Name = "SafetyPass" }];
+        _svc.Evaluate(request, avail, 5, 5).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityHasExtraCertificatesNotRequired_StillMatches()
+    {
+        var request = BaseRequest(); // no certs required
+        var avail = BaseAvailability();
+        avail.Certificates = [new Certificate { Id = 5, Name = "ExtraCert" }];
+        _svc.Evaluate(request, avail, 5, 5).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Evaluate_WhenBothSkillsAndCertificatesRequired_AllMatch_ReturnsResult()
+    {
+        var request = BaseRequest();
+        var avail = BaseAvailability();
+        request.Skills = [new Skill { Id = 1, Name = "C#" }];
+        request.Certificates = [new Certificate { Id = 1, Name = "SafetyPass" }];
+        avail.Skills = [new Skill { Id = 1, Name = "C#" }];
+        avail.Certificates = [new Certificate { Id = 1, Name = "SafetyPass" }];
+        _svc.Evaluate(request, avail, 5, 5).Should().NotBeNull();
+    }
+
+    // ── Score component assertions ───────────────────────────────────────────
+
+    [Fact]
+    public void Evaluate_WhenNoSkillsOrCertsRequired_SkillAndCertScoresAreMaximum()
+    {
+        var result = _svc.Evaluate(BaseRequest(), BaseAvailability(), 5, 5);
+        result.Should().NotBeNull();
+        result!.Score.SkillScore.Should().Be(30,  "no required skills → full skill weight");
+        result.Score.CertificateScore.Should().Be(35, "no required certs → full cert weight");
+    }
+
+    [Fact]
+    public void Evaluate_WhenOfferCoversFullQuantity_QuantityScoreIsMaximum()
+    {
+        var result = _svc.Evaluate(BaseRequest(), BaseAvailability(), 5, 5);
+        result.Should().NotBeNull();
+        result!.Score.QuantityScore.Should().Be(5);
+    }
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityExactlyCoversDates_DateScoreIsMaximum()
+    {
+        var avail = BaseAvailability();
+        avail.StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+        avail.EndDate = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
+        var result = _svc.Evaluate(BaseRequest(), avail, 5, 5);
+        result.Should().NotBeNull();
+        result!.Score.DateScore.Should().Be(20, "zero slack days → alignment = 1 → max date score");
+    }
 }
