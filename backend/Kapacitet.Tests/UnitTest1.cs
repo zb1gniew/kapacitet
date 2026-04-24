@@ -1,10 +1,2 @@
-﻿namespace Kapacitet.Tests;
-
-public class UnitTest1
-{
-    [Fact]
-    public void Test1()
-    {
-
-    }
-}
+﻿// Placeholder removed — all tests live in Unit/ and Integration/ subdirectories.
+namespace Kapacitet.Tests;
