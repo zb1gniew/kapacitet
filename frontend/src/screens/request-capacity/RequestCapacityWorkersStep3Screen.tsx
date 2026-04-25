@@ -234,7 +234,11 @@ export function RequestCapacityWorkersStep3Screen({
             ) : null}
           </div>
 
-          <WorkflowHintsPanel hints={hints} isLoading={isLoading} flow="request" />
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={isLoading}
+            flow="request"
+          />
 
           {showValidationMessage && stepErrors.length > 0 ? (
             <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { WorkflowHint } from "@/lib/workflows/hints";
-import type { AvailabilityDraft, CapacityRequestDraft } from "@/types/workflows";
+import type {
+  AvailabilityDraft,
+  CapacityRequestDraft,
+} from "@/types/workflows";
 
 type Draft = CapacityRequestDraft | AvailabilityDraft;
 
@@ -15,25 +18,46 @@ type HintsResult = {
 // Step 3 = dates / location / radius / urgency
 // Step 4+ = review - show everything
 const STEP2_HINT_IDS = new Set([
-  "cert-bottleneck", "cert-all", "skill-bottleneck", "skill-rarity", "experience-level",
-  "quantity", "cert-opportunity", "skill-opportunity", "quantity-demand",
-  "match-count", "no-matches",
+  "cert-bottleneck",
+  "cert-all",
+  "skill-bottleneck",
+  "skill-rarity",
+  "experience-level",
+  "quantity",
+  "cert-opportunity",
+  "skill-opportunity",
+  "quantity-demand",
+  "match-count",
+  "no-matches",
 ]);
 const STEP3_HINT_IDS = new Set([
-  "radius", "date-partial", "date-extend", "urgency", "date-coverage",
-  "short-window", "weekend-window", "near-start-urgency", "far-future",
-  "match-count", "no-matches",
+  "radius",
+  "date-partial",
+  "date-extend",
+  "urgency",
+  "date-coverage",
+  "short-window",
+  "weekend-window",
+  "near-start-urgency",
+  "far-future",
+  "match-count",
+  "no-matches",
 ]);
 
 function filterForStep(hints: WorkflowHint[], step: number): WorkflowHint[] {
   if (step >= 4) return hints;
-  const allowed = step === 2 ? STEP2_HINT_IDS : step === 3 ? STEP3_HINT_IDS : null;
+  const allowed =
+    step === 2 ? STEP2_HINT_IDS : step === 3 ? STEP3_HINT_IDS : null;
   return allowed ? hints.filter((h) => allowed.has(h.id)) : hints;
 }
 
 // Structural hints (instant, no API call needed)
 
-function getStructuralHints(flow: "request" | "availability", draft: Draft, step: number): WorkflowHint[] {
+function getStructuralHints(
+  flow: "request" | "availability",
+  draft: Draft,
+  step: number,
+): WorkflowHint[] {
   const hints: WorkflowHint[] = [];
   const showDateHints = step === 3 || step >= 4;
 
@@ -42,7 +66,9 @@ function getStructuralHints(flow: "request" | "availability", draft: Draft, step
     const start = new Date(draft.startDate);
     const end = new Date(draft.endDate);
     const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
-    const daysUntilStart = Math.round((start.getTime() - Date.now()) / 86_400_000);
+    const daysUntilStart = Math.round(
+      (start.getTime() - Date.now()) / 86_400_000,
+    );
 
     if (days > 0 && days < 4) {
       hints.push({
@@ -126,7 +152,10 @@ function draftToPayload(draft: Draft) {
 
 // Merge: backend hints override structural hints with the same ID.
 // Backend-only IDs are appended after structural hints.
-function mergeHints(structural: WorkflowHint[], backend: WorkflowHint[]): WorkflowHint[] {
+function mergeHints(
+  structural: WorkflowHint[],
+  backend: WorkflowHint[],
+): WorkflowHint[] {
   const backendIds = new Set(backend.map((h) => h.id));
   const kept = structural.filter((h) => !backendIds.has(h.id));
   return [...kept, ...backend];
@@ -138,7 +167,9 @@ export function useWorkflowHints(
   step: number,
 ): HintsResult {
   const [backendHints, setBackendHints] = useState<WorkflowHint[]>([]);
-  const [estimatedMatchCount, setEstimatedMatchCount] = useState<number | null>(null);
+  const [estimatedMatchCount, setEstimatedMatchCount] = useState<number | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);

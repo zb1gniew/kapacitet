@@ -41,7 +41,11 @@ export function RequestCapacityWorkersStep2Screen({
   );
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const canContinue = isWorkerDetailsStepComplete(draft);
-  const { hints, isLoading: hintsLoading } = useWorkflowHints("request", draft, 2);
+  const { hints, isLoading: hintsLoading } = useWorkflowHints(
+    "request",
+    draft,
+    2,
+  );
 
   function handleContinue() {
     if (!canContinue) {
@@ -186,7 +190,11 @@ export function RequestCapacityWorkersStep2Screen({
             />
           </div>
 
-          <WorkflowHintsPanel hints={hints} isLoading={hintsLoading} flow="request" />
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={hintsLoading}
+            flow="request"
+          />
 
           {isLoading ? (
             <p className="text-sm text-neutral-600">

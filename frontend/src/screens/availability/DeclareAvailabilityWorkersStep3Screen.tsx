@@ -192,7 +192,11 @@ export function DeclareAvailabilityWorkersStep3Screen({
             </ul>
           </div>
 
-          <WorkflowHintsPanel hints={hints} isLoading={isLoading} flow="availability" />
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={isLoading}
+            flow="availability"
+          />
 
           {showValidationMessage && stepErrors.length > 0 ? (
             <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">

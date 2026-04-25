@@ -16,6 +16,9 @@ export async function POST(request: NextRequest) {
       headers: { "content-type": "application/json" },
     });
   } catch {
-    return NextResponse.json({ estimatedMatchCount: 0, hints: [] }, { status: 200 });
+    return NextResponse.json(
+      { estimatedMatchCount: 0, hints: [] },
+      { status: 200 },
+    );
   }
 }

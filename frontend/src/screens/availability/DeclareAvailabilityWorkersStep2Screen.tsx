@@ -40,7 +40,11 @@ export function DeclareAvailabilityWorkersStep2Screen({
   );
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const canContinue = isWorkerDetailsStepComplete(draft);
-  const { hints, isLoading: hintsLoading } = useWorkflowHints("availability", draft, 2);
+  const { hints, isLoading: hintsLoading } = useWorkflowHints(
+    "availability",
+    draft,
+    2,
+  );
 
   function handleContinue() {
     if (!canContinue) {
@@ -174,7 +178,11 @@ export function DeclareAvailabilityWorkersStep2Screen({
             />
           </div>
 
-          <WorkflowHintsPanel hints={hints} isLoading={hintsLoading} flow="availability" />
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={hintsLoading}
+            flow="availability"
+          />
 
           {isLoading ? (
             <p className="text-sm text-neutral-600">
