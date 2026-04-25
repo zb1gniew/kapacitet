@@ -1,6 +1,8 @@
 using Kapacitet.Application.Features.CapacityRequests.DTOs;
 using Kapacitet.Application.Features.CapacityRequests.Services;
 using Kapacitet.Application.Features.Common.Services;
+using Kapacitet.Application.Features.Matching.DTOs;
+using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.API.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +16,16 @@ public class CapacityRequestController : ControllerBase
 {
     private readonly CapacityRequestService _service;
     private readonly CurrentUserService _currentUser;
+    private readonly WorkflowHintsService _hints;
 
     public CapacityRequestController(
         CapacityRequestService service,
-        CurrentUserService currentUser)
+        CurrentUserService currentUser,
+        WorkflowHintsService hints)
     {
         _service = service;
         _currentUser = currentUser;
+        _hints = hints;
     }
 
     private string GetEmail() =>
@@ -88,6 +93,14 @@ public class CapacityRequestController : ControllerBase
     {
         var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
         var result = await _service.PublishAsync(id, companyId);
+        return Ok(result);
+    }
+
+    [HttpPost("hints")]
+    public async Task<IActionResult> GetHints([FromBody] WorkflowHintsRequest dto)
+    {
+        var companyId = await _currentUser.GetCompanyIdAsync(GetEmail());
+        var result = await _hints.GetRequestHintsAsync(companyId, dto);
         return Ok(result);
     }
 }

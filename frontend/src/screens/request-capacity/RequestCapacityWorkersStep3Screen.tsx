@@ -9,7 +9,7 @@ import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilityS
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { WorkflowHintsPanel } from "@/components/availability/WorkflowHintsPanel";
 import { AlertIcon, CalendarIcon } from "@/components/availability/icons";
-import { getStep3Hints } from "@/lib/workflows/hints";
+import { useWorkflowHints } from "@/hooks/useWorkflowHints";
 import {
   AVAILABILITY_RADIUS_MAX_KM,
   AVAILABILITY_RADIUS_MIN_KM,
@@ -87,7 +87,7 @@ export function RequestCapacityWorkersStep3Screen({
   const radiusKm = draft.locationRadiusKm;
   const urgency = draft.urgency as RequestUrgency;
   const stepErrors = getWorkerPeriodStepErrors(draft);
-  const hints = getStep3Hints(draft);
+  const { hints, isLoading } = useWorkflowHints("request", draft, 3);
 
   const sliderProgress = useMemo(() => {
     return (
@@ -234,7 +234,7 @@ export function RequestCapacityWorkersStep3Screen({
             ) : null}
           </div>
 
-          <WorkflowHintsPanel hints={hints} />
+          <WorkflowHintsPanel hints={hints} isLoading={isLoading} flow="request" />
 
           {showValidationMessage && stepErrors.length > 0 ? (
             <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">

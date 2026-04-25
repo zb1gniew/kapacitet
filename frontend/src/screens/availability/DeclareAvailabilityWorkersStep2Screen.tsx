@@ -7,7 +7,9 @@ import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFi
 import { AvailabilityMultiSelectMenu } from "@/components/availability/AvailabilityMultiSelectMenu";
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
+import { WorkflowHintsPanel } from "@/components/availability/WorkflowHintsPanel";
 import { AlertIcon } from "@/components/availability/icons";
+import { useWorkflowHints } from "@/hooks/useWorkflowHints";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { useStoredWorkflowDraft } from "@/hooks/useStoredWorkflowDraft";
@@ -38,6 +40,7 @@ export function DeclareAvailabilityWorkersStep2Screen({
   );
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const canContinue = isWorkerDetailsStepComplete(draft);
+  const { hints, isLoading: hintsLoading } = useWorkflowHints("availability", draft, 2);
 
   function handleContinue() {
     if (!canContinue) {
@@ -170,6 +173,8 @@ export function DeclareAvailabilityWorkersStep2Screen({
               clearAllLabel={t("Clear all")}
             />
           </div>
+
+          <WorkflowHintsPanel hints={hints} isLoading={hintsLoading} flow="availability" />
 
           {isLoading ? (
             <p className="text-sm text-neutral-600">
