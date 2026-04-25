@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type {
   AccessRequestAdvancedFilters,
   SavedAccessRequestView,
-} from "@/components/admin/access-requests/AccessRequestsToolbar";
+} from "@/components/admin/access-requests/types";
 import { useLocalStorageState } from "@/hooks/useLocalStorageState";
 import type { AccessRequest, AccessRequestFilterTab } from "@/types/admin";
 import type { TranslateFn } from "@/types/i18n";
@@ -21,7 +21,8 @@ const DEFAULT_ADVANCED_FILTERS: AccessRequestAdvancedFilters = {
   provisioningLink: "All",
 };
 
-const SAVED_VIEWS_STORAGE_KEY = "kapacitet.admin.access-requests.saved-views.v1";
+const SAVED_VIEWS_STORAGE_KEY =
+  "kapacitet.admin.access-requests.saved-views.v1";
 
 function getStartOfDayTimestamp(value: string) {
   return new Date(`${value}T00:00:00`).getTime();
@@ -90,10 +91,7 @@ export function useAccessRequestFilters({
     const normalizedSearch = advancedFilters.search.trim().toLowerCase();
 
     return requests.filter((request) => {
-      if (
-        currentActiveTab !== "All" &&
-        request.status !== currentActiveTab
-      ) {
+      if (currentActiveTab !== "All" && request.status !== currentActiveTab) {
         return false;
       }
 
@@ -201,11 +199,10 @@ export function useAccessRequestFilters({
     });
   }, [advancedFilters, currentActiveTab, requests]);
 
-  function handleAdvancedFilterChange<K extends keyof AccessRequestAdvancedFilters>(
-    key: K,
-    value: AccessRequestAdvancedFilters[K],
-  ) {
-    setAdvancedFilters((current) => ({
+  function handleAdvancedFilterChange<
+    K extends keyof AccessRequestAdvancedFilters,
+  >(key: K, value: AccessRequestAdvancedFilters[K]) {
+    setAdvancedFilters((current: AccessRequestAdvancedFilters) => ({
       ...current,
       [key]: value,
     }));
