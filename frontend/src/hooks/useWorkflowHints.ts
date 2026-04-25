@@ -178,47 +178,40 @@ export function useWorkflowHints(
     flow === "request"
       ? "/api/workflows/request-hints"
       : "/api/workflows/availability-hints";
+  const hasRequestedQualifications =
+    draft.skillIds.length > 0 || draft.certificateIds.length > 0;
+  const requestPayload = useMemo(() => draftToPayload(draft), [draft]);
 
   // Structural hints — computed synchronously, shown immediately
   const structuralHints = useMemo(
     () => getStructuralHints(flow, draft, step),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      flow,
-      step,
-      draft.skillIds.join(","),
-      draft.certificateIds.join(","),
-      draft.locationCity,
-      draft.locationRadiusKm,
-      draft.startDate,
-      draft.endDate,
-      draft.quantity,
-      "urgency" in draft ? draft.urgency : "",
-    ],
+    [flow, draft, step],
   );
 
   useEffect(() => {
     // Need at least one skill or cert to call the backend
-    if (draft.skillIds.length === 0 && draft.certificateIds.length === 0) {
-      setBackendHints([]);
-      setEstimatedMatchCount(null);
-      setIsLoading(false);
+    if (!hasRequestedQualifications) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
       return;
     }
-
-    setIsLoading(true);
 
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(async () => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
+      setIsLoading(true);
 
       try {
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(draftToPayload(draft)),
+          body: JSON.stringify(requestPayload),
           signal: controller.signal,
         });
         if (!res.ok) {
@@ -238,24 +231,25 @@ export function useWorkflowHints(
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    endpoint,
-    draft.skillIds.join(","),
-    draft.certificateIds.join(","),
-    draft.experienceLevel,
-    draft.locationCity,
-    draft.locationRadiusKm,
-    draft.startDate,
-    draft.endDate,
-    draft.quantity,
-    "urgency" in draft ? draft.urgency : "",
-  ]);
+  }, [endpoint, hasRequestedQualifications, requestPayload]);
 
   const hints = useMemo(
-    () => filterForStep(mergeHints(structuralHints, backendHints), step),
-    [structuralHints, backendHints, step],
+    () =>
+      filterForStep(
+        mergeHints(
+          structuralHints,
+          hasRequestedQualifications ? backendHints : [],
+        ),
+        step,
+      ),
+    [structuralHints, hasRequestedQualifications, backendHints, step],
   );
 
-  return { hints, estimatedMatchCount, isLoading };
+  return {
+    hints,
+    estimatedMatchCount: hasRequestedQualifications
+      ? estimatedMatchCount
+      : null,
+    isLoading: hasRequestedQualifications ? isLoading : false,
+  };
 }

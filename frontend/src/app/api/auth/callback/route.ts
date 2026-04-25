@@ -12,6 +12,7 @@ import {
   hasExpectedNonce,
 } from "@/lib/auth/oidc";
 import { createAuthSession } from "@/lib/auth/service";
+import { isPlatformAdmin } from "@/lib/auth/roles";
 import {
   createSessionCookieValue,
   getSessionCookieOptions,
@@ -93,25 +94,28 @@ export async function GET(request: NextRequest) {
     }
     const session = createAuthSession(tokenResponse, userInfo);
 
-    // Check onboarding status before persisting session
-    let onboardingCompleted = false;
-    try {
-      const backendUrl = getBackendApiBaseUrl();
-      const onboardingResponse = await fetch(
-        `${backendUrl}/api/onboarding/status`,
-        {
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`,
+    // Platform admins skip onboarding — they have no company to set up
+    let onboardingCompleted = isPlatformAdmin(session.user);
+
+    if (!onboardingCompleted) {
+      try {
+        const backendUrl = getBackendApiBaseUrl();
+        const onboardingResponse = await fetch(
+          `${backendUrl}/api/onboarding/status`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+            cache: "no-store",
           },
-          cache: "no-store",
-        },
-      );
-      if (onboardingResponse.ok) {
-        const status = await onboardingResponse.json();
-        onboardingCompleted = status.isOnboardingCompleted === true;
+        );
+        if (onboardingResponse.ok) {
+          const status = await onboardingResponse.json();
+          onboardingCompleted = status.isOnboardingCompleted === true;
+        }
+      } catch {
+        // If the check fails, treat as not onboarded
       }
-    } catch {
-      // If the check fails, treat as not onboarded
     }
 
     session.onboardingCompleted = onboardingCompleted;

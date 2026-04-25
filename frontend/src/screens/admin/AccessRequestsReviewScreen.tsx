@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { InfoIcon } from "@/components/auth/icons";
-import { AccessRequestReviewCard } from "@/components/admin/access-requests/AccessRequestReviewCard";
 import { AccessRequestReviewDialog } from "@/components/admin/access-requests/AccessRequestReviewDialog";
-import { AccessRequestsFilterTabs } from "@/components/admin/access-requests/AccessRequestsFilterTabs";
-import { AccessRequestsMetricCard } from "@/components/admin/access-requests/AccessRequestsMetricCard";
+import { AccessRequestsReviewContent } from "@/components/admin/access-requests/AccessRequestsReviewContent";
 import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLayout";
+import { useAccessRequestFilters } from "@/hooks/useAccessRequestFilters";
 import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { usePlatformAdminPreferences } from "@/hooks/usePlatformAdminPreferences";
@@ -63,6 +61,28 @@ export function AccessRequestsReviewScreen({
     highlightedRequest?.status ??
     preferences.defaultAccessRequestsTab;
 
+  const {
+    advancedFilters,
+    filteredRequests,
+    industryOptions,
+    locationOptions,
+    reviewerOptions,
+    savedViews,
+    activeSavedViewId,
+    saveViewName,
+    setSaveViewName,
+    handleAdvancedFilterChange,
+    handleClearFilters,
+    handleSaveCurrentView,
+    handleApplySavedView: applySavedViewFromFilters,
+    handleDeleteSavedView,
+  } = useAccessRequestFilters({
+    requests,
+    currentActiveTab,
+    t,
+    setToastMessage,
+  });
+
   useEffect(() => {
     if (loading || !highlightedRequestId) {
       return;
@@ -73,21 +93,6 @@ export function AccessRequestsReviewScreen({
     );
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [highlightedRequestId, loading]);
-
-  const filteredRequests =
-    currentActiveTab === "All"
-      ? requests
-      : requests.filter((request) => request.status === currentActiveTab);
-
-  const pendingCount = requests.filter(
-    (request) => request.status === "Pending",
-  ).length;
-  const approvedCount = requests.filter(
-    (request) => request.status === "Approved",
-  ).length;
-  const rejectedCount = requests.filter(
-    (request) => request.status === "Rejected",
-  ).length;
 
   async function handleReview(
     request: AccessRequest,
@@ -143,6 +148,17 @@ export function AccessRequestsReviewScreen({
     }
   }
 
+  function handleTabChange(nextTab: AccessRequestFilterTab) {
+    setActiveTab(nextTab);
+  }
+
+  function handleApplySavedView(id: string) {
+    const nextTab = applySavedViewFromFilters(id);
+    if (nextTab) {
+      setActiveTab(nextTab);
+    }
+  }
+
   return (
     <>
       <PlatformAdminLayout
@@ -159,95 +175,37 @@ export function AccessRequestsReviewScreen({
         dataName="Admin Access Requests"
         dataNodeId="admin-access-requests"
       >
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <AccessRequestsMetricCard
-            title={t("Pending review")}
-            value={pendingCount}
-            status="Pending"
-          />
-          <AccessRequestsMetricCard
-            title={t("Approved requests")}
-            value={approvedCount}
-            status="Approved"
-          />
-          <AccessRequestsMetricCard
-            title={t("Rejected requests")}
-            value={rejectedCount}
-            status="Rejected"
-          />
-          <AccessRequestsMetricCard
-            title={t("Total requests")}
-            value={requests.length}
-            status="All"
-          />
-        </section>
-
-        <section className="mt-6">
-          <div className="mb-4 flex items-start gap-3 rounded-[12px] border border-[#bedbff] bg-[#eff6ff] px-4 py-3 text-sm text-[#193cb8]">
-            <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
-            <p className="leading-[22.75px] tracking-[-0.1504px]">
-              {t(
-                "Approve verified companies to continue provisioning. Reject only when the request does not meet access requirements.",
-              )}
-            </p>
-          </div>
-
-          <AccessRequestsFilterTabs
-            activeTab={currentActiveTab}
-            onChange={setActiveTab}
-            requests={requests}
-            t={t}
-          />
-        </section>
-
-        {toastMessage ? (
-          <div className="mt-4 rounded-[12px] border border-[#b9f8cf] bg-[#f0fdf4] px-4 py-3 text-sm text-[#166534]">
-            {toastMessage}
-          </div>
-        ) : null}
-
-        {errorMessage ? (
-          <div className="mt-4 rounded-[12px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-sm text-[#b91c1c]">
-            {errorMessage}
-          </div>
-        ) : null}
-
-        {loading ? (
-          <div className="mt-6 rounded-[14px] border border-neutral-200 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-            {t("Loading access requests...")}
-          </div>
-        ) : null}
-
-        {!loading && filteredRequests.length === 0 ? (
-          <div className="mt-6 rounded-[14px] border border-neutral-200 bg-white px-6 py-12 text-center shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
-            <p className="text-lg font-semibold text-neutral-900">
-              {t("No access requests found")}
-            </p>
-            <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
-              {t("There are no requests in the {{tab}} view right now.", {
-                tab: t(currentActiveTab),
-              })}
-            </p>
-          </div>
-        ) : null}
-
-        {!loading && filteredRequests.length > 0 ? (
-          <section className="mt-6 space-y-4">
-            {filteredRequests.map((request) => (
-              <AccessRequestReviewCard
-                key={request.id}
-                highlighted={highlightedRequestId === request.id}
-                request={request}
-                t={t}
-                onApprove={() => setDialog({ type: "approve", request })}
-                onReject={() => {
-                  setRejectionReason("");
-                  setDialog({ type: "reject", request });
-                }}
-              />
-            ))}
-          </section>
-        ) : null}
+        <AccessRequestsReviewContent
+          t={t}
+          requests={requests}
+          filteredRequests={filteredRequests}
+          loading={loading}
+          errorMessage={errorMessage}
+          toastMessage={toastMessage}
+          currentActiveTab={currentActiveTab}
+          highlightedRequestId={highlightedRequestId}
+          advancedFilters={advancedFilters}
+          onFilterChange={handleAdvancedFilterChange}
+          onTabChange={handleTabChange}
+          onClearFilters={handleClearFilters}
+          industryOptions={industryOptions}
+          locationOptions={locationOptions}
+          reviewerOptions={reviewerOptions}
+          savedViews={savedViews}
+          activeSavedViewId={activeSavedViewId}
+          saveViewName={saveViewName}
+          onSaveViewNameChange={setSaveViewName}
+          onSaveCurrentView={handleSaveCurrentView}
+          onApplySavedView={handleApplySavedView}
+          onDeleteSavedView={handleDeleteSavedView}
+          onApproveRequest={(request) =>
+            setDialog({ type: "approve", request })
+          }
+          onRejectRequest={(request) => {
+            setRejectionReason("");
+            setDialog({ type: "reject", request });
+          }}
+        />
       </PlatformAdminLayout>
 
       {dialog.type === "approve" ? (

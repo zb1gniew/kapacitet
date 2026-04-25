@@ -20,12 +20,6 @@ export function buildAvailabilitySummarySections(
 
   return [
     {
-      id: "resource",
-      titleKey: "Workers",
-      icon: "resource",
-      rows: [{ labelKey: "", valueKey: "Workers" }],
-    },
-    {
       id: "details",
       titleKey: "Details",
       icon: "details",
@@ -94,12 +88,6 @@ export function buildCapacityRequestSummarySections(
   );
 
   return [
-    {
-      id: "resource",
-      titleKey: "Workers",
-      icon: "resource",
-      rows: [{ labelKey: "", valueKey: "Workers" }],
-    },
     {
       id: "details",
       titleKey: "Requirements",

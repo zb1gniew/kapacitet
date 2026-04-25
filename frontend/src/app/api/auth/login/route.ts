@@ -31,6 +31,11 @@ function getRedirectUri(): string {
   return `${appUrl}${APP_ROUTES.authCallbackApi}`;
 }
 
+function buildAppRedirectUrl(path: string): URL {
+  const { appUrl } = getAuthConfig();
+  return new URL(path, appUrl);
+}
+
 function createLoginResponse(
   request: NextRequest,
   input: {
@@ -89,9 +94,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Failed to start login", error);
-    return NextResponse.redirect(
-      new URL(APP_ROUTES.home, request.nextUrl.origin),
-    );
+    return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.home));
   }
 }
 
@@ -112,8 +115,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Failed to start login", error);
-    return NextResponse.redirect(
-      new URL(APP_ROUTES.home, request.nextUrl.origin),
-    );
+    return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.home));
   }
 }

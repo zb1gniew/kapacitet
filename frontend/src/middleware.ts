@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
+import { getAuthConfig } from "@/lib/auth/config";
 import { isPlatformAdmin } from "@/lib/auth/roles";
 import { parseSessionCookieValue } from "@/lib/auth/session";
 import { getServerSession } from "@/lib/auth/session-store";
@@ -12,12 +13,17 @@ export const config = {
   matcher: ["/dashboard/:path*", "/onboarding/:path*"],
 };
 
+function buildAppRedirectUrl(path: string): URL {
+  const { appUrl } = getAuthConfig();
+  return new URL(path, appUrl);
+}
+
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(AUTH_COOKIE_NAMES.session)?.value;
 
   if (!sessionCookie) {
     if (request.nextUrl.pathname.startsWith("/onboarding")) {
-      return NextResponse.redirect(new URL(APP_ROUTES.home, request.url));
+      return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.home));
     }
     return NextResponse.next();
   }
@@ -42,24 +48,23 @@ export async function middleware(request: NextRequest) {
 
   // Already onboarded user trying to access onboarding → redirect to dashboard
   if (isOnboardingRoute && isOnboarded) {
-    return NextResponse.redirect(new URL(APP_ROUTES.dashboard, request.url));
+    return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.dashboard));
   }
 
   // Not onboarded user trying to access dashboard → redirect to onboarding
-  if (isDashboardRoute && !isOnboarded) {
+  // Platform admins are exempt — they have no company onboarding
+  if (isDashboardRoute && !isOnboarded && !userIsPlatformAdmin) {
     return NextResponse.redirect(
-      new URL(APP_ROUTES.onboardingWelcome, request.url),
+      buildAppRedirectUrl(APP_ROUTES.onboardingWelcome),
     );
   }
 
   if (isDashboardRoute && userIsPlatformAdmin && !isAdminDashboardRoute) {
-    return NextResponse.redirect(
-      new URL(APP_ROUTES.adminOverview, request.url),
-    );
+    return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.adminOverview));
   }
 
   if (isAdminDashboardRoute && !userIsPlatformAdmin) {
-    return NextResponse.redirect(new URL(APP_ROUTES.dashboard, request.url));
+    return NextResponse.redirect(buildAppRedirectUrl(APP_ROUTES.dashboard));
   }
 
   return NextResponse.next();
