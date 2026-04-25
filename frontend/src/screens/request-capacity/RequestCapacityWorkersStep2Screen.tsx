@@ -9,7 +9,7 @@ import { AvailabilityPageShell } from "@/components/availability/AvailabilityPag
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
 import { WorkflowHintsPanel } from "@/components/availability/WorkflowHintsPanel";
 import { AlertIcon } from "@/components/availability/icons";
-import { getStep2Hints } from "@/lib/workflows/hints";
+import { useWorkflowHints } from "@/hooks/useWorkflowHints";
 import { REQUEST_CAPACITY_STEPS } from "@/constants/request-capacity";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
@@ -41,7 +41,11 @@ export function RequestCapacityWorkersStep2Screen({
   );
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const canContinue = isWorkerDetailsStepComplete(draft);
-  const hints = getStep2Hints(draft, catalog ?? null);
+  const { hints, isLoading: hintsLoading } = useWorkflowHints(
+    "request",
+    draft,
+    2,
+  );
 
   function handleContinue() {
     if (!canContinue) {
@@ -186,7 +190,11 @@ export function RequestCapacityWorkersStep2Screen({
             />
           </div>
 
-          <WorkflowHintsPanel hints={hints} />
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={hintsLoading}
+            flow="request"
+          />
 
           {isLoading ? (
             <p className="text-sm text-neutral-600">

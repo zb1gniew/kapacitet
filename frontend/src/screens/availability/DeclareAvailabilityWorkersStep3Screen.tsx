@@ -7,11 +7,13 @@ import { AvailabilityFieldLabel } from "@/components/availability/AvailabilityFi
 import { AvailabilityPageShell } from "@/components/availability/AvailabilityPageShell";
 import { AvailabilitySurfaceCard } from "@/components/availability/AvailabilitySurfaceCard";
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
+import { WorkflowHintsPanel } from "@/components/availability/WorkflowHintsPanel";
 import {
   BulletCheckIcon,
   CalendarIcon,
   ShieldIcon,
 } from "@/components/availability/icons";
+import { useWorkflowHints } from "@/hooks/useWorkflowHints";
 import {
   AVAILABILITY_RADIUS_MAX_KM,
   AVAILABILITY_RADIUS_MIN_KM,
@@ -40,6 +42,7 @@ export function DeclareAvailabilityWorkersStep3Screen({
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const radiusKm = draft.locationRadiusKm;
   const stepErrors = getWorkerPeriodStepErrors(draft);
+  const { hints, isLoading } = useWorkflowHints("availability", draft, 3);
 
   const sliderProgress = useMemo(() => {
     return (
@@ -188,6 +191,12 @@ export function DeclareAvailabilityWorkersStep3Screen({
               </li>
             </ul>
           </div>
+
+          <WorkflowHintsPanel
+            hints={hints}
+            isLoading={isLoading}
+            flow="availability"
+          />
 
           {showValidationMessage && stepErrors.length > 0 ? (
             <div className="rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] p-3 text-sm text-[#b91c1c]">

@@ -178,6 +178,7 @@ builder.Services.AddScoped<NetworkEscalationOutreachService>();
 builder.Services.AddScoped<MatchingGenerationService>();
 builder.Services.AddScoped<MatchingQueryService>();
 builder.Services.AddScoped<MatchEvaluationService>();
+builder.Services.AddScoped<WorkflowHintsService>();
 builder.Services.AddScoped<NotificationService>();
 
 // Email
