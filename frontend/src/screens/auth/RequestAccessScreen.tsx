@@ -263,6 +263,7 @@ export function RequestAccessScreen() {
               }}
               error={Boolean(fieldErrors.contactPhone)}
               size="md"
+              t={t}
             />
             {fieldErrors.contactPhone ? (
               <p className="text-xs leading-4 tracking-[-0.15px] text-red-600">

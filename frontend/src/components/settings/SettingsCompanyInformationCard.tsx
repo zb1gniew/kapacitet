@@ -319,6 +319,7 @@ export function SettingsCompanyInformationCard({
             onChange={(v) => patch("contactPhone", v || null)}
             error={Boolean(contactPhoneError)}
             size="sm"
+            t={t}
           />
           {contactPhoneError ? (
             <p className="text-[11px] leading-4 text-red-600">

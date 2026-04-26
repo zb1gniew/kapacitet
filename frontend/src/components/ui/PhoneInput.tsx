@@ -6,6 +6,7 @@ import {
   parsePhoneValue,
   type EuCountryPhone,
 } from "@/constants/eu-phone-prefixes";
+import type { TranslateFn } from "@/types/i18n";
 
 type PhoneInputProps = {
   /** Full E.164 phone string, e.g. "+4512345678" or "". */
@@ -16,6 +17,7 @@ type PhoneInputProps = {
   size?: "sm" | "md";
   placeholder?: string;
   disabled?: boolean;
+  t?: TranslateFn;
 };
 
 function ChevronDownIcon({ className }: { className?: string }) {
@@ -43,6 +45,7 @@ export function PhoneInput({
   size = "sm",
   placeholder,
   disabled = false,
+  t = (key) => key,
 }: PhoneInputProps) {
   // Fully controlled: derive country + localNumber from value prop every render.
   // No useEffect needed — the parent drives state via onChange.
@@ -125,7 +128,7 @@ export function PhoneInput({
           onKeyDown={handleKeyDown}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-label="Select country code"
+          aria-label={t("Select country code")}
           className="flex shrink-0 items-center gap-1.5 rounded-l-[10px] border-r border-neutral-200 px-3 transition hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:cursor-not-allowed"
         >
           <span className="text-lg leading-none">{country.flag}</span>
@@ -167,7 +170,7 @@ export function PhoneInput({
               onKeyDown={(e) => {
                 if (e.key === "Escape") closeDropdown();
               }}
-              placeholder="Search country…"
+              placeholder={t("Search country…")}
               className="h-8 w-full rounded-[7px] border border-neutral-200 bg-neutral-50 px-2.5 text-xs text-neutral-700 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -175,7 +178,7 @@ export function PhoneInput({
           {/* List */}
           <ul
             role="listbox"
-            aria-label="Country codes"
+            aria-label={t("Country codes")}
             className="max-h-52 overflow-y-auto py-1"
           >
             {filtered.map((c) => (
@@ -196,7 +199,7 @@ export function PhoneInput({
                   }`}
                 >
                   <span className="text-base leading-none">{c.flag}</span>
-                  <span className="flex-1 text-xs">{c.name}</span>
+                  <span className="flex-1 text-xs">{t(c.name)}</span>
                   <span className="font-mono text-xs text-neutral-500">
                     {c.prefix}
                   </span>
@@ -204,7 +207,9 @@ export function PhoneInput({
               </li>
             ))}
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-xs text-neutral-400">No results</li>
+              <li className="px-3 py-2 text-xs text-neutral-400">
+                {t("No results")}
+              </li>
             )}
           </ul>
         </div>
