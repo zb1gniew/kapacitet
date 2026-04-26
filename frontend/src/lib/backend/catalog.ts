@@ -23,6 +23,7 @@ async function fetchCatalogCollection(
       accept: "application/json",
     },
     signal,
+    cache: "no-store",
   });
 
   if (!response.ok) {

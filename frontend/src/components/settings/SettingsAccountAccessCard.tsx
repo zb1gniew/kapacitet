@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowRightIcon, EmailIcon, LockIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -13,10 +14,39 @@ type SettingsAccountAccessCardProps = {
 
 type ActivityItem = {
   type: string;
-  title: string;
-  description: string;
   occurredAt: string;
+  params: Record<string, string>;
 };
+
+function formatActivityDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function getActivityLabels(
+  t: TranslateFn,
+  type: string,
+  params: Record<string, string>,
+  locale: string,
+): { title: string; description: string } {
+  const resourceType =
+    params.resourceType === "equipment" ? t("equipment unit(s)") : t("worker(s)");
+
+  const start = params.start ? formatActivityDate(params.start, locale) : "";
+  const end = params.end ? formatActivityDate(params.end, locale) : "";
+
+  return {
+    title: t(`activity_title_${type}`),
+    description: t(`activity_desc_${type}`, {
+      ...params,
+      resourceType,
+      start,
+      end,
+    }),
+  };
+}
 
 function formatRelativeTime(t: TranslateFn, dateStr: string): string {
   const date = new Date(dateStr);
@@ -140,6 +170,8 @@ function AccountPanel({
 }
 
 function RecentActivityPanel({ t }: { t: TranslateFn }) {
+  const { i18n } = useTranslation();
+  const locale = i18n.language;
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [showAll, setShowAll] = useState(false);
 
@@ -164,7 +196,9 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
         </p>
       ) : (
         <div className="mt-3 space-y-2">
-          {displayed.map((item, idx) => (
+          {displayed.map((item, idx) => {
+            const { title, description } = getActivityLabels(t, item.type, item.params ?? {}, locale);
+            return (
             <div
               key={idx}
               className="rounded-[10px] border border-neutral-200 bg-[#fafafa] px-3 py-2"
@@ -174,11 +208,11 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
                   <div className="flex items-center gap-2">
                     <span className="mt-0.5 h-2 w-2 shrink-0 bg-blue-600" />
                     <p className="text-xs font-medium leading-[16px] text-neutral-900">
-                      {t(item.title)}
+                      {title}
                     </p>
                   </div>
                   <p className="mt-0.5 pl-4 text-[11px] leading-[16px] text-neutral-500">
-                    {t(item.description)}
+                    {description}
                   </p>
                 </div>
                 <p className="shrink-0 text-[10px] leading-[14px] text-neutral-500">
@@ -186,7 +220,8 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

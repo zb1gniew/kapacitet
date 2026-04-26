@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { CatalogItem } from "@/lib/backend/catalog";
 
 type AvailabilityMultiSelectMenuProps = {
@@ -55,6 +56,7 @@ export function AvailabilityMultiSelectMenu({
   selectedItemsLabel,
   clearAllLabel,
 }: AvailabilityMultiSelectMenuProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const searchInputId = useId();
 
@@ -83,7 +85,7 @@ export function AvailabilityMultiSelectMenu({
     selectedItems.length === 0
       ? buttonPlaceholder
       : selectedItems.length <= 2
-        ? selectedItems.map((item) => item.name).join(", ")
+        ? selectedItems.map((item) => t(item.name)).join(", ")
         : `${selectedItems.length} ${selectedLabel}`;
 
   return (
@@ -142,11 +144,11 @@ export function AvailabilityMultiSelectMenu({
                     />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-medium tracking-[-0.1504px] text-neutral-800">
-                        {item.name}
+                        {t(item.name)}
                       </span>
                       {item.category ? (
                         <span className="mt-0.5 block text-xs uppercase tracking-[0.08em] text-neutral-500">
-                          {item.category}
+                          {t(item.category)}
                         </span>
                       ) : null}
                     </span>
@@ -187,7 +189,7 @@ export function AvailabilityMultiSelectMenu({
                 onClick={() => onToggle(item.id)}
                 className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium tracking-[-0.1504px] text-blue-700"
               >
-                {item.name}
+                {t(item.name)}
               </button>
             ))}
           </div>
