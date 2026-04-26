@@ -317,7 +317,7 @@ var developmentFeatures = app.Services
     .GetRequiredService<IOptions<DevelopmentFeaturesOptions>>()
     .Value;
 
-if (developmentFeatures.ApplyMigrations || developmentFeatures.SeedDemoData)
+if (developmentFeatures.ApplyMigrations || developmentFeatures.SeedInitialData || developmentFeatures.SeedDemoData)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -329,7 +329,11 @@ if (developmentFeatures.ApplyMigrations || developmentFeatures.SeedDemoData)
 
     if (developmentFeatures.SeedDemoData)
     {
-        await DbSeeder.SeedAsync(db);
+        await DevelopmentSeeder.SeedAsync(db);
+    }
+    else if (developmentFeatures.SeedInitialData)
+    {
+        await ProductionSeeder.SeedAsync(db);
     }
 }
 
