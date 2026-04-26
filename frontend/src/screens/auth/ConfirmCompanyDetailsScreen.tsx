@@ -173,6 +173,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
               value={contactPhone}
               onChange={setContactPhone}
               size="md"
+              t={t}
             />
           </div>
         </div>
