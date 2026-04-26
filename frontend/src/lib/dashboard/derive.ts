@@ -87,25 +87,17 @@ function buildLocationSubtitle(t: TranslateFn, locationCity?: string | null) {
     : t("Visible in your trusted network");
 }
 
-function pluralizeSkill(skill: string, quantity: number) {
-  if (quantity === 1 || !skill) {
-    return skill;
-  }
-
-  if (/[^aeiou]y$/i.test(skill)) {
-    return `${skill.slice(0, -1)}ies`;
-  }
-
-  if (/(s|x|z|ch|sh)$/i.test(skill)) {
-    return `${skill}es`;
-  }
-
-  return `${skill}s`;
-}
-
 function getPrimarySkill(skills: string[], fallback: string) {
   const firstSkill = skills.find((skill) => skill.trim().length > 0);
   return firstSkill ?? fallback;
+}
+
+function getTranslatedPrimarySkill(
+  t: TranslateFn,
+  skills: string[],
+  fallback: string,
+) {
+  return t(getPrimarySkill(skills, fallback));
 }
 
 function buildMatchesHref(matchId?: number | null) {
@@ -115,12 +107,12 @@ function buildMatchesHref(matchId?: number | null) {
 }
 
 function buildQuantityTitle(
+  t: TranslateFn,
   quantity: number,
   skills: string[],
   fallback: string,
 ) {
-  const primarySkill = getPrimarySkill(skills, fallback);
-  return `${quantity} ${pluralizeSkill(primarySkill, quantity)}`;
+  return `${quantity} ${getTranslatedPrimarySkill(t, skills, fallback)}`;
 }
 
 function isWithinWindow(
@@ -247,6 +239,7 @@ function buildAvailabilityProcess(
     id: availability.id,
     kind: "availability",
     title: buildQuantityTitle(
+      t,
       availability.quantity,
       availability.skills,
       t("Availability"),
@@ -313,7 +306,12 @@ function buildRequestProcess(
   return {
     id: request.id,
     kind: "request",
-    title: buildQuantityTitle(request.quantity, request.skills, t("Capacity")),
+    title: buildQuantityTitle(
+      t,
+      request.quantity,
+      request.skills,
+      t("Capacity"),
+    ),
     subtitle,
     meta: formatRelativePublishedAt(
       t,
@@ -425,7 +423,7 @@ export function deriveReminders(
         tone: "success" as const,
         title: t("Availability expiring"),
         description: t("{{skill}} capacity ends", {
-          skill: getPrimarySkill(entry.skills, t("Availability")),
+          skill: getTranslatedPrimarySkill(t, entry.skills, t("Availability")),
         }),
       }))
       .filter((entry) =>
@@ -441,7 +439,7 @@ export function deriveReminders(
         tone: "primary" as const,
         title: t("Request start date"),
         description: t("{{skill}} needed period begins", {
-          skill: getPrimarySkill(request.skills, t("Capacity")),
+          skill: getTranslatedPrimarySkill(t, request.skills, t("Capacity")),
         }),
       }))
       .filter((entry) =>
@@ -485,6 +483,7 @@ export function deriveReminders(
         title: t("Availability live"),
         description: t("{{title}} visible in {{location}}", {
           title: buildQuantityTitle(
+            t,
             entry.quantity,
             entry.skills,
             t("Availability"),
@@ -500,6 +499,7 @@ export function deriveReminders(
         title: t("Request live"),
         description: t("{{title}} still open for matching", {
           title: buildQuantityTitle(
+            t,
             request.quantity,
             request.skills,
             t("Capacity"),
@@ -568,6 +568,7 @@ export function deriveActionBanner(
         timing: formatUntilDate(t, mostRecentAvailability.endDate),
         title: t("{{title}} is now visible in your trusted network", {
           title: buildQuantityTitle(
+            t,
             mostRecentAvailability.quantity,
             mostRecentAvailability.skills,
             t("Availability"),
@@ -607,6 +608,7 @@ export function deriveActionBanner(
         timing: formatDaysUntilStart(t, mostRecentRequest.startDate, now),
         title: t("{{title}} is now being matched across your network", {
           title: buildQuantityTitle(
+            t,
             mostRecentRequest.quantity,
             mostRecentRequest.skills,
             t("Capacity"),
@@ -623,7 +625,8 @@ export function deriveActionBanner(
     return null;
   }
 
-  const primarySkill = getPrimarySkill(
+  const primarySkill = getTranslatedPrimarySkill(
+    t,
     mostUrgentRequest.skills,
     t("Capacity request"),
   );

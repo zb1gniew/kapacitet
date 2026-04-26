@@ -185,9 +185,13 @@ public class CompanyService
                 activities.Add(new ActivityItemDto
                 {
                     Type = "capacity_request_published",
-                    Title = "Published capacity request",
-                    Description = $"{r.Quantity} {r.ResourceType.ToString().ToLower()}(s) in {r.LocationCity}",
-                    OccurredAt = r.PublishedAt.Value
+                    OccurredAt = r.PublishedAt.Value,
+                    Params = new Dictionary<string, string>
+                    {
+                        ["quantity"] = r.Quantity.ToString(),
+                        ["resourceType"] = r.ResourceType.ToString().ToLower(),
+                        ["city"] = r.LocationCity
+                    }
                 });
             }
             else
@@ -195,9 +199,13 @@ public class CompanyService
                 activities.Add(new ActivityItemDto
                 {
                     Type = "capacity_request_created",
-                    Title = "Created capacity request",
-                    Description = $"{r.Quantity} {r.ResourceType.ToString().ToLower()}(s) in {r.LocationCity}",
-                    OccurredAt = r.CreatedAt
+                    OccurredAt = r.CreatedAt,
+                    Params = new Dictionary<string, string>
+                    {
+                        ["quantity"] = r.Quantity.ToString(),
+                        ["resourceType"] = r.ResourceType.ToString().ToLower(),
+                        ["city"] = r.LocationCity
+                    }
                 });
             }
         }
@@ -215,9 +223,14 @@ public class CompanyService
                 activities.Add(new ActivityItemDto
                 {
                     Type = "availability_published",
-                    Title = "Declared availability",
-                    Description = $"{a.Quantity} {a.ResourceType.ToString().ToLower()}(s), {a.StartDate:MMM d} – {a.EndDate:MMM d}",
-                    OccurredAt = a.PublishedAt.Value
+                    OccurredAt = a.PublishedAt.Value,
+                    Params = new Dictionary<string, string>
+                    {
+                        ["quantity"] = a.Quantity.ToString(),
+                        ["resourceType"] = a.ResourceType.ToString().ToLower(),
+                        ["start"] = a.StartDate.ToString("yyyy-MM-dd"),
+                        ["end"] = a.EndDate.ToString("yyyy-MM-dd")
+                    }
                 });
             }
         }
@@ -236,9 +249,12 @@ public class CompanyService
             activities.Add(new ActivityItemDto
             {
                 Type = accepted ? "match_accepted" : "match_declined",
-                Title = accepted ? "Accepted match offer" : "Declined match offer",
-                Description = $"{m.OfferedQuantity} worker(s) match for request #{m.RequestId}",
-                OccurredAt = m.RequesterReviewedAt!.Value
+                OccurredAt = m.RequesterReviewedAt!.Value,
+                Params = new Dictionary<string, string>
+                {
+                    ["quantity"] = m.OfferedQuantity.ToString(),
+                    ["requestId"] = m.RequestId.ToString()
+                }
             });
         }
 
@@ -253,9 +269,13 @@ public class CompanyService
             activities.Add(new ActivityItemDto
             {
                 Type = "agreement_created",
-                Title = "Cooperation agreement created",
-                Description = $"Agreement #{a.Id} from {a.StartDate:MMM d} to {a.EndDate:MMM d}",
-                OccurredAt = a.CreatedAt
+                OccurredAt = a.CreatedAt,
+                Params = new Dictionary<string, string>
+                {
+                    ["agreementId"] = a.Id.ToString(),
+                    ["start"] = a.StartDate.ToString("yyyy-MM-dd"),
+                    ["end"] = a.EndDate.ToString("yyyy-MM-dd")
+                }
             });
         }
 
