@@ -33,6 +33,7 @@ public sealed class NetworkEscalationService
         var escalations = await _db.NetworkEscalations
             .AsNoTracking()
             .AsSplitQuery()
+            .Include(e => e.Request).ThenInclude(r => r.Company)
             .Include(e => e.Request).ThenInclude(r => r.Skills)
             .Include(e => e.Request).ThenInclude(r => r.Certificates)
             .Include(e => e.Responses)
@@ -44,7 +45,20 @@ public sealed class NetworkEscalationService
             .OrderByDescending(e => e.TriggeredAt)
             .ToListAsync();
 
-        return escalations.Select(e => MapToDto(e, companyId)).ToList();
+        var alreadyResponded = escalations
+            .Where(e => e.Responses.Any(r => r.CompanyId == companyId))
+            .ToList();
+
+        var newEscalations = escalations
+            .Except(alreadyResponded)
+            .Where(e => SharesCategory(company.Categories, e.Request.Company.Categories))
+            .ToList();
+
+        return alreadyResponded
+            .Concat(newEscalations)
+            .OrderByDescending(e => e.TriggeredAt)
+            .Select(e => MapToDto(e, companyId))
+            .ToList();
     }
 
     public async Task<NetworkEscalationDto> SubmitResponseAsync(
@@ -59,6 +73,7 @@ public sealed class NetworkEscalationService
 
         var escalation = await _db.NetworkEscalations
             .AsSplitQuery()
+            .Include(e => e.Request).ThenInclude(r => r.Company)
             .Include(e => e.Request).ThenInclude(r => r.Skills)
             .Include(e => e.Request).ThenInclude(r => r.Certificates)
             .Include(e => e.Responses)
@@ -86,6 +101,12 @@ public sealed class NetworkEscalationService
         {
             throw new UnauthorizedAccessException(
                 "This company is not eligible to respond to network-wide requests");
+        }
+
+        if (!SharesCategory(company.Categories, escalation.Request.Company.Categories))
+        {
+            throw new UnauthorizedAccessException(
+                "This company does not share any categories with the requesting company");
         }
 
         if (escalation.Responses.Any(r => r.CompanyId == companyId))
@@ -142,6 +163,13 @@ public sealed class NetworkEscalationService
         await _db.SaveChangesAsync();
 
         await _matchingOrchestrator.GenerateMatchesForRequestAsync(derivedRequest.Id);
+    }
+
+    private static bool SharesCategory(List<string> a, List<string> b)
+    {
+        if (a.Count == 0 || b.Count == 0)
+            return false;
+        return a.Any(b.Contains);
     }
 
     private static NetworkEscalationDto MapToDto(NetworkEscalation escalation, int companyId)
