@@ -14,13 +14,27 @@ function buildBackendUrl(path: string): string {
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function createUnauthorizedResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      message: "Authentication required. Sign in again to continue.",
+    }),
+    {
+      status: 401,
+      headers: {
+        "content-type": "application/json",
+      },
+    },
+  );
+}
+
 export async function fetchBackend(
   path: string,
   options: BackendFetchOptions = {},
 ): Promise<Response> {
   const session = await getServerAuthSession();
   if (!session) {
-    throw new Error("Authenticated backend requests require an active session");
+    return createUnauthorizedResponse();
   }
 
   const headers = new Headers(options.headers);

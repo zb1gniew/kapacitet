@@ -60,6 +60,11 @@ public class AccessRequestConfiguration : IEntityTypeConfiguration<AccessRequest
         builder.Property(a => a.CreatedAt).IsRequired();
 
         builder.Property(a => a.RejectionReason).HasMaxLength(1000);
+        builder.Property(a => a.InitialPasswordSetupTokenHash)
+            .HasMaxLength(128)
+            .IsRequired(false);
+        builder.Property(a => a.InitialPasswordSetupTokenExpiresAt)
+            .IsRequired(false);
 
         builder.HasOne<Company>()
             .WithMany()

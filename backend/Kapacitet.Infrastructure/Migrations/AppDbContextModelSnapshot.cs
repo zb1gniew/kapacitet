@@ -115,6 +115,13 @@ namespace Kapacitet.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime?>("InitialPasswordSetupTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InitialPasswordSetupTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(100)

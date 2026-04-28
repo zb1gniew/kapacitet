@@ -204,5 +204,56 @@ public static class DevelopmentSeeder
         await ProductionSeeder.EnsureUserAsync(db, partnerCompany, "partner.admin@kapacitet.net", UserRole.Admin, now);
         await ProductionSeeder.EnsureUserAsync(db, partnerCompany, "partner.manager@kapacitet.net", UserRole.Manager, now);
         await ProductionSeeder.EnsureUserAsync(db, partnerCompany, "partner.viewer@kapacitet.net", UserRole.Viewer, now);
+
+        await NormalizeRequesterDemoUsersAsync(
+            db,
+            requesterCompany.Id,
+            "Test Company A/S",
+            "Construction",
+            "Sonderborg",
+            "+45 70 11 22 33");
+    }
+
+    private static async Task NormalizeRequesterDemoUsersAsync(
+        AppDbContext db,
+        int fallbackCompanyId,
+        string canonicalName,
+        string canonicalIndustry,
+        string canonicalLocation,
+        string canonicalPhone)
+    {
+        var requesterEmails = new[]
+        {
+            "testuser@kapacitet.net",
+            "request.manager@kapacitet.net",
+            "request.viewer@kapacitet.net"
+        };
+
+        var requesterUsers = await db.Users
+            .Where(user => requesterEmails.Contains(user.Email))
+            .OrderBy(user => user.Id)
+            .ToListAsync();
+
+        var targetCompanyId = requesterUsers
+            .FirstOrDefault(user => user.Email == "testuser@kapacitet.net")
+            ?.CompanyId ?? fallbackCompanyId;
+
+        var targetCompany = await db.Companies.FindAsync(targetCompanyId);
+        if (targetCompany is null)
+        {
+            return;
+        }
+
+        targetCompany.Name = canonicalName;
+        targetCompany.Industry = canonicalIndustry;
+        targetCompany.DefaultLocation = canonicalLocation;
+        targetCompany.ContactPhone = canonicalPhone;
+
+        foreach (var requesterUser in requesterUsers)
+        {
+            requesterUser.CompanyId = targetCompanyId;
+        }
+
+        await db.SaveChangesAsync();
     }
 }

@@ -26,18 +26,21 @@ public class EmailService
     }
 
     // ── Trigger 1: User approved ──────────────────────────────────────────────
-    public async Task SendApprovalEmailAsync(string toEmail, string companyName, string temporaryPassword)
+    public async Task SendApprovalEmailAsync(string toEmail, string companyName, string setupToken)
     {
         var loginUrl = System.Net.WebUtility.HtmlEncode(_options.AppUrl);
+        var setupUrl = System.Net.WebUtility.HtmlEncode(
+            $"{_options.AppUrl.TrimEnd('/')}/?setupToken={Uri.EscapeDataString(setupToken)}");
         var subject = "You're approved — welcome to Kapacitet";
         var body = $"""
             <h2>Welcome to Kapacitet, {System.Net.WebUtility.HtmlEncode(companyName)}!</h2>
             <p>Your access request has been approved and your account is ready.</p>
             <p>
-              Head to <a href="{loginUrl}">{loginUrl}</a> and log in with your email address
-              (<strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong>).
-              You will be guided to set your password on first login.
+              Start by setting your password here:
+              <a href="{setupUrl}">{setupUrl}</a>
             </p>
+            <p>This secure setup link is tied to <strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong> and expires in 48 hours.</p>
+            <p>After setting your password, sign in at <a href="{loginUrl}">{loginUrl}</a>.</p>
             """;
 
         await SendAsync(toEmail, subject, body);

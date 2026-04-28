@@ -21,9 +21,6 @@ public class AccessRequestController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> Submit([FromBody] SubmitAccessRequestDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var result = await _service.SubmitAsync(dto);
         return CreatedAtAction(nameof(Submit), new { id = result.Id }, result);
     }
@@ -40,9 +37,6 @@ public class AccessRequestController : ControllerBase
     [Authorize(Policy = AuthorizationRoles.PlatformAdminPolicy)]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewAccessRequestDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var reviewedBy = User.FindFirst("email")?.Value
         ?? User.FindFirst("preferred_username")?.Value
         ?? "unknown";

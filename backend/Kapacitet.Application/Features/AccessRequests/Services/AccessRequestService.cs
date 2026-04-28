@@ -1,4 +1,5 @@
 using Kapacitet.Application.Features.AccessRequests.DTOs;
+using Kapacitet.Application.Features.AccountSetup.Services;
 using Kapacitet.Application.Features.Common.Errors;
 using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Domain.Entities;
@@ -9,6 +10,7 @@ using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Kapacitet.Application.Features.Notifications.Services;
+using System.Security.Cryptography;
 
 namespace Kapacitet.Application.Features.AccessRequests.Services;
 
@@ -18,17 +20,20 @@ public class AccessRequestService
     private readonly KeycloakAdminClient _keycloakClient;
     private readonly ILogger<AccessRequestService> _logger;
     private readonly EmailService _emailService;
+    private readonly InitialPasswordSetupService _initialPasswordSetupService;
 
     public AccessRequestService(
         AppDbContext db,
         KeycloakAdminClient keycloakClient,
         ILogger<AccessRequestService> logger,
-        EmailService emailService)
+        EmailService emailService,
+        InitialPasswordSetupService initialPasswordSetupService)
     {
         _db = db;
         _keycloakClient = keycloakClient;
         _logger = logger;
         _emailService = emailService;
+        _initialPasswordSetupService = initialPasswordSetupService;
     }
 
     public async Task<AccessRequestDto> SubmitAsync(SubmitAccessRequestDto dto)
@@ -138,8 +143,6 @@ public class AccessRequestService
         request.ReviewedBy = reviewedBy;
         request.ReviewedAt = DateTime.UtcNow;
 
-        string? temporaryPassword = null;
-
         if (dto.Decision == AccessRequestStatus.Approved)
         {
             await using var transaction = await _db.Database.BeginTransactionAsync();
@@ -159,15 +162,20 @@ public class AccessRequestService
 
             // Keycloak is provisioned BEFORE committing the transaction.
             // If it throws, the transaction rolls back and no orphaned DB accounts are created.
-            temporaryPassword = await ProvisionKeycloakUserAsync(request);
+            await ProvisionKeycloakUserAsync(request);
 
             await transaction.CommitAsync();
+
+            var setupToken = await _initialPasswordSetupService.IssueTokenAsync(request.Id);
 
             _logger.LogInformation(
                 "Access request approved: RequestId={RequestId}, ReviewedBy={ReviewedBy}, CompanyId={CompanyId}",
                 request.Id, reviewedBy, request.ProvisionedCompanyId);
 
-            await _emailService.SendApprovalEmailAsync(request.ContactEmail, request.Name, temporaryPassword);
+            await _emailService.SendApprovalEmailAsync(
+                request.ContactEmail,
+                request.Name,
+                setupToken);
         }
         else
         {
@@ -186,7 +194,7 @@ public class AccessRequestService
             }
         }
 
-        return CreateReviewResult(request, temporaryPassword);
+        return CreateReviewResult(request);
     }
 
     private async Task ProvisionCompanyAndUserAsync(AccessRequest request)
@@ -228,7 +236,7 @@ public class AccessRequestService
             company.Id, company.Name, request.ContactEmail, request.Id);
     }
 
-    private async Task<string> ProvisionKeycloakUserAsync(AccessRequest request)
+    private async Task ProvisionKeycloakUserAsync(AccessRequest request)
     {
         var existingKeycloakUserId = await _keycloakClient.FindUserByEmailAsync(request.ContactEmail);
 
@@ -245,18 +253,17 @@ public class AccessRequestService
             keycloakUserId = await _keycloakClient.CreateUserAsync(request.ContactEmail);
         }
 
-        await _keycloakClient.SetTemporaryPasswordAsync(keycloakUserId, request.ContactEmail);
-
-        return request.ContactEmail;
+        await _keycloakClient.SetTemporaryPasswordAsync(
+            keycloakUserId,
+            CreateBootstrapPassword());
     }
 
+    private static string CreateBootstrapPassword() =>
+        $"{Convert.ToHexString(RandomNumberGenerator.GetBytes(16))}aA!";
+
     private static AccessRequestDto CreateReviewResult(
-        AccessRequest entity,
-        string? temporaryPassword)
+        AccessRequest entity)
     {
-        // TemporaryPassword is intentionally not included in the API response —
-        // it is sent to the user via email only.
-        _ = temporaryPassword;
         return MapToDto(entity);
     }
 
