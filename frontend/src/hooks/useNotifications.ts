@@ -15,8 +15,9 @@ export function useNotifications() {
     try {
       setLoading(true);
       const response = await fetch("/api/notifications", { cache: "no-store" });
-      if (!response.ok)
-        throw new Error(`Failed to load notifications (${response.status})`);
+      if (!response.ok) {
+        throw new Error((await parseProblemDetails(response)).message);
+      }
       const data = (await response.json()) as NotificationResponse[];
       setNotifications(data);
       setError(null);

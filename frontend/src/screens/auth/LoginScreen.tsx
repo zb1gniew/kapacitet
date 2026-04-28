@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import { AuthInput } from "@/components/auth/AuthInput";
@@ -14,11 +15,11 @@ import {
 
 type ScreenState =
   | { step: "email" }
-  | { step: "set-password"; email: string }
+  | { step: "set-password"; email: string; token: string }
   | { step: "password-set"; email: string };
 
-type CheckNewUserResponse = {
-  isFirstTimeUser?: boolean;
+type SetupContextResponse = {
+  email?: string;
 };
 
 type MessageResponse = {
@@ -46,13 +47,25 @@ function redirectToKeycloak(email: string) {
   window.location.assign(loginUrl.toString());
 }
 
-async function checkIfFirstTimeUser(email: string): Promise<boolean> {
+async function getSetupContext(token: string): Promise<string> {
   const response = await fetch(
-    `/api/account/check-new?email=${encodeURIComponent(email)}`,
+    `/api/account/setup-context?token=${encodeURIComponent(token)}`,
   );
-  const data = (await response.json()) as CheckNewUserResponse;
+  if (!response.ok) {
+    throw new Error(
+      await getResponseMessage(
+        response,
+        "This password setup link is invalid or expired.",
+      ),
+    );
+  }
 
-  return Boolean(data.isFirstTimeUser);
+  const data = (await response.json()) as SetupContextResponse;
+  if (!data.email) {
+    throw new Error("This password setup link is invalid or expired.");
+  }
+
+  return data.email;
 }
 
 async function getResponseMessage(
@@ -81,9 +94,49 @@ function PasswordSetSuccessIcon() {
 
 export function LoginScreen() {
   const { t } = useLocalizedScreen();
+  const searchParams = useSearchParams();
   const [state, setState] = useState<ScreenState>({ step: "email" });
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const setupToken = searchParams.get("setupToken");
+
+  useEffect(() => {
+    if (!setupToken) {
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setErrorMessage("");
+
+    void getSetupContext(setupToken)
+      .then((email) => {
+        if (!active) {
+          return;
+        }
+        setState({ step: "set-password", email, token: setupToken });
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+        setState({ step: "email" });
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : t("This password setup link is invalid or expired."),
+        );
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [setupToken, t]);
 
   function resetToEmailStep() {
     setState({ step: "email" });
@@ -98,18 +151,7 @@ export function LoginScreen() {
     const email = getTrimmedFormValue(formData, "email");
     if (!email) return;
 
-    setLoading(true);
-    try {
-      if (await checkIfFirstTimeUser(email)) {
-        setState({ step: "set-password", email });
-      } else {
-        redirectToKeycloak(email);
-      }
-    } catch {
-      redirectToKeycloak(email);
-    } finally {
-      setLoading(false);
-    }
+    redirectToKeycloak(email);
   }
 
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
@@ -136,7 +178,7 @@ export function LoginScreen() {
       const response = await fetch("/api/account/set-initial-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: state.email, password }),
+        body: JSON.stringify({ token: state.token, password }),
       });
 
       if (!response.ok) {
@@ -180,16 +222,16 @@ export function LoginScreen() {
           />
           <p className="text-xs tracking-[-0.1504px] text-neutral-500">
             {t(
-              "Continue with your email and complete sign-in on your organization's hosted identity page.",
+              "Continue with your email on your organization's hosted identity page.",
             )}
           </p>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || Boolean(setupToken)}
             className={primaryButtonClassName}
           >
-            {loading ? t("Checking...") : t("Sign in")}
+            {loading && setupToken ? t("Checking...") : t("Sign in")}
           </button>
         </form>
 
@@ -218,7 +260,7 @@ export function LoginScreen() {
         </h2>
         <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
           {t(
-            "Welcome! Your account has been approved. Set a password to get started.",
+            "Welcome! Your account has been approved. Set a password using your secure setup link to get started.",
           )}
         </p>
 

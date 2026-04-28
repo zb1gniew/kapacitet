@@ -19,4 +19,6 @@ public class AccessRequest
     public DateTime CreatedAt { get; set; }
     public int? ProvisionedCompanyId { get; set; }
     public string? RejectionReason { get; set; }
+    public string? InitialPasswordSetupTokenHash { get; set; }
+    public DateTime? InitialPasswordSetupTokenExpiresAt { get; set; }
 }

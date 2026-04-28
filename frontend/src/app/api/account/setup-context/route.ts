@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendApiBaseUrl } from "@/lib/backend/config";
 
-function buildCheckNewUrl(email: string): string {
-  const url = new URL("/api/account/check-new", getBackendApiBaseUrl());
-  url.searchParams.set("email", email);
+function buildSetupContextUrl(token: string): string {
+  const url = new URL("/api/account/setup-context", getBackendApiBaseUrl());
+  url.searchParams.set("token", token);
   return url.toString();
 }
 
@@ -20,23 +20,23 @@ function createProxyResponse(
 }
 
 export async function GET(request: NextRequest) {
-  const email = request.nextUrl.searchParams.get("email");
-  if (!email) {
+  const token = request.nextUrl.searchParams.get("token");
+  if (!token) {
     return NextResponse.json(
-      { message: "Email is required." },
+      { message: "Token is required." },
       { status: 400 },
     );
   }
 
   try {
-    const response = await fetch(buildCheckNewUrl(email), {
+    const response = await fetch(buildSetupContextUrl(token), {
       cache: "no-store",
     });
 
     return createProxyResponse(response, await response.text());
   } catch {
     return NextResponse.json(
-      { message: "Unable to check account status." },
+      { message: "Unable to validate setup link." },
       { status: 500 },
     );
   }

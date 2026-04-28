@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightIcon, EmailIcon, LockIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
@@ -80,7 +80,7 @@ function getRoleLabel(
   t: TranslateFn,
   roles?: string[],
 ): { label: string; badge: string } {
-  if (roles?.includes("platform-admin") || roles?.includes("operator-admin")) {
+  if (roles?.includes("Admin") || roles?.includes("OperatorAdmin")) {
     return { label: t("Platform Administrator"), badge: t("Full Access") };
   }
   return { label: t("Company Administrator"), badge: t("Full Access") };
@@ -118,8 +118,8 @@ function AccountPanel({
         </div>
         <p className="mt-2 text-[11px] leading-[16px] text-[#193cb8]">
           {t(
-            user.roles?.includes("platform-admin") ||
-              user.roles?.includes("operator-admin")
+            user.roles?.includes("Admin") ||
+              user.roles?.includes("OperatorAdmin")
               ? "As a platform administrator, you have full access to review onboarding, manage platform operations, and inspect audit activity."
               : "As a company administrator, you have full access to declare availability, request capacity, review matches, and manage settings.",
           )}
@@ -138,22 +138,20 @@ function AccountPanel({
       </div>
 
       <div className="mt-3 rounded-[10px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2">
             <LockIcon className="mt-0.5 h-4 w-4 text-neutral-500" />
             <div>
               <p className="text-sm font-semibold leading-5 tracking-[-0.1504px] text-neutral-900">
                 {t("Password")}
               </p>
+              <p className="mt-0.5 text-[11px] leading-4 text-neutral-500">
+                {t(
+                  "Password changes are managed by the hosted sign-in provider during login.",
+                )}
+              </p>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="inline-flex h-8 items-center rounded-[8px] border border-neutral-300 bg-white px-3 text-[11px] font-semibold text-neutral-700 transition hover:bg-neutral-100"
-          >
-            {t("Change password")}
-          </button>
         </div>
       </div>
 
@@ -175,14 +173,52 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
   const { i18n } = useTranslation();
   const locale = i18n.language;
   const [items, setItems] = useState<ActivityItem[]>([]);
+  const [loadError, setLoadError] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/company/activity?limit=10")
-      .then((r) => r.json())
-      .then((data: ActivityItem[]) => setItems(data))
-      .catch(() => {});
+  const loadActivity = useCallback(() => {
+    setLoadError("");
+
+    void fetch("/api/company/activity?limit=10", {
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const fallback = "Unable to load recent activity right now.";
+          const payload = (await response.json().catch(() => null)) as {
+            message?: string;
+            detail?: string;
+            title?: string;
+          } | null;
+          throw new Error(
+            payload?.message ?? payload?.detail ?? payload?.title ?? fallback,
+          );
+        }
+
+        return (await response.json()) as ActivityItem[];
+      })
+      .then((data) => {
+        setItems(data);
+      })
+      .catch((error: unknown) => {
+        setItems([]);
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load recent activity right now.",
+        );
+      });
   }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      loadActivity();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadActivity]);
 
   const displayed = showAll ? items : items.slice(0, 5);
 
@@ -192,7 +228,18 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
         {t("Recent activity")}
       </h3>
 
-      {displayed.length === 0 ? (
+      {loadError ? (
+        <div className="mt-3 rounded-[10px] border border-red-200 bg-red-50 px-3 py-3 text-xs text-red-700">
+          <p>{t(loadError)}</p>
+          <button
+            type="button"
+            onClick={loadActivity}
+            className="mt-3 inline-flex h-8 items-center rounded-[8px] border border-red-200 bg-white px-3 text-[11px] font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            {t("Try again")}
+          </button>
+        </div>
+      ) : displayed.length === 0 ? (
         <p className="mt-3 text-xs text-neutral-500">
           {t("No recent activity.")}
         </p>

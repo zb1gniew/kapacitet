@@ -36,7 +36,7 @@ public class EmailServiceTests
         var db = TestDbFactory.Create();
         var svc = CreateService(db, devMode: true);
 
-        await svc.SendApprovalEmailAsync("test@test.com", "Firma", "Pass1!");
+        await svc.SendApprovalEmailAsync("test@test.com", "Firma", "setup-token");
 
         _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -47,7 +47,7 @@ public class EmailServiceTests
         var db = TestDbFactory.Create();
         var svc = CreateService(db, devMode: false);
 
-        await svc.SendApprovalEmailAsync("test@test.com", "Firma", "Pass1!");
+        await svc.SendApprovalEmailAsync("test@test.com", "Firma", "setup-token");
 
         _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Kapacitet.Application.Features.AccountSetup.Services;
 using Kapacitet.Application.Features.AccessRequests.DTOs;
 using Kapacitet.Application.Features.AccessRequests.Services;
 using Kapacitet.Application.Features.Common.Errors;
@@ -48,11 +49,17 @@ public class AccessRequestServiceTests
             emailOptions,
             NullLogger<EmailService>.Instance);
 
+        var initialPasswordSetupService = new InitialPasswordSetupService(
+            db,
+            keycloakClient,
+            NullLogger<InitialPasswordSetupService>.Instance);
+
         return new AccessRequestService(
             db,
             keycloakClient,
             NullLogger<AccessRequestService>.Instance,
-            emailService);
+            emailService,
+            initialPasswordSetupService);
     }
 
     private static SubmitAccessRequestDto CreateSubmitDto() => new()

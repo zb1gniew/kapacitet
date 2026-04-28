@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Kapacitet.Application.Features.AccessRequests.Services;
+using Kapacitet.Application.Features.AccountSetup.Services;
 using Kapacitet.Application.Features.AvailabilityDeclarations.Services;
 using Kapacitet.Infrastructure.Persistence.Seed;
 using Kapacitet.Application.Features.Common.Services;
@@ -27,6 +28,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Resend;
 using System.Text.Json;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -146,6 +149,17 @@ builder.Services.Configure<DevelopmentFeaturesOptions>(
 // Keycloak Admin Client
 builder.Services.Configure<KeycloakAdminOptions>(builder.Configuration.GetSection("KeycloakAdmin"));
 builder.Services.AddHttpClient<KeycloakAdminClient>();
+builder.Services.AddScoped<InitialPasswordSetupService>();
+
+var dataProtectionBuilder = builder.Services
+    .AddDataProtection()
+    .SetApplicationName("Kapacitet");
+var dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    Directory.CreateDirectory(dataProtectionKeysPath);
+    dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+}
 
 // Access Request Service
 builder.Services.AddScoped<AccessRequestService>();
