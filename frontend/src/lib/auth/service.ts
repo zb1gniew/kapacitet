@@ -94,9 +94,16 @@ export function createAuthSession(
     tokenType: tokenResponse.token_type ?? previousSession?.tokenType,
     refreshToken: tokenResponse.refresh_token ?? previousSession?.refreshToken,
     expiresAt: now + tokenResponse.expires_in,
-    refreshExpiresAt: tokenResponse.refresh_expires_in
-      ? now + tokenResponse.refresh_expires_in
-      : previousSession?.refreshExpiresAt,
+    // Keycloak returns refresh_expires_in = 0 for offline tokens (meaning no expiry).
+    // Treating 0 as falsy would cause Redis TTL and cookie maxAge to fall back to the
+    // 5-minute access token lifetime, logging the user out after 5 minutes of inactivity.
+    refreshExpiresAt:
+      tokenResponse.refresh_expires_in != null &&
+      tokenResponse.refresh_expires_in > 0
+        ? now + tokenResponse.refresh_expires_in
+        : tokenResponse.refresh_expires_in === 0
+          ? now + 30 * 24 * 60 * 60
+          : previousSession?.refreshExpiresAt,
   };
 }
 
