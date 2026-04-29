@@ -98,9 +98,7 @@ export function LoginScreen() {
   const [state, setState] = useState<ScreenState>({ step: "email" });
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(
-    searchParams.get("authError")
-      ? t("Sign-in failed. Please try again.")
-      : "",
+    searchParams.get("authError") ? t("Sign-in failed. Please try again.") : "",
   );
   const setupToken = searchParams.get("setupToken");
 

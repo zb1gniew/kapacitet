@@ -114,7 +114,10 @@ export async function GET(request: NextRequest) {
           onboardingCompleted = status.isOnboardingCompleted === true;
         }
       } catch (err) {
-        console.error("Onboarding status check failed — treating as not onboarded", err);
+        console.error(
+          "Onboarding status check failed — treating as not onboarded",
+          err,
+        );
       }
     }
 

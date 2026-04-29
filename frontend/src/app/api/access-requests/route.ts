@@ -22,7 +22,12 @@ function createProxyResponse(
 }
 
 export async function POST(request: NextRequest) {
-  const rateLimited = checkRateLimit(request, "access-requests", 5, 10 * 60 * 1000);
+  const rateLimited = checkRateLimit(
+    request,
+    "access-requests",
+    5,
+    10 * 60 * 1000,
+  );
   if (rateLimited) return rateLimited;
 
   try {
