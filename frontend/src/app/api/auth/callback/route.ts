@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state");
 
   if (error || !code || !state) {
-    const redirectResponse = NextResponse.redirect(
-      buildRedirectUrl(APP_ROUTES.home),
-    );
+    const dest = buildRedirectUrl(APP_ROUTES.home);
+    dest.searchParams.set("authError", "1");
+    const redirectResponse = NextResponse.redirect(dest);
     clearTransactionCookie(redirectResponse);
     return redirectResponse;
   }
@@ -113,8 +113,11 @@ export async function GET(request: NextRequest) {
           const status = await onboardingResponse.json();
           onboardingCompleted = status.isOnboardingCompleted === true;
         }
-      } catch {
-        // If the check fails, treat as not onboarded
+      } catch (err) {
+        console.error(
+          "Onboarding status check failed — treating as not onboarded",
+          err,
+        );
       }
     }
 
@@ -146,9 +149,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Auth callback failed", error);
-    const redirectResponse = NextResponse.redirect(
-      buildRedirectUrl(APP_ROUTES.home),
-    );
+    const dest = buildRedirectUrl(APP_ROUTES.home);
+    dest.searchParams.set("authError", "1");
+    const redirectResponse = NextResponse.redirect(dest);
     clearTransactionCookie(redirectResponse);
     return redirectResponse;
   }

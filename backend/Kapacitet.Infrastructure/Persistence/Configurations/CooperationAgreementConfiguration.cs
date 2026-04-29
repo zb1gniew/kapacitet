@@ -50,5 +50,6 @@ public class CooperationAgreementConfiguration : IEntityTypeConfiguration<Cooper
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(a => a.MatchOfferId).IsUnique();
+        builder.HasIndex(a => a.Status);
     }
 }

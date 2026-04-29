@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:15
+    restart: unless-stopped
     environment:
       POSTGRES_USER: appuser
       POSTGRES_PASSWORD: strongpassword
@@ -9,9 +10,16 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d kapacitetdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
+    restart: unless-stopped
     entrypoint: ["/bin/sh", "/opt/keycloak/keycloak-start.sh"]
     environment:
       KEYCLOAK_ADMIN: admin
@@ -36,9 +44,16 @@ services:
       - ./keycloak/kapacitet-realm.json:/opt/keycloak/kapacitet-realm.json.template:ro
       - ./keycloak/themes:/opt/keycloak/themes:ro
       - ./keycloak/keycloak-start.sh:/opt/keycloak/keycloak-start.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080' 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   backend:
     build: ../backend
+    restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=kapacitetdb;Username=appuser;Password=strongpassword
@@ -53,23 +68,34 @@ services:
       Email__FromAddress: ${Email__FromAddress:-onboarding@resend.dev}
       Email__DevMode: ${Email__DevMode:-true}
       Email__AppUrl: ${APP_PUBLIC_URL:-https://localhost}
+      Cors__AllowedOrigin: ${APP_PUBLIC_URL:-https://localhost}
     # Backend is internal-only. Never exposed to the internet.
     expose:
       - "8080"
     depends_on:
-      - postgres
-      - keycloak
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     expose:
       - "6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   frontend:
     build: ../frontend
+    restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379
       # Internal Docker network call — stays HTTP.
@@ -92,8 +118,10 @@ services:
     expose:
       - "3000"
     depends_on:
-      - backend
-      - redis
+      backend:
+        condition: service_started
+      redis:
+        condition: service_healthy
 
   # -----------------------------------------------------------
   # Caddy — Reverse proxy and TLS termination

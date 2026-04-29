@@ -228,6 +228,8 @@ namespace Kapacitet.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("\"ClientDraftKey\" IS NOT NULL");
 
+                    b.HasIndex("Status", "StartDate", "EndDate");
+
                     b.ToTable("availability_declarations", (string)null);
                 });
 
@@ -290,6 +292,8 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.HasIndex("CompanyId", "ClientDraftKey")
                         .IsUnique()
                         .HasFilter("\"ClientDraftKey\" IS NOT NULL");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("capacity_requests", (string)null);
                 });
@@ -461,6 +465,8 @@ namespace Kapacitet.Infrastructure.Migrations
 
                     b.HasIndex("RequesterCompanyId");
 
+                    b.HasIndex("Status");
+
                     b.HasIndex("SupplierCompanyId");
 
                     b.ToTable("cooperation_agreements", (string)null);
@@ -544,6 +550,8 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.HasIndex("AvailabilityId");
 
                     b.HasIndex("RequestId", "AvailabilityId");
+
+                    b.HasIndex("Status", "ExpiresAt");
 
                     b.ToTable("match_offers", (string)null);
                 });

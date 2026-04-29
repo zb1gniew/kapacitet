@@ -49,5 +49,6 @@ public class MatchOfferConfiguration : IEntityTypeConfiguration<MatchOffer>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(m => new { m.RequestId, m.AvailabilityId });
+        builder.HasIndex(m => new { m.Status, m.ExpiresAt });
     }
 }

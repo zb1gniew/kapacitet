@@ -97,7 +97,9 @@ export function LoginScreen() {
   const searchParams = useSearchParams();
   const [state, setState] = useState<ScreenState>({ step: "email" });
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(
+    searchParams.get("authError") ? t("Sign-in failed. Please try again.") : "",
+  );
   const setupToken = searchParams.get("setupToken");
 
   useEffect(() => {
@@ -203,6 +205,12 @@ export function LoginScreen() {
         <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
           {t("Sign in to your account")}
         </h2>
+
+        {errorMessage ? (
+          <div className="mt-3 rounded-[10px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-sm text-[#b91c1c]">
+            {errorMessage}
+          </div>
+        ) : null}
         <p className="mt-2 max-w-[310px] text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
           {t("Access your company's capacity coordination dashboard")}
         </p>

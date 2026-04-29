@@ -80,6 +80,13 @@ public class AccessRequestService
         if (existingPending)
             throw new InvalidOperationException("An access request with this email is already pending review.");
 
+        var existingUser = await _db.Users
+            .WhereEmailMatches(contactEmail)
+            .AnyAsync();
+
+        if (existingUser)
+            throw new InvalidOperationException("An account with this email already exists.");
+
         var accessRequest = new AccessRequest
         {
             Name = dto.Name,

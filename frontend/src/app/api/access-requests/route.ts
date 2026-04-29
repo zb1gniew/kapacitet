@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackendApiBaseUrl } from "@/lib/backend/config";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 function buildBackendUrl(path: string) {
   const baseUrl = getBackendApiBaseUrl();
@@ -21,6 +22,14 @@ function createProxyResponse(
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimited = checkRateLimit(
+    request,
+    "access-requests",
+    5,
+    10 * 60 * 1000,
+  );
+  if (rateLimited) return rateLimited;
+
   try {
     const body = await request.text();
 
