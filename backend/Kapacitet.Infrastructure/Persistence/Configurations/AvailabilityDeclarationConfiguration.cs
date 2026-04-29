@@ -47,6 +47,8 @@ public class AvailabilityDeclarationConfiguration : IEntityTypeConfiguration<Ava
             .IsUnique()
             .HasFilter("\"ClientDraftKey\" IS NOT NULL");
 
+        builder.HasIndex(a => new { a.Status, a.StartDate, a.EndDate });
+
         // Many-to-many Skills
         builder.HasMany(a => a.Skills)
             .WithMany()

@@ -51,6 +51,8 @@ public class CapacityRequestConfiguration : IEntityTypeConfiguration<CapacityReq
             .IsUnique()
             .HasFilter("\"ClientDraftKey\" IS NOT NULL");
 
+        builder.HasIndex(r => r.Status);
+
         // Many-to-many Skills
         builder.HasMany(r => r.Skills)
             .WithMany()

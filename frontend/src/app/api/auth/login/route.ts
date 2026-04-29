@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { APP_ROUTES } from "@/constants/routes";
 import { getAuthConfig } from "@/lib/auth/config";
@@ -80,6 +81,9 @@ function createLoginResponse(
 }
 
 export async function GET(request: NextRequest) {
+  const rateLimited = checkRateLimit(request, "auth-login", 20, 60 * 1000);
+  if (rateLimited) return rateLimited;
+
   const returnTo = sanitizeReturnTo(
     request.nextUrl.searchParams.get("return_to"),
   );
@@ -99,6 +103,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimited = checkRateLimit(request, "auth-login", 20, 60 * 1000);
+  if (rateLimited) return rateLimited;
+
   const formData = await request.formData();
   const emailField = formData.get("email");
   const returnToField = formData.get("return_to");

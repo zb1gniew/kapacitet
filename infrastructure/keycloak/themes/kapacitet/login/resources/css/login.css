@@ -297,6 +297,97 @@ a {
   font-weight: 700;
 }
 
+/* ── Font override via PatternFly CSS variables — safe, doesn't break icon fonts ── */
+:root {
+  --pf-v5-global--FontFamily--text: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --pf-v5-global--FontFamily--heading: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --pf-v5-global--FontFamily--sans-serif: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Remaining elements that don't use PF variables */
+h3, p, label {
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ── Logout confirm page ────────────────────────────────────────────────────── */
+
+/* Hide the plain-text info message — the styled title already shows it */
+#kc-info-message {
+  display: none;
+}
+
+#kc-logout-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#kc-logout-confirm h3,
+#kc-logout-confirm .pf-v5-c-title {
+  display: none !important;
+}
+
+/* "Log out" confirm button */
+#kc-logout,
+input[name="confirmLogout"] {
+  width: 100%;
+  min-height: 52px;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: #2563eb !important;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.3125px;
+  cursor: pointer;
+}
+
+#kc-logout:hover,
+input[name="confirmLogout"]:hover {
+  background: #1d4ed8 !important;
+}
+
+/* "Go back" link */
+#kc-logout-confirm #kc-form a,
+#kc-logout-confirm a {
+  display: block;
+  margin-top: 4px;
+  color: var(--kc-muted) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* ── Error page ─────────────────────────────────────────────────────────────── */
+
+#kc-error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  text-align: center;
+}
+
+#kc-error-message p,
+#kc-error-message .instruction {
+  margin: 0 !important;
+  color: var(--kc-muted) !important;
+  font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  letter-spacing: -0.15px !important;
+}
+
+#kc-error-message a {
+  margin-top: 8px;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
 @media (max-width: 560px) {
   body#keycloak-bg {
     justify-content: flex-start;
