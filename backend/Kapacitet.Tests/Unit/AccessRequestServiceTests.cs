@@ -14,12 +14,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Resend;
+using System.Net;
+using System.Net.Http.Json;
 
 namespace Kapacitet.Tests.Unit;
 
 public class AccessRequestServiceTests
 {
-    private static AccessRequestService CreateService(AppDbContext db)
+    private static AccessRequestService CreateService(
+        AppDbContext db,
+        HttpMessageHandler? keycloakHandler = null)
     {
         var keycloakOptions = Options.Create(new KeycloakAdminOptions
         {
@@ -30,7 +34,10 @@ public class AccessRequestServiceTests
         });
 
         var keycloakClient = new KeycloakAdminClient(
-            new HttpClient(),
+            new HttpClient(keycloakHandler ?? new FakeNoOpKeycloakHandler())
+            {
+                BaseAddress = new Uri("https://auth.localhost")
+            },
             keycloakOptions,
             NullLogger<KeycloakAdminClient>.Instance);
 
@@ -69,14 +76,14 @@ public class AccessRequestServiceTests
         Categories = ["construction"],
         Location = "Aarhus",
         ContactPhone = "+4512345678",
-        ContactEmail = "Admin@Test.com",
+        ContactEmail = "  Admin@Test.com  ",
         Message = "We would like to join."
     };
 
     [Fact]
     public async Task SubmitAsync_WithValidData_PersistsPendingRequestAndTrimsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var service = CreateService(db);
 
         var result = await service.SubmitAsync(CreateSubmitDto());
@@ -93,7 +100,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task SubmitAsync_WhenLocationUnsupported_ThrowsValidationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var service = CreateService(db);
         var dto = CreateSubmitDto();
         dto.Location = "Warsaw";
@@ -107,7 +114,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task SubmitAsync_WhenCvrInvalid_ThrowsValidationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var service = CreateService(db);
         var dto = CreateSubmitDto();
         dto.Cvr = "123";
@@ -121,7 +128,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task SubmitAsync_WhenPhoneInvalid_ThrowsValidationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var service = CreateService(db);
         var dto = CreateSubmitDto();
         dto.ContactPhone = "4512345678";
@@ -135,7 +142,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task SubmitAsync_WhenCategoriesInvalid_ThrowsValidationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var service = CreateService(db);
         var dto = CreateSubmitDto();
         dto.Categories = ["construction", "electrical", "painting", "roofing"];
@@ -149,7 +156,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task SubmitAsync_WhenPendingRequestExists_ThrowsInvalidOperationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         db.AccessRequests.Add(new AccessRequest
         {
             Id = 1,
@@ -175,7 +182,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task GetAllAsync_ReturnsRequestsOrderedNewestFirst()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         db.AccessRequests.AddRange(
             new AccessRequest
             {
@@ -209,7 +216,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task ReviewAsync_WhenRejected_SetsReviewMetadataAndReason()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         db.AccessRequests.Add(new AccessRequest
         {
             Id = 10,
@@ -245,7 +252,7 @@ public class AccessRequestServiceTests
     public async Task ReviewAsync_WhenAlreadyReviewedWithSameDecision_ReturnsExistingResult()
     {
         var reviewedAt = DateTime.UtcNow.AddHours(-1);
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         db.AccessRequests.Add(new AccessRequest
         {
             Id = 20,
@@ -283,7 +290,7 @@ public class AccessRequestServiceTests
     [Fact]
     public async Task ReviewAsync_WhenAlreadyReviewedWithDifferentDecision_ThrowsInvalidOperationException()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         db.AccessRequests.Add(new AccessRequest
         {
             Id = 30,
@@ -312,5 +319,132 @@ public class AccessRequestServiceTests
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Only pending requests can be reviewed");
+    }
+
+    [Fact]
+    public async Task ReviewAsync_WhenApproved_ProvisionsCompanyUserAndInitialSetupToken()
+    {
+        await using var db = await TestDbFactory.CreatePostgresAsync();
+        db.AccessRequests.Add(new AccessRequest
+        {
+            Id = 40,
+            Name = "Approved Request",
+            Cvr = "12345678",
+            Categories = ["construction"],
+            Location = "Aarhus",
+            ContactPhone = "+4512345678",
+            ContactEmail = "approved@test.com",
+            Status = AccessRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db, new FakeProvisioningKeycloakHandler());
+
+        var result = await service.ReviewAsync(
+            40,
+            new ReviewAccessRequestDto
+            {
+                Decision = AccessRequestStatus.Approved
+            },
+            "reviewer@test.com");
+
+        result.Status.Should().Be(AccessRequestStatus.Approved);
+        result.ReviewedBy.Should().Be("reviewer@test.com");
+
+        var savedRequest = await db.AccessRequests.FindAsync(40);
+        savedRequest.Should().NotBeNull();
+        savedRequest!.ProvisionedCompanyId.Should().NotBeNull();
+        savedRequest.InitialPasswordSetupTokenHash.Should().NotBeNullOrWhiteSpace();
+        savedRequest.InitialPasswordSetupTokenExpiresAt.Should().BeAfter(DateTime.UtcNow.AddHours(47));
+
+        db.Companies.Should().ContainSingle(company =>
+            company.Id == savedRequest.ProvisionedCompanyId &&
+            company.Name == "Approved Request");
+
+        db.Users.Should().ContainSingle(user =>
+            user.CompanyId == savedRequest.ProvisionedCompanyId &&
+            user.Email == "approved@test.com" &&
+            user.Role == UserRole.Admin);
+    }
+
+    private sealed class FakeNoOpKeycloakHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/realms/master/protocol/openid-connect/token",
+                    StringComparison.Ordinal) == true)
+            {
+                return Task.FromResult(Json(HttpStatusCode.OK, new { access_token = "admin-token" }));
+            }
+
+            if (request.Method == HttpMethod.Get &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/admin/realms/kapacitet/users",
+                    StringComparison.Ordinal) == true)
+            {
+                return Task.FromResult(Json(HttpStatusCode.OK, Array.Empty<object>()));
+            }
+
+            throw new InvalidOperationException(
+                $"Unexpected Keycloak request in test: {request.Method} {request.RequestUri}");
+        }
+    }
+
+    private sealed class FakeProvisioningKeycloakHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/realms/master/protocol/openid-connect/token",
+                    StringComparison.Ordinal) == true)
+            {
+                return Task.FromResult(Json(HttpStatusCode.OK, new { access_token = "admin-token" }));
+            }
+
+            if (request.Method == HttpMethod.Get &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/admin/realms/kapacitet/users",
+                    StringComparison.Ordinal) == true)
+            {
+                return Task.FromResult(Json(HttpStatusCode.OK, Array.Empty<object>()));
+            }
+
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/admin/realms/kapacitet/users",
+                    StringComparison.Ordinal) == true)
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.Created);
+                response.Headers.Location = new Uri("https://auth.localhost/admin/realms/kapacitet/users/kc-1");
+                return Task.FromResult(response);
+            }
+
+            if (request.Method == HttpMethod.Put &&
+                request.RequestUri?.AbsolutePath.EndsWith(
+                    "/admin/realms/kapacitet/users/kc-1/reset-password",
+                    StringComparison.Ordinal) == true)
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }
+
+            throw new InvalidOperationException(
+                $"Unexpected Keycloak request in test: {request.Method} {request.RequestUri}");
+        }
+    }
+
+    private static HttpResponseMessage Json<T>(HttpStatusCode statusCode, T body)
+    {
+        return new HttpResponseMessage(statusCode)
+        {
+            Content = JsonContent.Create(body)
+        };
     }
 }

@@ -33,7 +33,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendApprovalEmail_DevMode_DoesNotCallResend()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var svc = CreateService(db, devMode: true);
 
         await svc.SendApprovalEmailAsync("test@test.com", "Firma", "setup-token");
@@ -44,12 +44,22 @@ public class EmailServiceTests
     [Fact]
     public async Task SendApprovalEmail_NotDevMode_CallsResend()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var svc = CreateService(db, devMode: false);
+
+        EmailMessage? sentMessage = null;
+        _resendMock
+            .Setup(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .Callback<EmailMessage, CancellationToken>((message, _) => sentMessage = message)
+            .Returns(Task.FromResult<ResendResponse<Guid>>(null!));
 
         await svc.SendApprovalEmailAsync("test@test.com", "Firma", "setup-token");
 
         _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+        sentMessage.Should().NotBeNull();
+        sentMessage!.Subject.Should().Be("You're approved — welcome to Kapacitet");
+        sentMessage.HtmlBody.Should().Contain("setupToken=setup-token");
+        sentMessage.HtmlBody.Should().Contain("expires in 48 hours");
     }
 
     // ── Preference checks ────────────────────────────────────────────────────
@@ -57,7 +67,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendNewMatch_WhenEmailNewMatchesFalse_SkipsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         var user = new User { Id = 1, CompanyId = 1, Email = "admin@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
         var prefs = new NotificationPreferences { Id = 1, CompanyId = 1, EmailNewMatches = false };
@@ -75,7 +85,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendNewMatch_WhenNoPrefRow_SendsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         var user = new User { Id = 1, CompanyId = 1, Email = "admin@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
         db.Companies.Add(company);
@@ -91,7 +101,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendNewMatch_WhenNoAdminUser_SkipsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         db.Companies.Add(company);
         await db.SaveChangesAsync();
@@ -105,7 +115,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendNetworkEscalation_WhenEmailNetworkRequestsFalse_SkipsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         var user = new User { Id = 1, CompanyId = 1, Email = "admin@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
         var prefs = new NotificationPreferences { Id = 1, CompanyId = 1, EmailNetworkRequests = false };
@@ -125,7 +135,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendSupplierConfirmation_WhenEmailActionsRequiredTrue_SendsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         var user = new User { Id = 1, CompanyId = 1, Email = "sup@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
         db.Companies.Add(company);
@@ -141,7 +151,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendSupplierConfirmation_WhenEmailActionsRequiredFalse_SkipsEmail()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         var company = new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow };
         var user = new User { Id = 1, CompanyId = 1, Email = "sup@firma.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow };
         var prefs = new NotificationPreferences { Id = 1, CompanyId = 1, EmailActionsRequired = false };
@@ -173,7 +183,7 @@ public class EmailServiceTests
     [Fact]
     public async Task SendAgreementConfirmed_SendsEmailToBothCompanies()
     {
-        var db = TestDbFactory.Create();
+        await using var db = await TestDbFactory.CreatePostgresAsync();
         foreach (var (id, email) in new[] { (1, "req@firma.com"), (2, "sup@firma.com") })
         {
             db.Companies.Add(new Company { Id = id, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow });
