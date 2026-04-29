@@ -12,7 +12,7 @@ namespace Kapacitet.Tests.Unit;
 
 public class NetworkEscalationServiceTests
 {
-    private static void SeedCompany(AppDbContext db, int id)
+    private static void SeedCompany(AppDbContext db, int id, params string[] categories)
     {
         db.Companies.Add(new Company
         {
@@ -20,6 +20,7 @@ public class NetworkEscalationServiceTests
             Name = $"Co{id}",
             Industry = "IT",
             DefaultLocation = "Warsaw",
+            Categories = categories.ToList(),
             Status = CompanyStatus.Active,
             CreatedAt = DateTime.UtcNow
         });
@@ -85,8 +86,8 @@ public class NetworkEscalationServiceTests
     public async Task SubmitResponse_WhenValid_AddsResponseToDb()
     {
         var db = TestDbFactory.Create();
-        SeedCompany(db, 1);
-        SeedCompany(db, 2);
+        SeedCompany(db, 1, "construction");
+        SeedCompany(db, 2, "construction");
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
@@ -101,8 +102,8 @@ public class NetworkEscalationServiceTests
     public async Task SubmitResponse_WhenDuplicate_ThrowsInvalidOperation()
     {
         var db = TestDbFactory.Create();
-        SeedCompany(db, 1);
-        SeedCompany(db, 2);
+        SeedCompany(db, 1, "construction");
+        SeedCompany(db, 2, "construction");
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
         var svc = new NetworkEscalationService(db, Mock.Of<IMatchingOrchestrator>());
@@ -138,8 +139,8 @@ public class NetworkEscalationServiceTests
     public async Task GetForCompany_WhenEscalationOpen_ReturnsForEligibleCompany()
     {
         var db = TestDbFactory.Create();
-        SeedCompany(db, 1); // requester
-        SeedCompany(db, 2); // recipient
+        SeedCompany(db, 1, "construction"); // requester
+        SeedCompany(db, 2, "construction"); // recipient
         SeedEscalation(db, requestId: 1, requesterCompanyId: 1);
         await db.SaveChangesAsync();
 
