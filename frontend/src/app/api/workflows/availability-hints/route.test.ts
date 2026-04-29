@@ -24,14 +24,11 @@ describe("availability hints route", () => {
       }) as never,
     );
 
-    expect(mockedFetchBackend).toHaveBeenCalledWith(
-      "/api/availability/hints",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ quantity: 2 }),
-      },
-    );
+    expect(mockedFetchBackend).toHaveBeenCalledWith("/api/availability/hints", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ quantity: 2 }),
+    });
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       estimatedMatchCount: 2,

@@ -85,7 +85,9 @@ describe("auth logout route", () => {
     mockedBuildEndSessionUrl.mockResolvedValue(null);
 
     const response = await POST(
-      new NextRequest("https://app.example/api/auth/logout", { method: "POST" }),
+      new NextRequest("https://app.example/api/auth/logout", {
+        method: "POST",
+      }),
     );
 
     expect(response.headers.get("location")).toBe("https://app.example/");

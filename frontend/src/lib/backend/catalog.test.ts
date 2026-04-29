@@ -6,8 +6,9 @@ describe("fetchCatalog", () => {
   });
 
   it("loads and combines skills and certificates", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (input) => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (input) => {
         const url = String(input);
         if (url.endsWith("/api/catalog/skills")) {
           return new Response(JSON.stringify([{ id: 1, name: "Roofing" }]), {
@@ -19,8 +20,7 @@ describe("fetchCatalog", () => {
           JSON.stringify([{ id: 10, name: "Lift license" }]),
           { status: 200 },
         );
-      },
-    );
+      });
 
     const { fetchCatalog } = await import("./catalog");
     const catalog = await fetchCatalog();
@@ -35,7 +35,9 @@ describe("fetchCatalog", () => {
   it("reuses the cached catalog for repeated non-signaled requests", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockImplementation(async () => new Response(JSON.stringify([]), { status: 200 }));
+      .mockImplementation(
+        async () => new Response(JSON.stringify([]), { status: 200 }),
+      );
 
     const { fetchCatalog } = await import("./catalog");
     await fetchCatalog();

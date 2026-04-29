@@ -11,14 +11,12 @@ const mockedGetBackendApiBaseUrl = vi.mocked(getBackendApiBaseUrl);
 describe("set initial password route", () => {
   it("proxies the password setup payload", async () => {
     mockedGetBackendApiBaseUrl.mockReturnValue("https://api.example");
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(
-        new Response(JSON.stringify({ success: true }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
     const response = await POST(
       new Request("https://app.example/api/account/set-initial-password", {

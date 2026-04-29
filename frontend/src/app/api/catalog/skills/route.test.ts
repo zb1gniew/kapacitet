@@ -27,7 +27,9 @@ describe("catalog skills route", () => {
       cache: "force-cache",
     });
     expect(response.headers.get("cache-control")).toBe("public, max-age=600");
-    await expect(response.json()).resolves.toEqual([{ id: 1, name: "Roofing" }]);
+    await expect(response.json()).resolves.toEqual([
+      { id: 1, name: "Roofing" },
+    ]);
   });
 
   it("returns a friendly error on unexpected failures", async () => {

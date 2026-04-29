@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AgreementResponse, MatchOfferResponse } from "@/types/api-matches";
+import type {
+  AgreementResponse,
+  MatchOfferResponse,
+} from "@/types/api-matches";
 import {
   deriveAwaitingOffers,
   deriveCompletedOffers,
@@ -18,13 +21,14 @@ function t(key: string, params?: Record<string, unknown>) {
   }
 
   return Object.entries(params).reduce(
-    (message, [name, value]) =>
-      message.replace(`{{${name}}}`, String(value)),
+    (message, [name, value]) => message.replace(`{{${name}}}`, String(value)),
     key,
   );
 }
 
-function match(overrides: Partial<MatchOfferResponse> = {}): MatchOfferResponse {
+function match(
+  overrides: Partial<MatchOfferResponse> = {},
+): MatchOfferResponse {
   return {
     id: 1,
     requestId: 10,
@@ -154,14 +158,18 @@ describe("matches derive helpers", () => {
     vi.setSystemTime(new Date("2026-04-28T12:00:00.000Z"));
 
     expect(
-      formatDateRange(t, "2026-05-01T00:00:00.000Z", "2026-05-10T00:00:00.000Z"),
+      formatDateRange(
+        t,
+        "2026-05-01T00:00:00.000Z",
+        "2026-05-10T00:00:00.000Z",
+      ),
     ).toContain("May");
     expect(formatDateRange(t, "invalid", "2026-05-10T00:00:00.000Z")).toBe(
       "Dates pending",
     );
-    expect(formatMatchTitle(t, match({ offeredQuantity: 2, skills: ["Company"] }))).toBe(
-      "2 Companies",
-    );
+    expect(
+      formatMatchTitle(t, match({ offeredQuantity: 2, skills: ["Company"] })),
+    ).toBe("2 Companies");
     expect(formatRelativeTime(t, "2026-04-28T11:59:30.000Z")).toBe("Just now");
     expect(formatRelativeTime(t, "2026-04-28T10:00:00.000Z")).toBe(
       "2 hours ago",

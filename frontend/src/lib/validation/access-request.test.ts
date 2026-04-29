@@ -11,8 +11,7 @@ function t(key: string, params?: Record<string, unknown>) {
   }
 
   return Object.entries(params).reduce(
-    (message, [name, value]) =>
-      message.replace(`{{${name}}}`, String(value)),
+    (message, [name, value]) => message.replace(`{{${name}}}`, String(value)),
     key,
   );
 }

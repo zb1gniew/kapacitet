@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  hasErrors,
-  ONBOARDING_LIMITS,
-  validateOnboardingDetails,
-} from "./onboarding";
+import { hasErrors, validateOnboardingDetails } from "./onboarding";
 
 function t(key: string, params?: Record<string, unknown>) {
   if (!params) {
@@ -11,8 +7,7 @@ function t(key: string, params?: Record<string, unknown>) {
   }
 
   return Object.entries(params).reduce(
-    (message, [name, value]) =>
-      message.replace(`{{${name}}}`, String(value)),
+    (message, [name, value]) => message.replace(`{{${name}}}`, String(value)),
     key,
   );
 }

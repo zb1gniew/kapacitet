@@ -3,7 +3,10 @@ import { POST } from "./route";
 import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { parseSessionCookieValue } from "@/lib/auth/session";
-import { getServerSession, updateServerSession } from "@/lib/auth/session-store";
+import {
+  getServerSession,
+  updateServerSession,
+} from "@/lib/auth/session-store";
 import { fetchBackend } from "@/lib/backend/server-client";
 
 vi.mock("next/headers", () => ({
@@ -42,9 +45,13 @@ describe("onboarding complete route", () => {
       }),
     );
     mockedCookies.mockResolvedValue({
-      get: vi.fn().mockImplementation((name: string) =>
-        name === AUTH_COOKIE_NAMES.session ? { value: "encrypted" } : undefined,
-      ),
+      get: vi
+        .fn()
+        .mockImplementation((name: string) =>
+          name === AUTH_COOKIE_NAMES.session
+            ? { value: "encrypted" }
+            : undefined,
+        ),
     } as never);
     mockedParseSessionCookieValue.mockResolvedValue("session-1");
     mockedGetServerSession.mockResolvedValue({
@@ -61,11 +68,14 @@ describe("onboarding complete route", () => {
       }) as never,
     );
 
-    expect(mockedFetchBackend).toHaveBeenCalledWith("/api/onboarding/complete", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ categories: ["construction"] }),
-    });
+    expect(mockedFetchBackend).toHaveBeenCalledWith(
+      "/api/onboarding/complete",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ categories: ["construction"] }),
+      },
+    );
     expect(mockedUpdateServerSession).toHaveBeenCalledWith(
       "session-1",
       expect.objectContaining({ onboardingCompleted: true }),

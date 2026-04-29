@@ -23,14 +23,12 @@ describe("setup context route", () => {
 
   it("proxies the token lookup to the backend", async () => {
     mockedGetBackendApiBaseUrl.mockReturnValue("https://api.example");
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(
-        new Response(JSON.stringify({ email: "user@example.invalid" }), {
-          status: 200,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ email: "user@example.invalid" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
     const response = await GET(
       new NextRequest(

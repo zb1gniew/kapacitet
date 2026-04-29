@@ -17,8 +17,8 @@ describe("pkce helpers", () => {
   });
 
   it("creates the RFC-compliant S256 code challenge", () => {
-    expect(createCodeChallenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")).toBe(
-      "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-    );
+    expect(
+      createCodeChallenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
+    ).toBe("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
   });
 });

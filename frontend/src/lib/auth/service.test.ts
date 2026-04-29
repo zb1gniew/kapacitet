@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { AuthSession, OidcTokenResponse, OidcUserInfo } from "@/types/auth";
+import type {
+  AuthSession,
+  OidcTokenResponse,
+  OidcUserInfo,
+} from "@/types/auth";
 import {
   createAuthSession,
   isSessionExpired,

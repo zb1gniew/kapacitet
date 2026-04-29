@@ -11,14 +11,12 @@ const mockedGetBackendApiBaseUrl = vi.mocked(getBackendApiBaseUrl);
 describe("access requests route", () => {
   it("proxies the request payload to the backend", async () => {
     mockedGetBackendApiBaseUrl.mockReturnValue("https://api.example");
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockResolvedValue(
-        new Response(JSON.stringify({ id: 1, status: "Pending" }), {
-          status: 201,
-          headers: { "content-type": "application/json" },
-        }),
-      );
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id: 1, status: "Pending" }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      }),
+    );
 
     const response = await POST(
       new Request("https://app.example/api/access-requests", {

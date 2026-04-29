@@ -8,11 +8,13 @@ import {
   parseTransactionCookieValue,
 } from "./session";
 
-process.env.APP_PUBLIC_URL = "https://app.example";
-process.env.OIDC_ISSUER_URL = "https://issuer.example/realms/kapacitet";
-process.env.OIDC_CLIENT_ID = "frontend";
-process.env.AUTH_SESSION_SECRET = "super-secret-session-key";
-process.env.NODE_ENV = "test";
+Object.assign(process.env, {
+  APP_PUBLIC_URL: "https://app.example",
+  OIDC_ISSUER_URL: "https://issuer.example/realms/kapacitet",
+  OIDC_CLIENT_ID: "frontend",
+  AUTH_SESSION_SECRET: "super-secret-session-key",
+  NODE_ENV: "test",
+});
 
 describe("session cookie helpers", () => {
   it("round-trips encrypted session references", async () => {

@@ -22,7 +22,9 @@ describe("admin audit route", () => {
     expect(mockedFetchBackend).toHaveBeenCalledWith("/api/admin/audit", {
       method: "GET",
     });
-    await expect(response.json()).resolves.toEqual([{ id: 1, type: "updated" }]);
+    await expect(response.json()).resolves.toEqual([
+      { id: 1, type: "updated" },
+    ]);
   });
 
   it("returns a friendly error on unexpected failures", async () => {

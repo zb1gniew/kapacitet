@@ -5,7 +5,11 @@ import { APP_ROUTES } from "@/constants/routes";
 import { AUTH_COOKIE_NAMES } from "@/constants/auth";
 import { getAuthConfig } from "@/lib/auth/config";
 import { buildAuthorizationUrl } from "@/lib/auth/oidc";
-import { createCodeChallenge, createCodeVerifier, createRandomState } from "@/lib/auth/pkce";
+import {
+  createCodeChallenge,
+  createCodeVerifier,
+  createRandomState,
+} from "@/lib/auth/pkce";
 import {
   createTransactionCookieValue,
   getTransactionCookieOptions,
@@ -53,9 +57,9 @@ describe("auth login route", () => {
       cookieSecure: false,
       scopes: "openid",
     });
-    mockedCreateRandomState.mockReturnValueOnce("state-1").mockReturnValueOnce(
-      "nonce-1",
-    );
+    mockedCreateRandomState
+      .mockReturnValueOnce("state-1")
+      .mockReturnValueOnce("nonce-1");
     mockedCreateCodeVerifier.mockReturnValue("verifier-1");
     mockedCreateCodeChallenge.mockReturnValue("challenge-1");
     mockedBuildAuthorizationUrl.mockResolvedValue(
@@ -109,9 +113,9 @@ describe("auth login route", () => {
       cookieSecure: false,
       scopes: "openid",
     });
-    mockedCreateRandomState.mockReturnValueOnce("state-2").mockReturnValueOnce(
-      "nonce-2",
-    );
+    mockedCreateRandomState
+      .mockReturnValueOnce("state-2")
+      .mockReturnValueOnce("nonce-2");
     mockedCreateCodeVerifier.mockReturnValue("verifier-2");
     mockedCreateCodeChallenge.mockReturnValue("challenge-2");
     mockedBuildAuthorizationUrl.mockResolvedValue(
