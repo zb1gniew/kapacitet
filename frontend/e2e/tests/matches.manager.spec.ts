@@ -42,16 +42,28 @@ const PENDING_MATCH: MatchOfferResponse = {
 
 test.beforeEach(async ({ page }) => {
   await page.route("/api/notifications*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 });
 
 test("matches page displays pending matches", async ({ page }) => {
   await page.route("/api/matches*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([PENDING_MATCH]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([PENDING_MATCH]),
+    }),
   );
   await page.route("/api/agreements*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 
   await page.goto("/dashboard/matches");
@@ -63,10 +75,18 @@ test("matches page displays pending matches", async ({ page }) => {
 
 test("accept offer button is visible for pending match", async ({ page }) => {
   await page.route("/api/matches*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([PENDING_MATCH]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([PENDING_MATCH]),
+    }),
   );
   await page.route("/api/agreements*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 
   await page.goto("/dashboard/matches");
@@ -80,17 +100,28 @@ test("accept offer button is visible for pending match", async ({ page }) => {
 test("accepting a match calls the accept endpoint", async ({ page }) => {
   let acceptCalled = false;
   await page.route("/api/matches*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([PENDING_MATCH]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([PENDING_MATCH]),
+    }),
   );
   await page.route("/api/agreements*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/matches/1/accept", (route) => {
     acceptCalled = true;
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ...PENDING_MATCH, status: "PendingSupplierConfirmation" }),
+      body: JSON.stringify({
+        ...PENDING_MATCH,
+        status: "PendingSupplierConfirmation",
+      }),
     });
   });
 
@@ -105,10 +136,18 @@ test("accepting a match calls the accept endpoint", async ({ page }) => {
 
 test("empty state shown when no matches", async ({ page }) => {
   await page.route("/api/matches*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/agreements*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 
   await page.goto("/dashboard/matches");

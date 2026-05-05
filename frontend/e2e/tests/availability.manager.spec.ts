@@ -43,8 +43,12 @@ test.beforeEach(async ({ page }) => {
 test("step 1 loads availability wizard", async ({ page }) => {
   await page.goto("/dashboard/declare-availability/workers/step-1");
   await page.waitForLoadState("networkidle");
-  await expect(page).toHaveURL("/dashboard/declare-availability/workers/step-1");
-  await expect(page.getByRole("heading", { name: "Declare availability" }).first()).toBeVisible();
+  await expect(page).toHaveURL(
+    "/dashboard/declare-availability/workers/step-1",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Declare availability" }).first(),
+  ).toBeVisible();
 });
 
 test("step 1 Continue navigates to step 2", async ({ page }) => {
@@ -53,23 +57,31 @@ test("step 1 Continue navigates to step 2", async ({ page }) => {
 
   await page.getByRole("link", { name: "Continue" }).click();
 
-  await expect(page).toHaveURL("/dashboard/declare-availability/workers/step-2");
+  await expect(page).toHaveURL(
+    "/dashboard/declare-availability/workers/step-2",
+  );
 });
 
 test("step 2 loads worker details", async ({ page }) => {
   await page.goto("/dashboard/declare-availability/workers/step-2");
   await page.waitForLoadState("networkidle");
-  await expect(page).toHaveURL("/dashboard/declare-availability/workers/step-2");
+  await expect(page).toHaveURL(
+    "/dashboard/declare-availability/workers/step-2",
+  );
 });
 
 test("step 3 loads location details", async ({ page }) => {
   await page.goto("/dashboard/declare-availability/workers/step-3");
   await page.waitForLoadState("networkidle");
-  await expect(page).toHaveURL("/dashboard/declare-availability/workers/step-3");
+  await expect(page).toHaveURL(
+    "/dashboard/declare-availability/workers/step-3",
+  );
 });
 
 test("step 4 loads review and publish", async ({ page }) => {
   await page.goto("/dashboard/declare-availability/workers/step-4");
   await page.waitForLoadState("networkidle");
-  await expect(page).toHaveURL("/dashboard/declare-availability/workers/step-4");
+  await expect(page).toHaveURL(
+    "/dashboard/declare-availability/workers/step-4",
+  );
 });

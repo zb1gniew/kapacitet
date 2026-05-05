@@ -24,7 +24,9 @@ test("request access page is publicly accessible", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Request platform access" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Submit request" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Submit request" }),
+  ).toBeVisible();
   await expect(page.getByLabel("Company name")).toBeVisible();
 });
 

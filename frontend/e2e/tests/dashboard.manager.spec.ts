@@ -1,27 +1,40 @@
 import { expect, test } from "@playwright/test";
 
-const EMPTY_DASHBOARD = {
-  matches: [],
-  availability: [],
-  requests: [],
-  agreements: [],
-};
-
 test.beforeEach(async ({ page }) => {
   await page.route("/api/dashboard/matches", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/dashboard/availability", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/dashboard/requests", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/dashboard/agreements", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/notifications*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 });
 
@@ -46,10 +59,18 @@ test("manager cannot access admin pages", async ({ page }) => {
 
 test("matches page loads", async ({ page }) => {
   await page.route("/api/matches*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
   await page.route("/api/agreements*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([]),
+    }),
   );
 
   await page.goto("/dashboard/matches");
@@ -59,7 +80,11 @@ test("matches page loads", async ({ page }) => {
 
 test("settings page loads", async ({ page }) => {
   await page.route("/api/company/settings*", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) }),
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({}),
+    }),
   );
 
   await page.goto("/dashboard/settings");
