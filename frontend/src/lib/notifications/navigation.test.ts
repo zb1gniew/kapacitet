@@ -70,5 +70,27 @@ describe("notification navigation", () => {
     expect(getNotificationHref(notification({ type: "MatchDeadline" }))).toBe(
       "/dashboard/matches",
     );
+    expect(
+      getNotificationHref(
+        notification({ type: "SupplierConfirmationRequest" }),
+      ),
+    ).toBe("/dashboard/matches");
+    expect(
+      getNotificationHref(notification({ type: "NetworkEscalation" })),
+    ).toBe("/dashboard/network-requests");
+    expect(getNotificationHref(notification({ type: "NewMatch" }))).toBe(
+      "/dashboard/matches",
+    );
+  });
+
+  it("returns Open label when no metadata fields match", () => {
+    expect(getNotificationActionLabel(notification({ metadata: null }))).toBe(
+      "Open",
+    );
+    expect(
+      getNotificationActionLabel(
+        notification({ metadata: JSON.stringify({}) }),
+      ),
+    ).toBe("Open");
   });
 });

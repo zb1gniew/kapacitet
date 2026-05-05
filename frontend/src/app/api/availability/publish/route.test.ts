@@ -51,4 +51,22 @@ describe("availability publish route", () => {
       message: "Unable to publish availability right now.",
     });
   });
+
+  it("proxies a non-ok backend response with its status and body", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Validation failed" }), {
+        status: 422,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const response = await POST(
+      new Request("https://app.example/api/availability/publish", {
+        method: "POST",
+        body: JSON.stringify({ quantity: 3 }),
+      }) as never,
+    );
+
+    expect(response.status).toBe(422);
+  });
 });

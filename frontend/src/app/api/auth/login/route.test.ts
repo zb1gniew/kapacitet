@@ -156,4 +156,82 @@ describe("auth login route", () => {
     });
     expect(response.status).toBe(307);
   });
+
+  it("returns 429 when the rate limit is exceeded", async () => {
+    mockedGetAuthConfig.mockReturnValue({
+      appUrl: "https://app.example",
+      issuerUrl: "https://issuer.example",
+      serverIssuerUrl: "https://issuer.example",
+      clientId: "frontend",
+      sessionSecret: "secret",
+      cookieSecure: false,
+      scopes: "openid",
+    });
+
+    // Exhaust the limit (20 requests per minute per IP)
+    const req = new NextRequest("https://app.example/api/auth/login", {
+      headers: { "x-forwarded-for": "99.99.99.99" },
+    });
+    for (let i = 0; i < 20; i++) {
+      await GET(req);
+    }
+
+    const limited = await GET(req);
+    expect(limited.status).toBe(429);
+  });
+
+  it("redirects to home when GET login setup throws", async () => {
+    mockedGetAuthConfig.mockReturnValue({
+      appUrl: "https://app.example",
+      issuerUrl: "https://issuer.example",
+      serverIssuerUrl: "https://issuer.example",
+      clientId: "frontend",
+      sessionSecret: "secret",
+      cookieSecure: false,
+      scopes: "openid",
+    });
+    mockedCreateRandomState.mockReturnValue("s");
+    mockedCreateCodeVerifier.mockReturnValue("v");
+    mockedCreateCodeChallenge.mockReturnValue("c");
+    mockedBuildAuthorizationUrl.mockRejectedValue(
+      new Error("OIDC unavailable"),
+    );
+
+    const response = await GET(
+      new NextRequest("https://app.example/api/auth/login?from=99.99.99.100"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://app.example/");
+  });
+
+  it("redirects to home when POST login setup throws", async () => {
+    mockedGetAuthConfig.mockReturnValue({
+      appUrl: "https://app.example",
+      issuerUrl: "https://issuer.example",
+      serverIssuerUrl: "https://issuer.example",
+      clientId: "frontend",
+      sessionSecret: "secret",
+      cookieSecure: false,
+      scopes: "openid",
+    });
+    mockedCreateRandomState.mockReturnValue("s");
+    mockedCreateCodeVerifier.mockReturnValue("v");
+    mockedCreateCodeChallenge.mockReturnValue("c");
+    mockedBuildAuthorizationUrl.mockRejectedValue(
+      new Error("OIDC unavailable"),
+    );
+
+    const formData = new FormData();
+    const response = await POST(
+      new NextRequest("https://app.example/api/auth/login", {
+        method: "POST",
+        body: formData,
+        headers: { "x-forwarded-for": "99.99.99.101" },
+      }),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://app.example/");
+  });
 });

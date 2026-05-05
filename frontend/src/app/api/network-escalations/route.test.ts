@@ -26,4 +26,17 @@ describe("network escalations route", () => {
       message: "Unable to load network requests right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Service Unavailable", {
+        status: 503,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await GET();
+    expect(response.status).toBe(503);
+    await expect(response.text()).resolves.toBe("Service Unavailable");
+  });
 });

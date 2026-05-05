@@ -30,4 +30,20 @@ describe("match decline route", () => {
       message: "Unable to decline the offer right now.",
     });
   });
+
+  it("proxies a non-ok backend response with status and body", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Bad Request", {
+        status: 400,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await POST(new Request("https://app.example") as never, {
+      params: Promise.resolve({ id: "7" }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.text()).resolves.toBe("Bad Request");
+  });
 });
