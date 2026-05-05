@@ -22,7 +22,7 @@ export type AuthTransaction = {
   state: string;
   codeVerifier: string;
   nonce: string;
-  returnTo: string;
+  returnTo?: string;
 };
 
 export type OidcDiscoveryDocument = {
