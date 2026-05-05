@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
 import { parseProblemDetails } from "@/lib/backend/errors";
 import { APP_ROUTES } from "@/constants/routes";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
@@ -19,6 +20,7 @@ type CompanyListingReviewScreenProps = {
   user: AuthenticatedUser;
   listingId: number;
   kind: "availability" | "request";
+  canManage: boolean;
 };
 
 type Listing = AvailabilityDeclarationResponse | CapacityRequestResponse;
@@ -82,6 +84,7 @@ export function CompanyListingReviewScreen({
   user,
   listingId,
   kind,
+  canManage,
 }: CompanyListingReviewScreenProps) {
   const router = useRouter();
   const { t } = useLocalizedScreen();
@@ -197,7 +200,7 @@ export function CompanyListingReviewScreen({
   return (
     <main className="min-h-screen bg-[#f5f5f5]">
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey={activeItemKey} />
+        <DashboardSidebar t={t} user={user} activeItemKey={activeItemKey} />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />
@@ -349,14 +352,29 @@ export function CompanyListingReviewScreen({
                   ) : null}
 
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={handleDeactivate}
-                      disabled={listing.status !== "Active" || isActing}
-                      className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] px-5 text-sm font-semibold text-[#b91c1c] disabled:opacity-60"
-                    >
-                      {isActing ? t("Saving...") : actionLabel}
-                    </button>
+                    {canManage ? (
+                      <button
+                        type="button"
+                        onClick={handleDeactivate}
+                        disabled={listing.status !== "Active" || isActing}
+                        className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#fca5a5] bg-[#fff5f5] px-5 text-sm font-semibold text-[#b91c1c] disabled:opacity-60"
+                      >
+                        {isActing ? t("Saving...") : actionLabel}
+                      </button>
+                    ) : (
+                      <PermissionNotice
+                        title={t("Read-only access")}
+                        description={
+                          kind === "availability"
+                            ? t(
+                                "Only company managers can withdraw availability declarations. You can review the details here.",
+                              )
+                            : t(
+                                "Only company managers can cancel capacity requests. You can review the details here.",
+                              )
+                        }
+                      />
+                    )}
                   </div>
                 </section>
               </>

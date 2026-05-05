@@ -8,7 +8,7 @@ import { MatchesContent } from "@/components/matches/MatchesContent";
 import { useMatchAction } from "@/hooks/useMatchAction";
 import { useMatchesData } from "@/hooks/useMatchesData";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
-import { isPlatformAdmin } from "@/lib/auth/roles";
+import { isCompanyManager, isPlatformAdmin } from "@/lib/auth/roles";
 import { deriveMatchesSummary } from "@/lib/matches/derive";
 import type { AuthenticatedUser } from "@/types/auth";
 
@@ -115,6 +115,7 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
       <div className="flex min-h-screen flex-col lg:flex-row">
         <DashboardSidebar
           t={t}
+          user={user}
           activeItemKey="Matches"
           workspace={showAdminTab ? "platform" : "company"}
         />
@@ -129,6 +130,7 @@ export function MatchesScreen({ user }: MatchesScreenProps) {
             highlightedMatchId={highlightedMatchId}
             loading={loading}
             matches={matches}
+            canManageCompany={isCompanyManager(user)}
             onAccept={handleAccept}
             onDecline={handleDecline}
             onRetry={refreshMatches}

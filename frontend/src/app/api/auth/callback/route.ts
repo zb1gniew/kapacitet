@@ -111,6 +111,12 @@ export async function GET(request: NextRequest) {
         );
         if (onboardingResponse.ok) {
           const status = await onboardingResponse.json();
+          session.user.appRole =
+            status.appRole === "Admin" ||
+            status.appRole === "Manager" ||
+            status.appRole === "Viewer"
+              ? status.appRole
+              : undefined;
           onboardingCompleted = status.isOnboardingCompleted === true;
         }
       } catch (err) {

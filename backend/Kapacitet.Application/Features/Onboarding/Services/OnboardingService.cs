@@ -25,6 +25,7 @@ public class OnboardingService
         return new OnboardingStatusDto
         {
             IsOnboardingCompleted = user.OnboardingCompletedAt.HasValue,
+            AppRole = user.Role.ToString(),
             Company = new CompanyDetailsDto
             {
                 Name = user.Company.Name,

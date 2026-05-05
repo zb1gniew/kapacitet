@@ -5,6 +5,7 @@ export type AuthenticatedUser = {
   preferredUsername?: string;
   emailVerified?: boolean;
   roles?: string[];
+  appRole?: "Admin" | "Manager" | "Viewer";
 };
 
 export type AuthSession = {

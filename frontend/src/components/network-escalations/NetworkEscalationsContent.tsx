@@ -2,6 +2,7 @@ import type {
   NetworkEscalationResponse,
   NetworkResponseType,
 } from "@/types/api-network-escalations";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
 import type { TranslateFn } from "@/types/i18n";
 
 type NetworkEscalationsContentProps = {
@@ -11,6 +12,7 @@ type NetworkEscalationsContentProps = {
   error: string | null;
   toastError: string;
   actionInProgress: number | null;
+  canManageCompany: boolean;
   onRetry: () => void | Promise<void>;
   onRespond: (
     escalationId: number,
@@ -67,6 +69,7 @@ export function NetworkEscalationsContent({
   error,
   toastError,
   actionInProgress,
+  canManageCompany,
   onRetry,
   onRespond,
   t,
@@ -259,26 +262,39 @@ export function NetworkEscalationsContent({
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    disabled={hasResponded || submitting}
-                    onClick={() => void onRespond(escalation.id, "CanHelp")}
-                    className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#00a63e] px-5 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {submitting ? t("Submitting...") : t("I can help")}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={hasResponded || submitting}
-                    onClick={() =>
-                      void onRespond(escalation.id, "NeedCapacity")
-                    }
-                    className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {submitting
-                      ? t("Submitting...")
-                      : t("I also need capacity")}
-                  </button>
+                  {canManageCompany ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={hasResponded || submitting}
+                        onClick={() => void onRespond(escalation.id, "CanHelp")}
+                        className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#00a63e] px-5 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting ? t("Submitting...") : t("I can help")}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={hasResponded || submitting}
+                        onClick={() =>
+                          void onRespond(escalation.id, "NeedCapacity")
+                        }
+                        className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting
+                          ? t("Submitting...")
+                          : t("I also need capacity")}
+                      </button>
+                    </>
+                  ) : hasResponded ? null : (
+                    <div className="w-full">
+                      <PermissionNotice
+                        title={t("Manager action required")}
+                        description={t(
+                          "Only company managers can respond to network-wide requests. You can review the request details, but a manager needs to submit the company response.",
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
               </article>
             );

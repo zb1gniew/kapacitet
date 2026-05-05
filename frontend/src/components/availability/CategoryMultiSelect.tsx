@@ -15,6 +15,7 @@ type CategoryMultiSelectProps = {
   /** Use "sm" in compact forms (min-h-[42px]). Defaults to min-h-[50px]. */
   size?: "sm" | "md";
   error?: boolean;
+  disabled?: boolean;
 };
 
 export function CategoryMultiSelect({
@@ -23,6 +24,7 @@ export function CategoryMultiSelect({
   placeholder,
   size = "md",
   error = false,
+  disabled = false,
 }: CategoryMultiSelectProps) {
   const { t } = useTranslation();
   const listId = useId();
@@ -111,7 +113,7 @@ export function CategoryMultiSelect({
       <div
         className={`flex cursor-text flex-wrap items-center gap-1.5 rounded-[10px] border bg-white px-3 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] ${size === "sm" ? "min-h-[42px] py-1" : "min-h-[50px] py-1.5"} ${borderClass}`}
         onClick={() => {
-          if (!isAtMax) inputRef.current?.focus();
+          if (!disabled && !isAtMax) inputRef.current?.focus();
         }}
       >
         {value.map((key) => (
@@ -122,12 +124,13 @@ export function CategoryMultiSelect({
             {t(CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] ?? key)}
             <button
               type="button"
+              disabled={disabled}
               aria-label={`Remove ${t(CATEGORY_LABELS[key as keyof typeof CATEGORY_LABELS] ?? key)}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemove(key);
               }}
-              className="leading-none text-blue-400 transition hover:text-blue-700"
+              className="leading-none text-blue-400 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               ×
             </button>
@@ -148,12 +151,15 @@ export function CategoryMultiSelect({
             }
             autoComplete="off"
             value={query}
+            disabled={disabled}
             onChange={(e) => {
               setQuery(e.target.value);
               setOpen(true);
               setActiveIndex(-1);
             }}
-            onFocus={() => setOpen(true)}
+            onFocus={() => {
+              if (!disabled) setOpen(true);
+            }}
             onBlur={() => {
               setOpen(false);
               setActiveIndex(-1);
@@ -164,7 +170,7 @@ export function CategoryMultiSelect({
                 ? (placeholder ?? t("Search categories…"))
                 : undefined
             }
-            className={`min-w-[120px] flex-1 bg-transparent tracking-[-0.3125px] text-neutral-900 outline-none placeholder:text-neutral-500 ${size === "sm" ? "text-sm" : "text-base"}`}
+            className={`min-w-[120px] flex-1 bg-transparent tracking-[-0.3125px] text-neutral-900 outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed disabled:text-neutral-500 ${size === "sm" ? "text-sm" : "text-base"}`}
           />
         ) : (
           <span
@@ -175,7 +181,7 @@ export function CategoryMultiSelect({
         )}
       </div>
 
-      {open && suggestions.length > 0 && (
+      {!disabled && open && suggestions.length > 0 && (
         <ul
           id={listId}
           role="listbox"

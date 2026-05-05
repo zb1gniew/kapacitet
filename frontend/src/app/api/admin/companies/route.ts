@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerAuthSession } from "@/lib/auth/server-session";
+import { isPlatformAdmin } from "@/lib/auth/roles";
 import { fetchBackend } from "@/lib/backend/server-client";
 
 function createProxyResponse(response: Response, body: string) {
@@ -12,6 +14,11 @@ function createProxyResponse(response: Response, body: string) {
 }
 
 export async function GET() {
+  const session = await getServerAuthSession();
+  if (!session || !isPlatformAdmin(session.user)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const response = await fetchBackend("/api/admin/companies", {
       method: "GET",

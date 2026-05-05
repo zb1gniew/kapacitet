@@ -4,12 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { CircleCheckIcon, EmailIcon } from "@/components/auth/icons";
 import { BellIcon } from "@/components/dashboard/icons";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
+import { isCompanyManager } from "@/lib/auth/roles";
 import { parseProblemDetails } from "@/lib/backend/errors";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import { SettingsPreferenceCard } from "./SettingsPreferenceCard";
 
 type SettingsNotificationsCardProps = {
   t: TranslateFn;
+  user: AuthenticatedUser;
 };
 
 type NotificationPreferences = {
@@ -36,7 +40,9 @@ function GroupLabel({ icon, label }: { icon: ReactNode; label: string }) {
 
 export function SettingsNotificationsCard({
   t,
+  user,
 }: SettingsNotificationsCardProps) {
+  const canManageCompany = isCompanyManager(user);
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -176,7 +182,10 @@ export function SettingsNotificationsCard({
                 "Receive email when the platform finds capacity matches for your requests",
               )}
               checked={prefs.emailNewMatches}
-              onToggle={() => toggle("emailNewMatches")}
+              onToggle={
+                canManageCompany ? () => toggle("emailNewMatches") : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -185,7 +194,12 @@ export function SettingsNotificationsCard({
                 "Get notified when you need to respond to offers, confirmations, or expiring requests",
               )}
               checked={prefs.emailActionsRequired}
-              onToggle={() => toggle("emailActionsRequired")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("emailActionsRequired")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -194,7 +208,12 @@ export function SettingsNotificationsCard({
                 "Reminders 48 hours before confirmed cooperation begins",
               )}
               checked={prefs.emailUpcomingCooperation}
-              onToggle={() => toggle("emailUpcomingCooperation")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("emailUpcomingCooperation")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -203,7 +222,12 @@ export function SettingsNotificationsCard({
                 "Get notified when an urgent network-wide request needs your company's response",
               )}
               checked={prefs.emailNetworkRequests}
-              onToggle={() => toggle("emailNetworkRequests")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("emailNetworkRequests")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
           </div>
@@ -221,7 +245,10 @@ export function SettingsNotificationsCard({
                 "Show notification badge when new matches are ready for review",
               )}
               checked={prefs.inAppNewMatches}
-              onToggle={() => toggle("inAppNewMatches")}
+              onToggle={
+                canManageCompany ? () => toggle("inAppNewMatches") : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -230,7 +257,12 @@ export function SettingsNotificationsCard({
                 "Alert when responses or confirmations are needed",
               )}
               checked={prefs.inAppActionsRequired}
-              onToggle={() => toggle("inAppActionsRequired")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("inAppActionsRequired")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -239,7 +271,12 @@ export function SettingsNotificationsCard({
                 "In-app reminders for upcoming cooperation start dates",
               )}
               checked={prefs.inAppUpcomingCooperation}
-              onToggle={() => toggle("inAppUpcomingCooperation")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("inAppUpcomingCooperation")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
             <SettingsPreferenceCard
@@ -248,7 +285,12 @@ export function SettingsNotificationsCard({
                 "Show notification when an urgent network-wide request is available",
               )}
               checked={prefs.inAppNetworkRequests}
-              onToggle={() => toggle("inAppNetworkRequests")}
+              onToggle={
+                canManageCompany
+                  ? () => toggle("inAppNetworkRequests")
+                  : undefined
+              }
+              disabled={!canManageCompany}
               t={t}
             />
           </div>
@@ -267,15 +309,24 @@ export function SettingsNotificationsCard({
       )}
 
       <div className="mt-5 border-t border-neutral-200 pt-4">
-        <button
-          type="button"
-          disabled={saving || loading || !prefs}
-          onClick={handleSave}
-          className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
-        >
-          <CircleCheckIcon className="h-4 w-4" />
-          {saving ? t("Saving…") : t("Save notification preferences")}
-        </button>
+        {canManageCompany ? (
+          <button
+            type="button"
+            disabled={saving || loading || !prefs}
+            onClick={handleSave}
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            <CircleCheckIcon className="h-4 w-4" />
+            {saving ? t("Saving…") : t("Save notification preferences")}
+          </button>
+        ) : (
+          <PermissionNotice
+            title={t("Read-only settings")}
+            description={t(
+              "Only company managers can change notification preferences. You can review the current notification setup here.",
+            )}
+          />
+        )}
       </div>
     </article>
   );

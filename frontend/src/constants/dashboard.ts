@@ -5,7 +5,7 @@ import type {
 } from "@/types/dashboard";
 import { APP_ROUTES } from "./routes";
 
-const COMPANY_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+const COMPANY_MANAGER_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { key: "Home", icon: "home", href: APP_ROUTES.dashboard },
   {
     key: "Declare availability",
@@ -17,6 +17,17 @@ const COMPANY_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     icon: "search",
     href: APP_ROUTES.requestCapacityWorkersStep1,
   },
+  {
+    key: "Network requests",
+    icon: "matches",
+    href: APP_ROUTES.networkRequests,
+  },
+  { key: "Matches", icon: "matches", href: APP_ROUTES.matches },
+  { key: "Settings", icon: "settings", href: APP_ROUTES.settings },
+];
+
+const COMPANY_VIEWER_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
+  { key: "Home", icon: "home", href: APP_ROUTES.dashboard },
   {
     key: "Network requests",
     icon: "matches",
@@ -48,13 +59,16 @@ const PLATFORM_DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
 
 export function getDashboardNavItems(
   workspace: DashboardWorkspace = "company",
+  canManageCompany = true,
 ): DashboardNavItem[] {
   return workspace === "platform"
     ? PLATFORM_DASHBOARD_NAV_ITEMS
-    : COMPANY_DASHBOARD_NAV_ITEMS;
+    : canManageCompany
+      ? COMPANY_MANAGER_DASHBOARD_NAV_ITEMS
+      : COMPANY_VIEWER_DASHBOARD_NAV_ITEMS;
 }
 
-export const DASHBOARD_QUICK_ACTIONS: DashboardQuickAction[] = [
+const COMPANY_MANAGER_QUICK_ACTIONS: DashboardQuickAction[] = [
   {
     titleKey: "Declare availability",
     descriptionKey:
@@ -72,3 +86,9 @@ export const DASHBOARD_QUICK_ACTIONS: DashboardQuickAction[] = [
     href: APP_ROUTES.requestCapacityWorkersStep1,
   },
 ];
+
+export function getDashboardQuickActions(
+  canManageCompany = true,
+): DashboardQuickAction[] {
+  return canManageCompany ? COMPANY_MANAGER_QUICK_ACTIONS : [];
+}

@@ -103,7 +103,9 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
             label={t("Company name")}
             value={company.name}
             readOnly
-            helperText={t("Contact platform support to change company name")}
+            helperText={t(
+              "Company name changes are handled separately and cannot be made during onboarding.",
+            )}
           />
 
           {company.cvr ? (

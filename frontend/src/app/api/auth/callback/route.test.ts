@@ -152,10 +152,16 @@ describe("auth callback route", () => {
     mockedIsPlatformAdmin.mockReturnValue(false);
     mockedGetBackendApiBaseUrl.mockReturnValue("https://backend.example");
     vi.mocked(global.fetch).mockResolvedValue(
-      new Response(JSON.stringify({ isOnboardingCompleted: true }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({
+          isOnboardingCompleted: true,
+          appRole: "Manager",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
     );
     mockedCreateServerSession.mockResolvedValue("session-uuid");
     mockedCreateSessionCookieValue.mockResolvedValue("encrypted-session");
@@ -170,6 +176,11 @@ describe("auth callback route", () => {
     const req = makeRequest({ code: "code-1", state: "state-1" });
     const response = await GET(req);
 
+    expect(mockedCreateServerSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user: expect.objectContaining({ appRole: "Manager" }),
+      }),
+    );
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
       "https://app.example/dashboard/matches",
@@ -189,10 +200,16 @@ describe("auth callback route", () => {
     mockedIsPlatformAdmin.mockReturnValue(false);
     mockedGetBackendApiBaseUrl.mockReturnValue("https://backend.example");
     vi.mocked(global.fetch).mockResolvedValue(
-      new Response(JSON.stringify({ isOnboardingCompleted: false }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({
+          isOnboardingCompleted: false,
+          appRole: "Viewer",
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
     );
     mockedCreateServerSession.mockResolvedValue("session-uuid");
     mockedCreateSessionCookieValue.mockResolvedValue("encrypted-session");

@@ -11,6 +11,7 @@ type SettingsPreferenceCardProps = {
   checked: boolean;
   t: TranslateFn;
   onToggle?: () => void;
+  disabled?: boolean;
   noteKey?: string;
   noteTone?: NoteTone;
   leadingIcon?: ReactNode;
@@ -31,6 +32,7 @@ export function SettingsPreferenceCard({
   checked,
   t,
   onToggle,
+  disabled = false,
   noteKey,
   noteTone = "info",
   leadingIcon,
@@ -49,7 +51,11 @@ export function SettingsPreferenceCard({
             {description}
           </p>
         </div>
-        <SettingsToggleSwitch checked={checked} onClick={onToggle} />
+        <SettingsToggleSwitch
+          checked={checked}
+          disabled={disabled}
+          onClick={onToggle}
+        />
       </div>
 
       {noteKey ? (

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
 import {
   CheckBadgeIcon,
   ClockIcon,
@@ -25,6 +26,7 @@ type MatchesOfferCardProps = {
   onSupplierConfirm: (matchId: number) => void | Promise<void>;
   onSupplierDecline: (matchId: number) => void | Promise<void>;
   actionInProgress: number | null;
+  canManageCompany: boolean;
   highlighted?: boolean;
   t: TranslateFn;
 };
@@ -36,6 +38,7 @@ export function MatchesOfferCard({
   onSupplierConfirm,
   onSupplierDecline,
   actionInProgress,
+  canManageCompany,
   highlighted = false,
   t,
 }: MatchesOfferCardProps) {
@@ -182,7 +185,7 @@ export function MatchesOfferCard({
           {t("Why this match?")}
         </button>
 
-        {isRequesterOffer ? (
+        {isRequesterOffer && canManageCompany ? (
           <>
             <button
               type="button"
@@ -220,7 +223,7 @@ export function MatchesOfferCard({
           </>
         ) : null}
 
-        {isSupplierOffer ? (
+        {isSupplierOffer && canManageCompany ? (
           <>
             <button
               type="button"
@@ -264,6 +267,17 @@ export function MatchesOfferCard({
           </>
         ) : null}
       </div>
+
+      {!canManageCompany && (isRequesterOffer || isSupplierOffer) ? (
+        <div className="mt-3">
+          <PermissionNotice
+            title={t("Manager action required")}
+            description={t(
+              "Only company managers can respond to live match offers. You can review the recommendation and share it internally with a manager for action.",
+            )}
+          />
+        </div>
+      ) : null}
 
       <div className="mt-2.5 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-3 py-2">
         <p className="flex items-start gap-2 text-[11px] leading-[16px] text-[#193cb8]">

@@ -10,6 +10,7 @@ type CityAutocompleteProps = {
   placeholder?: string;
   /** Use "sm" in compact forms (h-[42px]). Defaults to h-[50px]. */
   size?: "sm" | "md";
+  disabled?: boolean;
 };
 
 export function CityAutocomplete({
@@ -17,6 +18,7 @@ export function CityAutocomplete({
   onChange,
   placeholder,
   size = "md",
+  disabled = false,
 }: CityAutocompleteProps) {
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -93,16 +95,17 @@ export function CityAutocomplete({
         }
         autoComplete="off"
         value={value}
+        disabled={disabled}
         onChange={(e) => handleChange(e.target.value)}
         onFocus={() => {
-          if (suggestions.length > 0) setOpen(true);
+          if (!disabled && suggestions.length > 0) setOpen(true);
         }}
         onBlur={() => setOpen(false)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className={`${size === "sm" ? "h-[42px] text-sm" : "h-[50px] text-base"} w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none`}
+        className={`${size === "sm" ? "h-[42px] text-sm" : "h-[50px] text-base"} w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] placeholder:text-neutral-500 focus:border-blue-600 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500`}
       />
-      {open && suggestions.length > 0 && (
+      {!disabled && open && suggestions.length > 0 && (
         <ul
           id={listId}
           role="listbox"

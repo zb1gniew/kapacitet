@@ -5,6 +5,7 @@ import type {
   OidcTokenResponse,
   OidcUserInfo,
 } from "@/types/auth";
+import { getBackendApiBaseUrl } from "@/lib/backend/config";
 import { fetchUserInfo, refreshOidcToken } from "./oidc";
 
 function nowInSeconds() {
@@ -66,6 +67,7 @@ function extractRoles(
 function toUserProfile(
   userInfo: OidcUserInfo,
   roles?: string[],
+  appRole?: "Admin" | "Manager" | "Viewer",
 ): AuthenticatedUser {
   return {
     sub: userInfo.sub,
@@ -74,6 +76,7 @@ function toUserProfile(
     preferredUsername: userInfo.preferred_username,
     emailVerified: userInfo.email_verified,
     roles,
+    appRole,
   };
 }
 
@@ -81,14 +84,16 @@ export function createAuthSession(
   tokenResponse: OidcTokenResponse,
   userInfo: OidcUserInfo,
   previousSession?: AuthSession,
+  appRole?: "Admin" | "Manager" | "Viewer",
 ): AuthSession {
   const now = nowInSeconds();
   const roles =
     extractRoles(tokenResponse.access_token, tokenResponse.id_token) ??
     previousSession?.user.roles;
+  const resolvedAppRole = appRole ?? previousSession?.user.appRole;
 
   return {
-    user: toUserProfile(userInfo, roles),
+    user: toUserProfile(userInfo, roles, resolvedAppRole),
     accessToken: tokenResponse.access_token,
     idToken: tokenResponse.id_token ?? previousSession?.idToken,
     tokenType: tokenResponse.token_type ?? previousSession?.tokenType,
@@ -118,6 +123,32 @@ export function shouldRefreshSession(session: AuthSession): boolean {
   );
 }
 
+async function fetchAppRoleFromBackend(
+  accessToken: string,
+): Promise<"Admin" | "Manager" | "Viewer" | undefined> {
+  try {
+    const backendUrl = getBackendApiBaseUrl();
+    const response = await fetch(`${backendUrl}/api/onboarding/status`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      return undefined;
+    }
+    const status = (await response.json()) as { appRole?: string };
+    if (
+      status.appRole === "Admin" ||
+      status.appRole === "Manager" ||
+      status.appRole === "Viewer"
+    ) {
+      return status.appRole;
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function refreshAuthSession(
   session: AuthSession,
 ): Promise<AuthSession | null> {
@@ -128,7 +159,12 @@ export async function refreshAuthSession(
   try {
     const tokenResponse = await refreshOidcToken(session.refreshToken);
     const userInfo = await fetchUserInfo(tokenResponse.access_token);
-    return createAuthSession(tokenResponse, userInfo, session);
+    // Re-fetch the app role on every refresh so role changes (e.g. Admin→Viewer)
+    // are reflected without requiring the user to log out and back in.
+    const freshAppRole =
+      (await fetchAppRoleFromBackend(tokenResponse.access_token)) ??
+      session.user.appRole;
+    return createAuthSession(tokenResponse, userInfo, session, freshAppRole);
   } catch {
     return null;
   }
