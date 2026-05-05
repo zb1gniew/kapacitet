@@ -51,8 +51,21 @@ services:
       retries: 12
       start_period: 30s
 
+  migrator:
+    build:
+      context: ../backend
+      target: migrator
+    restart: "no"
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=kapacitetdb;Username=appuser;Password=strongpassword
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   backend:
-    build: ../backend
+    build:
+      context: ../backend
+      target: app
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -73,8 +86,8 @@ services:
     expose:
       - "8080"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
       keycloak:
         condition: service_healthy
 
@@ -114,6 +127,7 @@ services:
       # true because Caddy serves the app over HTTPS — cookies must be Secure-flagged.
       AUTH_COOKIE_SECURE: "true"
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET}
+      ENABLE_TEST_AUTH: ${ENABLE_TEST_AUTH:-false}
     # Frontend is reached through Caddy only.
     expose:
       - "3000"
