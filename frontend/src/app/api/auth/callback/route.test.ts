@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/session";
 import { createServerSession } from "@/lib/auth/session-store";
 import { getBackendApiBaseUrl } from "@/lib/backend/config";
+import type { AuthTransaction } from "@/types/auth";
 
 vi.mock("@/lib/auth/config", () => ({ getAuthConfig: vi.fn() }));
 vi.mock("@/lib/auth/oidc", () => ({
@@ -213,10 +214,14 @@ describe("auth callback route", () => {
   });
 
   it("skips onboarding check for platform admins and redirects to dashboard", async () => {
-    mockedParseTransactionCookieValue.mockResolvedValue({
-      ...TRANSACTION,
-      returnTo: undefined,
-    });
+    const transactionWithoutReturnTo: AuthTransaction = {
+      state: TRANSACTION.state,
+      codeVerifier: TRANSACTION.codeVerifier,
+      nonce: TRANSACTION.nonce,
+    };
+    mockedParseTransactionCookieValue.mockResolvedValue(
+      transactionWithoutReturnTo,
+    );
     mockedExchangeAuthorizationCode.mockResolvedValue(TOKEN_RESPONSE);
     mockedHasExpectedNonce.mockResolvedValue(true);
     mockedFetchUserInfo.mockResolvedValue({ sub: "admin-1" });
