@@ -22,7 +22,13 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const roleBadge = isPlatformAdmin(user)
     ? t("Platform admin")
-    : t("Company user");
+    : user.appRole === "Admin"
+      ? t("Company admin")
+      : user.appRole === "Manager"
+        ? t("Company manager")
+        : user.appRole === "Viewer"
+          ? t("Company viewer")
+          : t("Company user");
 
   return (
     <header className="border-b border-[#45556c66] bg-[linear-gradient(to_right,#314158_0%,#43536a_35%,#8693a3_70%,#f5f5f5_100%)] px-5 py-4 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] sm:px-8">

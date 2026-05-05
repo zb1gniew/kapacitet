@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightIcon, EmailIcon, LockIcon } from "@/components/auth/icons";
 import { APP_ROUTES } from "@/constants/routes";
+import {
+  isCompanyManager,
+  isCompanyViewer,
+  isPlatformAdmin,
+} from "@/lib/auth/roles";
 import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 
@@ -75,12 +80,21 @@ function formatRelativeTime(t: TranslateFn, dateStr: string): string {
 
 function getRoleLabel(
   t: TranslateFn,
-  roles?: string[],
+  user: AuthenticatedUser,
 ): { label: string; badge: string } {
-  if (roles?.includes("Admin") || roles?.includes("OperatorAdmin")) {
+  if (isPlatformAdmin(user)) {
     return { label: t("Platform Administrator"), badge: t("Full Access") };
   }
-  return { label: t("Company Administrator"), badge: t("Full Access") };
+  if (user.appRole === "Admin") {
+    return { label: t("Company Administrator"), badge: t("Full Access") };
+  }
+  if (isCompanyManager(user)) {
+    return { label: t("Company Manager"), badge: t("Manage Access") };
+  }
+  if (isCompanyViewer(user)) {
+    return { label: t("Company Viewer"), badge: t("Read Only") };
+  }
+  return { label: t("Company User"), badge: t("Access limited") };
 }
 
 function AccountPanel({
@@ -90,7 +104,7 @@ function AccountPanel({
   t: TranslateFn;
   user: AuthenticatedUser;
 }) {
-  const { label: roleLabel, badge } = getRoleLabel(t, user.roles);
+  const { label: roleLabel, badge } = getRoleLabel(t, user);
   const displayEmail = user.email ?? user.preferredUsername ?? "";
 
   return (
@@ -115,10 +129,15 @@ function AccountPanel({
         </div>
         <p className="mt-2 text-[11px] leading-[16px] text-[#193cb8]">
           {t(
-            user.roles?.includes("Admin") ||
-              user.roles?.includes("OperatorAdmin")
+            isPlatformAdmin(user)
               ? "As a platform administrator, you have full access to review onboarding, manage platform operations, and inspect audit activity."
-              : "As a company administrator, you have full access to declare availability, request capacity, review matches, and manage settings.",
+              : user.appRole === "Admin"
+                ? "As a company administrator, you have full access to declare availability, request capacity, review matches, and manage settings."
+                : isCompanyViewer(user)
+                  ? "As a company viewer, you can review matches, network requests, and settings, but only managers can publish or change company data."
+                  : isCompanyManager(user)
+                    ? "As a company manager, you can declare availability, request capacity, review matches, and manage company settings."
+                    : "Your account access is pending setup. Contact your company administrator if you believe this is incorrect.",
           )}
         </p>
       </div>

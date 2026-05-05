@@ -3,6 +3,7 @@ namespace Kapacitet.Application.Features.Onboarding.DTOs;
 public class OnboardingStatusDto
 {
     public bool IsOnboardingCompleted { get; set; }
+    public string? AppRole { get; set; }
     public CompanyDetailsDto Company { get; set; } = null!;
 }
 

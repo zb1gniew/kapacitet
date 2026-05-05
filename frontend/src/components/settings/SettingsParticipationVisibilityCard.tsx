@@ -2,12 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CircleCheckIcon } from "@/components/auth/icons";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
+import { isCompanyManager } from "@/lib/auth/roles";
 import { parseProblemDetails } from "@/lib/backend/errors";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import { SettingsPreferenceCard } from "./SettingsPreferenceCard";
 
 type SettingsParticipationVisibilityCardProps = {
   t: TranslateFn;
+  user: AuthenticatedUser;
 };
 
 type ParticipationSettings = {
@@ -19,7 +23,9 @@ type ParticipationSettings = {
 
 export function SettingsParticipationVisibilityCard({
   t,
+  user,
 }: SettingsParticipationVisibilityCardProps) {
+  const canManageCompany = isCompanyManager(user);
   const [settings, setSettings] = useState<ParticipationSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -152,7 +158,12 @@ export function SettingsParticipationVisibilityCard({
             "Allow other companies in your network to send capacity requests that match your declared availability. You can review and respond to each request individually.",
           )}
           checked={settings.receiveCapacityRequests}
-          onToggle={() => toggle("receiveCapacityRequests")}
+          onToggle={
+            canManageCompany
+              ? () => toggle("receiveCapacityRequests")
+              : undefined
+          }
+          disabled={!canManageCompany}
           t={t}
         />
 
@@ -162,7 +173,12 @@ export function SettingsParticipationVisibilityCard({
             "When urgent requests are escalated to the extended network, your company will be included in automated matching even if you haven't declared specific availability.",
           )}
           checked={settings.participateInNetworkWide}
-          onToggle={() => toggle("participateInNetworkWide")}
+          onToggle={
+            canManageCompany
+              ? () => toggle("participateInNetworkWide")
+              : undefined
+          }
+          disabled={!canManageCompany}
           t={t}
           noteKey="Network requests are only sent when no direct matches are found and the requesting company has marked their need as urgent."
         />
@@ -173,7 +189,10 @@ export function SettingsParticipationVisibilityCard({
             "Allow the platform to suggest partial matches when you cannot fulfill the complete request (e.g., 2 workers available when 3 are requested).",
           )}
           checked={settings.allowPartialMatches}
-          onToggle={() => toggle("allowPartialMatches")}
+          onToggle={
+            canManageCompany ? () => toggle("allowPartialMatches") : undefined
+          }
+          disabled={!canManageCompany}
           t={t}
         />
 
@@ -183,7 +202,10 @@ export function SettingsParticipationVisibilityCard({
             "When turned off, only companies sharing at least one trade category with you will appear as matches.",
           )}
           checked={settings.matchOutsideCategory}
-          onToggle={() => toggle("matchOutsideCategory")}
+          onToggle={
+            canManageCompany ? () => toggle("matchOutsideCategory") : undefined
+          }
+          disabled={!canManageCompany}
           t={t}
         />
       </div>
@@ -200,15 +222,24 @@ export function SettingsParticipationVisibilityCard({
       )}
 
       <div className="mt-5 border-t border-neutral-200 pt-4">
-        <button
-          type="button"
-          disabled={saving || loading || !settings}
-          onClick={handleSave}
-          className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
-        >
-          <CircleCheckIcon className="h-4 w-4" />
-          {saving ? t("Saving…") : t("Save preferences")}
-        </button>
+        {canManageCompany ? (
+          <button
+            type="button"
+            disabled={saving || loading || !settings}
+            onClick={handleSave}
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
+          >
+            <CircleCheckIcon className="h-4 w-4" />
+            {saving ? t("Saving…") : t("Save preferences")}
+          </button>
+        ) : (
+          <PermissionNotice
+            title={t("Read-only settings")}
+            description={t(
+              "Only company managers can change participation and visibility settings. You can still review how the company is currently configured.",
+            )}
+          />
+        )}
       </div>
     </article>
   );

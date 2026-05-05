@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { requireServerAuthSession } from "@/lib/auth/require-auth-session";
+import { isCompanyManager } from "@/lib/auth/roles";
 import { CompanyListingReviewScreen } from "@/screens/listings/CompanyListingReviewScreen";
 
 export default async function RequestCapacityReviewPage({
@@ -20,6 +21,7 @@ export default async function RequestCapacityReviewPage({
       user={session.user}
       listingId={listingId}
       kind="request"
+      canManage={isCompanyManager(session.user)}
     />
   );
 }

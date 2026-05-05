@@ -21,7 +21,7 @@ export function SettingsNotificationsScreen({
       activeSection="notifications"
       dataNodeId="1:5654"
     >
-      <SettingsNotificationsCard t={t} />
+      <SettingsNotificationsCard t={t} user={user} />
     </SettingsScreenLayout>
   );
 }

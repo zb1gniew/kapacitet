@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { BrandIcon } from "@/components/auth/icons";
 import { getDashboardNavItems } from "@/constants/dashboard";
+import { isCompanyManager } from "@/lib/auth/roles";
 import type {
   DashboardNavItem,
   DashboardNavItemKey,
   DashboardWorkspace,
 } from "@/types/dashboard";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import {
   BuildingsIcon,
@@ -22,6 +24,7 @@ import {
 type DashboardSidebarProps = {
   t: TranslateFn;
   activeItemKey: DashboardNavItemKey;
+  user?: AuthenticatedUser;
   workspace?: DashboardWorkspace;
 };
 
@@ -53,9 +56,10 @@ function getNavIcon(item: DashboardNavItem) {
 export function DashboardSidebar({
   t,
   activeItemKey,
+  user,
   workspace = "company",
 }: DashboardSidebarProps) {
-  const navItems = getDashboardNavItems(workspace);
+  const navItems = getDashboardNavItems(workspace, isCompanyManager(user));
   const subtitle =
     workspace === "platform"
       ? t("Platform operations")

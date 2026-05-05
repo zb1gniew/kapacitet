@@ -144,7 +144,7 @@ export function SettingsPrivacyDataBoundariesCard({
             </li>
             <li>
               {t(
-                "You can request a full data export or account deletion by contacting platform support",
+                "Data export and account deletion are handled through a separate manual support process outside this settings page",
               )}
             </li>
             <li>
@@ -161,7 +161,7 @@ export function SettingsPrivacyDataBoundariesCard({
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="text-xs leading-[19.5px] tracking-[-0.1172px]">
             {t(
-              "Note: Privacy boundaries are enforced at the platform level and cannot be modified through settings. For questions about data handling, contact platform support.",
+              "Note: Privacy boundaries are enforced at the platform level and cannot be modified through settings. This page is informational only.",
             )}
           </p>
         </div>

@@ -17,6 +17,10 @@ vi.mock("./oidc", () => ({
   refreshOidcToken: vi.fn(),
 }));
 
+vi.mock("@/lib/backend/config", () => ({
+  getBackendApiBaseUrl: () => "http://backend-test",
+}));
+
 const mockedFetchUserInfo = vi.mocked(fetchUserInfo);
 const mockedRefreshOidcToken = vi.mocked(refreshOidcToken);
 
@@ -27,9 +31,24 @@ function createJwt(payload: Record<string, unknown>) {
   return `header.${encoded}.signature`;
 }
 
+const mockFetch = vi.fn();
+vi.stubGlobal("fetch", mockFetch);
+
+function mockOnboardingStatus(appRole: string | null) {
+  if (appRole === null) {
+    mockFetch.mockResolvedValue({ ok: false });
+  } else {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ appRole }),
+    });
+  }
+}
+
 describe("auth session service", () => {
   beforeEach(() => {
     vi.setSystemTime(new Date("2026-04-28T10:00:00.000Z"));
+    mockFetch.mockReset();
   });
 
   it("creates a session and extracts deduplicated roles from tokens", () => {
@@ -71,7 +90,7 @@ describe("auth session service", () => {
 
   it("falls back to values from the previous session when refresh output is partial", () => {
     const previousSession: AuthSession = {
-      user: { sub: "user-1", roles: ["existing-role"] },
+      user: { sub: "user-1", roles: ["existing-role"], appRole: "Viewer" },
       accessToken: "old-access",
       idToken: "old-id",
       tokenType: "Bearer",
@@ -93,6 +112,7 @@ describe("auth session service", () => {
     expect(session.refreshToken).toBe("old-refresh");
     expect(session.tokenType).toBe("Bearer");
     expect(session.user.roles).toEqual(["existing-role"]);
+    expect(session.user.appRole).toBe("Viewer");
   });
 
   it("detects expired and near-expiry sessions", () => {
@@ -130,9 +150,10 @@ describe("auth session service", () => {
       sub: "user-1",
       email: "user@example.com",
     });
+    mockOnboardingStatus("Manager");
 
     const refreshed = await refreshAuthSession({
-      user: { sub: "user-1" },
+      user: { sub: "user-1", appRole: "Admin" },
       accessToken: "old-token",
       refreshToken: "refresh-token",
       expiresAt: 1777370300,
@@ -142,6 +163,46 @@ describe("auth session service", () => {
     expect(mockedFetchUserInfo).toHaveBeenCalled();
     expect(refreshed?.refreshToken).toBe("new-refresh");
     expect(refreshed?.user.roles).toEqual(["member", "auditor"]);
+    // appRole updated from backend, not carried from previous session
+    expect(refreshed?.user.appRole).toBe("Manager");
+  });
+
+  it("falls back to previous appRole when backend is unreachable during refresh", async () => {
+    mockedRefreshOidcToken.mockResolvedValue({
+      access_token: createJwt({ realm_access: { roles: ["member"] } }),
+      refresh_token: "new-refresh",
+      expires_in: 600,
+    });
+    mockedFetchUserInfo.mockResolvedValue({ sub: "user-1" });
+    mockOnboardingStatus(null); // backend returns error
+
+    const refreshed = await refreshAuthSession({
+      user: { sub: "user-1", appRole: "Viewer" },
+      accessToken: "old-token",
+      refreshToken: "refresh-token",
+      expiresAt: 1777370300,
+    });
+
+    expect(refreshed?.user.appRole).toBe("Viewer");
+  });
+
+  it("re-fetches appRole on refresh to reflect role downgrades immediately", async () => {
+    mockedRefreshOidcToken.mockResolvedValue({
+      access_token: createJwt({ realm_access: { roles: ["member"] } }),
+      refresh_token: "new-refresh",
+      expires_in: 600,
+    });
+    mockedFetchUserInfo.mockResolvedValue({ sub: "user-1" });
+    mockOnboardingStatus("Viewer"); // was Admin, now downgraded
+
+    const refreshed = await refreshAuthSession({
+      user: { sub: "user-1", appRole: "Admin" },
+      accessToken: "old-token",
+      refreshToken: "refresh-token",
+      expiresAt: 1777370300,
+    });
+
+    expect(refreshed?.user.appRole).toBe("Viewer");
   });
 
   it("sets refreshExpiresAt to 30 days for offline tokens (refresh_expires_in === 0)", () => {
@@ -153,10 +214,13 @@ describe("auth session service", () => {
         refresh_expires_in: 0,
       },
       { sub: "user-1" },
+      undefined,
+      "Manager",
     );
 
     const now = Math.floor(Date.now() / 1000);
     expect(session.refreshExpiresAt).toBe(now + 30 * 24 * 60 * 60);
+    expect(session.user.appRole).toBe("Manager");
   });
 
   it("returns null when refresh cannot be performed", async () => {
@@ -171,6 +235,7 @@ describe("auth session service", () => {
       }),
     ).resolves.toBeNull();
 
+    // No refresh token — returns null without calling oidc
     await expect(
       refreshAuthSession({
         user: { sub: "user-1" },

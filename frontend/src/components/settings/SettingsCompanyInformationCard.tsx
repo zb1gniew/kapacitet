@@ -10,11 +10,15 @@ import {
 import { CityAutocomplete } from "@/components/availability/CityAutocomplete";
 import { CategoryMultiSelect } from "@/components/availability/CategoryMultiSelect";
 import { PhoneInput } from "@/components/ui/PhoneInput";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
+import { isCompanyManager } from "@/lib/auth/roles";
 import { parseProblemDetails } from "@/lib/backend/errors";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 
 type SettingsCompanyInformationCardProps = {
   t: TranslateFn;
+  user: AuthenticatedUser;
 };
 
 type CompanyInformation = {
@@ -77,7 +81,9 @@ function Input({
 
 export function SettingsCompanyInformationCard({
   t,
+  user,
 }: SettingsCompanyInformationCardProps) {
+  const canManageCompany = isCompanyManager(user);
   const [info, setInfo] = useState<CompanyInformation | null>(null);
   const [draft, setDraft] = useState<CompanyInformation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -254,7 +260,7 @@ export function SettingsCompanyInformationCard({
           <Label label={t("Company name")} />
           <Input value={draft.name} disabled />
           <p className="text-[11px] leading-4 text-neutral-500">
-            {t("Contact support to update company name")}
+            {t("Company name changes are handled outside this settings page.")}
           </p>
         </div>
 
@@ -272,10 +278,15 @@ export function SettingsCompanyInformationCard({
           <Label label={t("Categories")} />
           <CategoryMultiSelect
             value={draft.categories}
-            onChange={(v) => patch("categories", v)}
+            onChange={(v) => {
+              if (canManageCompany) {
+                patch("categories", v);
+              }
+            }}
             placeholder={t("Select up to 3 categories")}
             size="sm"
             error={Boolean(categoriesError)}
+            disabled={!canManageCompany}
           />
           {categoriesError ? (
             <p className="text-[11px] leading-4 text-red-600">
@@ -288,9 +299,14 @@ export function SettingsCompanyInformationCard({
           <Label label={t("Primary location")} />
           <CityAutocomplete
             value={draft.defaultLocation}
-            onChange={(v) => patch("defaultLocation", v)}
+            onChange={(v) => {
+              if (canManageCompany) {
+                patch("defaultLocation", v);
+              }
+            }}
             placeholder={t("Start typing a city…")}
             size="sm"
+            disabled={!canManageCompany}
           />
           {defaultLocationError ? (
             <p className="text-[11px] leading-4 text-red-600">
@@ -316,10 +332,15 @@ export function SettingsCompanyInformationCard({
           <Label label={t("Contact phone")} />
           <PhoneInput
             value={draft.contactPhone ?? ""}
-            onChange={(v) => patch("contactPhone", v || null)}
+            onChange={(v) => {
+              if (canManageCompany) {
+                patch("contactPhone", v || null);
+              }
+            }}
             error={Boolean(contactPhoneError)}
             size="sm"
             t={t}
+            disabled={!canManageCompany}
           />
           {contactPhoneError ? (
             <p className="text-[11px] leading-4 text-red-600">
@@ -339,24 +360,35 @@ export function SettingsCompanyInformationCard({
           </p>
         )}
 
-        <div className="flex items-center gap-3 border-t border-neutral-200 pt-4">
-          <button
-            type="submit"
-            disabled={saving || loading || !draft}
-            className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
-          >
-            <CircleCheckIcon className="h-4 w-4" />
-            {saving ? t("Saving…") : t("Save changes")}
-          </button>
+        <div className="border-t border-neutral-200 pt-4">
+          {canManageCompany ? (
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={saving || loading || !draft}
+                className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-blue-600 px-4 text-sm font-semibold tracking-[-0.1504px] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)] transition hover:bg-blue-700 disabled:opacity-60"
+              >
+                <CircleCheckIcon className="h-4 w-4" />
+                {saving ? t("Saving…") : t("Save changes")}
+              </button>
 
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={saving}
-            className="inline-flex h-10 items-center rounded-[10px] border border-neutral-300 bg-white px-4 text-sm font-semibold tracking-[-0.1504px] text-neutral-700 transition hover:bg-neutral-100"
-          >
-            {t("Cancel")}
-          </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={saving}
+                className="inline-flex h-10 items-center rounded-[10px] border border-neutral-300 bg-white px-4 text-sm font-semibold tracking-[-0.1504px] text-neutral-700 transition hover:bg-neutral-100"
+              >
+                {t("Cancel")}
+              </button>
+            </div>
+          ) : (
+            <PermissionNotice
+              title={t("Read-only settings")}
+              description={t(
+                "Only company managers can update company information. You can review the current values here, but changes must be made by a manager account.",
+              )}
+            />
+          )}
         </div>
       </form>
     </article>

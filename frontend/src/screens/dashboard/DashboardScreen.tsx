@@ -53,7 +53,7 @@ export function DashboardScreen({ user }: DashboardScreenProps) {
       data-node-id="1:321"
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey="Home" />
+        <DashboardSidebar t={t} user={user} activeItemKey="Home" />
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} />
           {loading && !hasLoadedData ? (
@@ -75,6 +75,7 @@ export function DashboardScreen({ user }: DashboardScreenProps) {
             t={t}
             dashboard={dashboard}
             loading={loading}
+            user={user}
             userId={user.sub}
           />
         </div>

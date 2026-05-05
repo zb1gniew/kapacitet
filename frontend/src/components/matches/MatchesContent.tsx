@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
 import { MATCHES_ANONYMIZATION_NOTICE } from "@/constants/matches";
 import { APP_ROUTES } from "@/constants/routes";
 import {
@@ -28,6 +29,7 @@ type MatchesContentProps = {
   matches: MatchOfferResponse[];
   summaryCards: MatchesSummaryCardData[];
   toastError?: string;
+  canManageCompany: boolean;
   onAccept: (matchId: number) => void | Promise<void>;
   onDecline: (matchId: number) => void | Promise<void>;
   onSupplierConfirm: (matchId: number) => void | Promise<void>;
@@ -46,6 +48,7 @@ export function MatchesContent({
   matches,
   summaryCards,
   toastError,
+  canManageCompany,
   onAccept,
   onDecline,
   onSupplierConfirm,
@@ -128,20 +131,31 @@ export function MatchesContent({
               "Matches will appear here once you publish availability declarations or capacity requests.",
             )}
           </p>
-          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href={APP_ROUTES.declareAvailabilityWorkersStep1}
-              className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#00a63e] px-5 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]"
-            >
-              {t("Declare availability")}
-            </Link>
-            <Link
-              href={APP_ROUTES.requestCapacityWorkersStep1}
-              className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]"
-            >
-              {t("Request capacity")}
-            </Link>
-          </div>
+          {canManageCompany ? (
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={APP_ROUTES.declareAvailabilityWorkersStep1}
+                className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#00a63e] px-5 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]"
+              >
+                {t("Declare availability")}
+              </Link>
+              <Link
+                href={APP_ROUTES.requestCapacityWorkersStep1}
+                className="inline-flex h-11 items-center justify-center rounded-[10px] border border-neutral-300 bg-white px-5 text-sm font-semibold text-neutral-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]"
+              >
+                {t("Request capacity")}
+              </Link>
+            </div>
+          ) : (
+            <div className="mx-auto mt-6 max-w-[720px] text-left">
+              <PermissionNotice
+                title={t("Read-only access")}
+                description={t(
+                  "Only company managers can publish new availability declarations or capacity requests. Review access remains available for active matches and agreements.",
+                )}
+              />
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -159,10 +173,19 @@ export function MatchesContent({
           </div>
 
           <div className="space-y-3">
+            {!canManageCompany && actionRequiredOffers.length > 0 ? (
+              <PermissionNotice
+                title={t("Manager action required")}
+                description={t(
+                  "These offers require a company manager to accept, decline, or confirm them. Your account can review the details but cannot submit a response.",
+                )}
+              />
+            ) : null}
             {actionRequiredOffers.map((offer) => (
               <MatchesOfferCard
                 key={offer.id}
                 actionInProgress={actionInProgress}
+                canManageCompany={canManageCompany}
                 highlighted={highlightedMatchId === offer.id}
                 offer={offer}
                 onAccept={onAccept}

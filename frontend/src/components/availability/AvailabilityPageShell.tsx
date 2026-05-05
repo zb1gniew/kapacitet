@@ -43,7 +43,7 @@ export function AvailabilityPageShell({
       data-node-id={dataNodeId}
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey={activeItemKey} />
+        <DashboardSidebar t={t} user={user} activeItemKey={activeItemKey} />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />

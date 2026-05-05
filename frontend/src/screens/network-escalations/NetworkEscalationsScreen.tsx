@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { NetworkEscalationsContent } from "@/components/network-escalations/NetworkEscalationsContent";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
+import { isCompanyManager } from "@/lib/auth/roles";
 import { useNetworkEscalationAction } from "@/hooks/useNetworkEscalationAction";
 import { useNetworkEscalationsData } from "@/hooks/useNetworkEscalationsData";
 import type { NetworkResponseType } from "@/types/api-network-escalations";
@@ -67,7 +68,7 @@ export function NetworkEscalationsScreen({
       data-node-id="network-requests-screen"
     >
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <DashboardSidebar t={t} activeItemKey="Network requests" />
+        <DashboardSidebar t={t} user={user} activeItemKey="Network requests" />
 
         <div className="min-w-0 flex-1">
           <DashboardHeader t={t} user={user} showSignOut={false} />
@@ -77,6 +78,7 @@ export function NetworkEscalationsScreen({
             escalations={escalations}
             highlightedRequestId={highlightedRequestId}
             loading={loading}
+            canManageCompany={isCompanyManager(user)}
             onRespond={handleRespond}
             onRetry={refreshEscalations}
             t={t}

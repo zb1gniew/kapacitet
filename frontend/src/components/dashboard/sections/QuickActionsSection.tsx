@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { DASHBOARD_QUICK_ACTIONS } from "@/constants/dashboard";
+import { getDashboardQuickActions } from "@/constants/dashboard";
+import { isCompanyManager } from "@/lib/auth/roles";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { DashboardQuickAction } from "@/types/dashboard";
 import type { TranslateFn } from "@/types/i18n";
+import { PermissionNotice } from "@/components/ui/PermissionNotice";
 import { SectionIntro } from "./SectionIntro";
 import { SearchIcon, UploadIcon } from "../icons";
 
 type QuickActionsSectionProps = {
   t: TranslateFn;
+  user: AuthenticatedUser;
 };
 
 function getActionIcon(action: DashboardQuickAction) {
@@ -20,7 +24,10 @@ function getActionIcon(action: DashboardQuickAction) {
   }
 }
 
-export function QuickActionsSection({ t }: QuickActionsSectionProps) {
+export function QuickActionsSection({ t, user }: QuickActionsSectionProps) {
+  const canManageCompany = isCompanyManager(user);
+  const quickActions = getDashboardQuickActions(canManageCompany);
+
   return (
     <section className="space-y-3">
       <SectionIntro
@@ -31,8 +38,17 @@ export function QuickActionsSection({ t }: QuickActionsSectionProps) {
         )}
       />
 
+      {!canManageCompany ? (
+        <PermissionNotice
+          title={t("Read-only access")}
+          description={t(
+            "Only company managers can publish new availability declarations or capacity requests. You can still review active matches, network requests, and company settings.",
+          )}
+        />
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-2">
-        {DASHBOARD_QUICK_ACTIONS.map((action) => {
+        {quickActions.map((action) => {
           const Icon = getActionIcon(action);
 
           return (

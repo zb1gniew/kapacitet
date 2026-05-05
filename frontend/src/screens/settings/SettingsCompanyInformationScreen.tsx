@@ -21,7 +21,7 @@ export function SettingsCompanyInformationScreen({
       activeSection="companyInformation"
       dataNodeId="1:5053"
     >
-      <SettingsCompanyInformationCard t={t} />
+      <SettingsCompanyInformationCard t={t} user={user} />
     </SettingsScreenLayout>
   );
 }

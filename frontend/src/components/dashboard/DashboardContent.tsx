@@ -1,4 +1,5 @@
 import type { DashboardData } from "@/types/dashboard";
+import type { AuthenticatedUser } from "@/types/auth";
 import type { TranslateFn } from "@/types/i18n";
 import { ActionRequiredBanner } from "./sections/ActionRequiredBanner";
 import { ActiveProcessesSection } from "./sections/ActiveProcessesSection";
@@ -13,6 +14,7 @@ type DashboardContentProps = {
   t: TranslateFn;
   dashboard: DashboardData;
   loading: boolean;
+  user: AuthenticatedUser;
   userId: string;
 };
 
@@ -20,13 +22,14 @@ export function DashboardContent({
   t,
   dashboard,
   loading,
+  user,
   userId,
 }: DashboardContentProps) {
   return (
     <div className="mx-auto w-full max-w-[1248px] space-y-4 p-4 sm:p-6 lg:p-8">
       <ActionRequiredBanner banner={dashboard.banner} />
       <MetricsSection metrics={dashboard.metrics} loading={loading} />
-      <QuickActionsSection t={t} />
+      <QuickActionsSection t={t} user={user} />
       <DraftResumptionSection t={t} userId={userId} />
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

@@ -21,7 +21,7 @@ export function SettingsParticipationVisibilityScreen({
       activeSection="participationVisibility"
       dataNodeId="1:5257"
     >
-      <SettingsParticipationVisibilityCard t={t} />
+      <SettingsParticipationVisibilityCard t={t} user={user} />
     </SettingsScreenLayout>
   );
 }
