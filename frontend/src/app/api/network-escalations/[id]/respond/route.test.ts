@@ -52,4 +52,24 @@ describe("network escalation respond route", () => {
       message: "Unable to submit the network response right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Forbidden", {
+        status: 403,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await POST(
+      new Request("https://app.example/api/network-escalations/42/respond", {
+        method: "POST",
+        body: JSON.stringify({ available: true }),
+      }),
+      { params: Promise.resolve({ id: "42" }) },
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.text()).resolves.toBe("Forbidden");
+  });
 });

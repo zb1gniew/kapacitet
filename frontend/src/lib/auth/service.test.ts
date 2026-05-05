@@ -144,6 +144,21 @@ describe("auth session service", () => {
     expect(refreshed?.user.roles).toEqual(["member", "auditor"]);
   });
 
+  it("sets refreshExpiresAt to 30 days for offline tokens (refresh_expires_in === 0)", () => {
+    const session = createAuthSession(
+      {
+        access_token: createJwt({ realm_access: { roles: ["member"] } }),
+        expires_in: 300,
+        refresh_token: "offline-token",
+        refresh_expires_in: 0,
+      },
+      { sub: "user-1" },
+    );
+
+    const now = Math.floor(Date.now() / 1000);
+    expect(session.refreshExpiresAt).toBe(now + 30 * 24 * 60 * 60);
+  });
+
   it("returns null when refresh cannot be performed", async () => {
     mockedRefreshOidcToken.mockRejectedValue(new Error("refresh failed"));
 

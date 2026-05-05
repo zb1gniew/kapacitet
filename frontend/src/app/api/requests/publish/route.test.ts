@@ -48,4 +48,22 @@ describe("requests publish route", () => {
       message: "Unable to publish the capacity request right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Validation failed" }), {
+        status: 422,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    const response = await POST(
+      new Request("https://app.example/api/requests/publish", {
+        method: "POST",
+        body: JSON.stringify({ quantity: 4 }),
+      }) as never,
+    );
+
+    expect(response.status).toBe(422);
+  });
 });

@@ -26,4 +26,17 @@ describe("matches route", () => {
       message: "Unable to load matches right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Unauthorized", {
+        status: 401,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await GET();
+    expect(response.status).toBe(401);
+    await expect(response.text()).resolves.toBe("Unauthorized");
+  });
 });

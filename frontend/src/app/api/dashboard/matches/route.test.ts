@@ -27,4 +27,17 @@ describe("dashboard matches route", () => {
       message: "Unable to load match offers right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Forbidden", {
+        status: 403,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await GET();
+    expect(response.status).toBe(403);
+    await expect(response.text()).resolves.toBe("Forbidden");
+  });
 });

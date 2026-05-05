@@ -30,4 +30,20 @@ describe("supplier decline route", () => {
       message: "Unable to decline the offer right now.",
     });
   });
+
+  it("proxies a non-ok backend response", async () => {
+    mockedFetchBackend.mockResolvedValue(
+      new Response("Conflict", {
+        status: 409,
+        headers: { "content-type": "text/plain" },
+      }),
+    );
+
+    const response = await POST(new Request("https://app.example") as never, {
+      params: Promise.resolve({ id: "7" }),
+    });
+
+    expect(response.status).toBe(409);
+    await expect(response.text()).resolves.toBe("Conflict");
+  });
 });
