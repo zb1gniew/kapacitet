@@ -194,6 +194,9 @@ public class CompanyServiceGeneralTests
             "match_accepted",
             "agreement_created"
         ]);
+        result.Single(activity => activity.Type == "match_accepted")
+            .Params["resourceType"]
+            .Should().Be("worker");
         result.Should().BeInDescendingOrder(activity => activity.OccurredAt);
     }
 }

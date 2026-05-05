@@ -39,6 +39,7 @@ type NotificationFilter = "all" | NotificationType;
 const NOTIFICATION_TYPE_ORDER: NotificationType[] = [
   "SupplierConfirmationRequest",
   "NewMatch",
+  "UpcomingCooperation",
   "NetworkEscalation",
   "MatchDeadline",
 ];
@@ -52,6 +53,8 @@ function getNotificationTypeLabel(
       return t("Confirmation requests");
     case "NewMatch":
       return t("New matches");
+    case "UpcomingCooperation":
+      return t("Upcoming cooperation");
     case "NetworkEscalation":
       return t("Network requests");
     case "MatchDeadline":
@@ -84,6 +87,7 @@ export function NotificationPanel({
       {
         SupplierConfirmationRequest: 0,
         NewMatch: 0,
+        UpcomingCooperation: 0,
         NetworkEscalation: 0,
         MatchDeadline: 0,
       },

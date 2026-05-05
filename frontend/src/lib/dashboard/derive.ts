@@ -199,7 +199,9 @@ function buildAvailabilityProcess(
   let status = t("Availability published");
   let statusTone: DashboardProcess["statusTone"] = "success";
   let cta = t("Review availability");
-  let href: DashboardProcess["href"] = APP_ROUTES.matches;
+  let href: DashboardProcess["href"] = APP_ROUTES.declareAvailabilityDetail(
+    availability.id,
+  );
 
   if (pendingSupplierConfirmationMatches.length > 0) {
     subtitle =
@@ -274,8 +276,10 @@ function buildRequestProcess(
   let subtitle = t("System analyzing network capacity");
   let status = t("Matching in progress");
   let statusTone: DashboardProcess["statusTone"] = "neutral";
-  let cta = t("View details");
-  let href: DashboardProcess["href"] = APP_ROUTES.matches;
+  let cta = t("Review request");
+  let href: DashboardProcess["href"] = APP_ROUTES.requestCapacityDetail(
+    request.id,
+  );
 
   if (pendingRequesterReviewMatches.length > 0) {
     subtitle =
@@ -585,7 +589,7 @@ export function deriveActionBanner(
               "Keep your declaration current so trusted companies can respond with relevant demand.",
             ),
         cta: t("Review availability"),
-        href: APP_ROUTES.matches,
+        href: APP_ROUTES.declareAvailabilityDetail(mostRecentAvailability.id),
       };
     }
 
@@ -618,7 +622,7 @@ export function deriveActionBanner(
           "Your request is active and we are monitoring network capacity for relevant opportunities.",
         ),
         cta: t("Review request"),
-        href: APP_ROUTES.matches,
+        href: APP_ROUTES.requestCapacityDetail(mostRecentRequest.id),
       };
     }
 
@@ -645,6 +649,6 @@ export function deriveActionBanner(
       "Your capacity request begins soon but matching is still in progress. Consider expanding search criteria or contacting network companies directly.",
     ),
     cta: t("View and take action"),
-    href: APP_ROUTES.matches,
+    href: APP_ROUTES.requestCapacityDetail(mostUrgentRequest.id),
   };
 }

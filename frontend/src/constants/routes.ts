@@ -3,6 +3,8 @@ export const APP_ROUTES = {
   dashboard: "/dashboard",
   matches: "/dashboard/matches",
   networkRequests: "/dashboard/network-requests",
+  declareAvailabilityReviewBase: "/dashboard/declare-availability",
+  requestCapacityReviewBase: "/dashboard/request-capacity",
   declareAvailabilityWorkersStep1:
     "/dashboard/declare-availability/workers/step-1",
   declareAvailabilityWorkersStep2:
@@ -34,4 +36,8 @@ export const APP_ROUTES = {
   authCallbackApi: "/api/auth/callback",
   authLogoutApi: "/api/auth/logout",
   authMeApi: "/api/auth/me",
+  declareAvailabilityDetail: (id: number | string) =>
+    `/dashboard/declare-availability/${id}`,
+  requestCapacityDetail: (id: number | string) =>
+    `/dashboard/request-capacity/${id}`,
 } as const;

@@ -253,7 +253,8 @@ public class CompanyService
                 Params = new Dictionary<string, string>
                 {
                     ["quantity"] = m.OfferedQuantity.ToString(),
-                    ["requestId"] = m.RequestId.ToString()
+                    ["requestId"] = m.RequestId.ToString(),
+                    ["resourceType"] = m.Request.ResourceType.ToString().ToLower()
                 }
             });
         }

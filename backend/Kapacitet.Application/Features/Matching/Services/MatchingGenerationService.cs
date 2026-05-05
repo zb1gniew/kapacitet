@@ -133,6 +133,7 @@ public sealed class MatchingGenerationService
             {
                 var requestRemainingQuantity = snapshot.GetRemainingRequestQuantity(request.Id);
                 var requestOffers = existingOffers.Where(o => o.RequestId == request.Id).ToList();
+                var allowPartialMatches = request.Company.CompanySettings?.AllowPartialMatches ?? true;
 
                 if (requestRemainingQuantity <= 0)
                 {
@@ -156,6 +157,7 @@ public sealed class MatchingGenerationService
                         snapshot.GetRemainingAvailabilityQuantity(a.Id)))
                     .Where(result => result is not null)
                     .Cast<MatchEvaluationResult>()
+                    .Where(result => allowPartialMatches || !result.IsPartial)
                     .OrderByDescending(result => result.Score.TotalScore)
                     .ThenByDescending(result => result.OfferedQuantity)
                     .ToList();

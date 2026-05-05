@@ -64,27 +64,7 @@ public sealed class AdminDataService
             };
         });
 
-        var followUpRecords = approvedRequests
-            .Where(request => !request.ProvisionedCompanyId.HasValue)
-            .Select(request => new AdminCompanyDto
-            {
-                RequestId = request.Id,
-                CompanyId = null,
-                CompanyName = request.Name,
-                Cvr = request.Cvr,
-                Categories = request.Categories,
-                Location = request.Location,
-                ContactPhone = request.ContactPhone,
-                ContactEmail = request.ContactEmail,
-                Status = "Needs follow-up",
-                CreatedAt = request.CreatedAt,
-                ReviewedAt = request.ReviewedAt,
-                ReviewedBy = request.ReviewedBy,
-                ProvisionedCompanyId = null
-            });
-
         return provisionedRecords
-            .Concat(followUpRecords)
             .OrderByDescending(record => record.ReviewedAt ?? record.CreatedAt)
             .ToList();
     }

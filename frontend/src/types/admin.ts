@@ -21,7 +21,7 @@ export type AccessRequestFilterTab =
   | "Rejected"
   | "All";
 
-export type CompanyRegistryStatus = "Provisioned" | "Needs follow-up";
+export type CompanyRegistryStatus = "Provisioned";
 
 export type CompanyRegistryRecord = {
   requestId?: number;
@@ -39,10 +39,7 @@ export type CompanyRegistryRecord = {
   provisionedCompanyId?: number;
 };
 
-export type CompanyRegistryFilterTab =
-  | "All"
-  | "Provisioned"
-  | "Needs follow-up";
+export type CompanyRegistryFilterTab = "All" | "Provisioned";
 
 export type AuditEventType =
   | "Submission"

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { checkRateLimit } from "./rateLimit";
 
 function makeRequest(ip: string) {
@@ -13,11 +13,15 @@ describe("checkRateLimit", () => {
     vi.useFakeTimers();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("allows requests under the limit", async () => {
     const req = makeRequest("1.2.3.4");
-    await expect(checkRateLimit(req, "login", 3, 60_000)).resolves.toBeNull();
-    await expect(checkRateLimit(req, "login", 3, 60_000)).resolves.toBeNull();
-    await expect(checkRateLimit(req, "login", 3, 60_000)).resolves.toBeNull();
+    expect(await checkRateLimit(req, "login", 3, 60_000)).toBeNull();
+    expect(await checkRateLimit(req, "login", 3, 60_000)).toBeNull();
+    expect(await checkRateLimit(req, "login", 3, 60_000)).toBeNull();
   });
 
   it("returns 429 once the limit is exceeded", async () => {
@@ -36,7 +40,7 @@ describe("checkRateLimit", () => {
 
     vi.advanceTimersByTime(6_000);
 
-    await expect(checkRateLimit(req, "reset", 1, 5_000)).resolves.toBeNull();
+    expect(await checkRateLimit(req, "reset", 1, 5_000)).toBeNull();
   });
 
   it("counts different keys independently", async () => {
@@ -44,7 +48,7 @@ describe("checkRateLimit", () => {
     await checkRateLimit(req, "key-a", 1, 60_000);
     expect((await checkRateLimit(req, "key-a", 1, 60_000))?.status).toBe(429);
 
-    await expect(checkRateLimit(req, "key-b", 1, 60_000)).resolves.toBeNull();
+    expect(await checkRateLimit(req, "key-b", 1, 60_000)).toBeNull();
   });
 
   it("counts different IPs independently", async () => {
@@ -55,16 +59,14 @@ describe("checkRateLimit", () => {
       429,
     );
 
-    await expect(
-      checkRateLimit(req2, "ip-test", 1, 60_000),
-    ).resolves.toBeNull();
+    expect(await checkRateLimit(req2, "ip-test", 1, 60_000)).toBeNull();
   });
 
   it("falls back to x-real-ip when x-forwarded-for is absent", async () => {
     const req = new NextRequest("https://app.example/api/auth/login", {
       headers: { "x-real-ip": "5.5.5.5" },
     });
-    await expect(checkRateLimit(req, "real-ip", 1, 60_000)).resolves.toBeNull();
+    expect(await checkRateLimit(req, "real-ip", 1, 60_000)).toBeNull();
     expect((await checkRateLimit(req, "real-ip", 1, 60_000))?.status).toBe(429);
   });
 });
