@@ -1,6 +1,7 @@
 export type NotificationType =
   | "NewMatch"
   | "SupplierConfirmationRequest"
+  | "UpcomingCooperation"
   | "NetworkEscalation"
   | "MatchDeadline";
 

@@ -79,6 +79,10 @@ export function getNotificationHref(notification: NotificationResponse) {
     return APP_ROUTES.matches;
   }
 
+  if (notification.type === "UpcomingCooperation") {
+    return APP_ROUTES.matches;
+  }
+
   if (notification.type === "NewMatch") {
     return APP_ROUTES.matches;
   }

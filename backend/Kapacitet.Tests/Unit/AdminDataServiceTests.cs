@@ -10,7 +10,7 @@ namespace Kapacitet.Tests.Unit;
 public class AdminDataServiceTests
 {
     [Fact]
-    public async Task GetCompaniesAsync_ReturnsProvisionedAndFollowUpRecords()
+    public async Task GetCompaniesAsync_ReturnsProvisionedRegistryRecordsOnly()
     {
         var db = TestDbFactory.Create();
         var now = DateTime.UtcNow;
@@ -83,21 +83,15 @@ public class AdminDataServiceTests
 
         var result = await service.GetCompaniesAsync();
 
-        result.Should().HaveCount(3);
+        result.Should().HaveCount(2);
         result[0].CompanyName.Should().Be("Provisioned Co");
         result[0].Status.Should().Be("Provisioned");
         result[0].RequestId.Should().Be(100);
         result[0].ContactEmail.Should().Be("first@provisioned.test");
-
-        result[1].CompanyName.Should().Be("Needs Follow Up");
-        result[1].Status.Should().Be("Needs follow-up");
-        result[1].ProvisionedCompanyId.Should().BeNull();
-        result[1].ContactEmail.Should().Be("followup@test.com");
-
-        result[2].CompanyName.Should().Be("Existing Co");
-        result[2].Status.Should().Be("Provisioned");
-        result[2].ContactEmail.Should().Be("Not available");
-        result[2].RequestId.Should().BeNull();
+        result[1].CompanyName.Should().Be("Existing Co");
+        result[1].Status.Should().Be("Provisioned");
+        result[1].ContactEmail.Should().Be("Not available");
+        result[1].RequestId.Should().BeNull();
     }
 
     [Fact]

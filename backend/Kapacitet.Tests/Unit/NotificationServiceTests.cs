@@ -86,6 +86,28 @@ public class NotificationServiceTests
     }
 
     [Fact]
+    public async Task QueueUpcomingCooperation_WhenEnabled_CreatesSingleInAppNotification()
+    {
+        var db = TestDbFactory.Create();
+        db.Companies.Add(new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow });
+        db.Users.Add(new User { Id = 1, CompanyId = 1, Email = "a@a.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow });
+        await db.SaveChangesAsync();
+
+        var (svc, _) = CreateServices(db);
+        var startDate = new DateTime(2027, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        await svc.QueueUpcomingCooperationNotificationAsync(1, 42, startDate);
+        await db.SaveChangesAsync();
+        await svc.QueueUpcomingCooperationNotificationAsync(1, 42, startDate);
+        await db.SaveChangesAsync();
+
+        db.Notifications.Should().ContainSingle(n =>
+            n.CompanyId == 1 &&
+            n.Type == NotificationType.UpcomingCooperation &&
+            n.Metadata == "{\"agreementId\":42}");
+    }
+
+    [Fact]
     public async Task MarkAsRead_WhenNotificationExists_SetsIsReadTrue()
     {
         var db = TestDbFactory.Create();

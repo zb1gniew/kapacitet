@@ -115,6 +115,35 @@ public class NotificationService
         // Caller must call SaveChangesAsync.
     }
 
+    public async Task QueueUpcomingCooperationNotificationAsync(
+        int companyId,
+        int agreementId,
+        DateTime startDate)
+    {
+        if (!await IsInAppEnabledAsync(companyId, p => p.InAppUpcomingCooperation))
+            return;
+
+        var metadata = $"{{\"agreementId\":{agreementId}}}";
+        var exists = await _db.Notifications.AnyAsync(n =>
+            n.CompanyId == companyId &&
+            n.Type == NotificationType.UpcomingCooperation &&
+            n.Metadata == metadata);
+
+        if (exists)
+            return;
+
+        _db.Notifications.Add(new Notification
+        {
+            CompanyId = companyId,
+            Type = NotificationType.UpcomingCooperation,
+            Title = "Upcoming cooperation starts soon",
+            Body = $"Agreement #{agreementId} begins on {startDate:yyyy-MM-dd}.",
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow,
+            Metadata = metadata
+        });
+    }
+
     // Internal — called by MatchingEscalationService when a new/re-opened escalation is created.
     public async Task QueueNetworkEscalationNotificationAsync(int requesterCompanyId, int requestId)
     {

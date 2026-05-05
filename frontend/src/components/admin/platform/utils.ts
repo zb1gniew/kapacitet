@@ -41,9 +41,7 @@ export function deriveCompanyRegistryRecords(
       categories: request.categories,
       location: request.location,
       contactEmail: request.contactEmail,
-      status: request.provisionedCompanyId
-        ? ("Provisioned" as const)
-        : ("Needs follow-up" as const),
+      status: "Provisioned" as const,
       createdAt: request.createdAt,
       reviewedAt: request.reviewedAt,
       reviewedBy: request.reviewedBy,

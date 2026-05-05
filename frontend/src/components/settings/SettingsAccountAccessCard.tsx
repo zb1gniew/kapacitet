@@ -31,10 +31,7 @@ function getActivityLabels(
   params: Record<string, string>,
   locale: string,
 ): { title: string; description: string } {
-  const resourceType =
-    params.resourceType === "equipment"
-      ? t("equipment unit(s)")
-      : t("worker(s)");
+  const resourceType = t("worker(s)");
 
   const start = params.start ? formatActivityDate(params.start, locale) : "";
   const end = params.end ? formatActivityDate(params.end, locale) : "";
@@ -286,7 +283,7 @@ function RecentActivityPanel({ t }: { t: TranslateFn }) {
             onClick={() => setShowAll((v) => !v)}
             className="inline-flex items-center gap-1 text-sm font-semibold tracking-[-0.1504px] text-blue-700 transition hover:text-blue-800"
           >
-            {showAll ? t("Show less") : t("View full activity log")}
+            {showAll ? t("Show less") : t("Show all recent activity")}
             <ArrowRightIcon className="h-4 w-4" />
           </button>
         </div>

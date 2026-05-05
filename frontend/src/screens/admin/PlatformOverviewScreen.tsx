@@ -23,6 +23,7 @@ type PlatformOverviewScreenProps = {
 
 export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
   const { t } = useLocalizedScreen();
+  const { preferences } = usePlatformAdminPreferences();
   const {
     requests,
     loading: requestsLoading,
@@ -38,7 +39,6 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
     loading: auditLoading,
     errorMessage: auditErrorMessage,
   } = useAdminAudit();
-  const { preferences } = usePlatformAdminPreferences();
   const loading = requestsLoading || companiesLoading || auditLoading;
   const errorMessages = [
     requestsErrorMessage,
@@ -62,8 +62,12 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
         )
         .filter((value): value is number => typeof value === "number"),
     ).size;
-    const provisioningAlerts = records.filter(
-      (record) => record.status === "Needs follow-up",
+    const approvedRequests = requests.filter(
+      (request) => request.status === "Approved",
+    );
+    const approvedCount = approvedRequests.length;
+    const provisioningAlerts = approvedRequests.filter(
+      (request) => !request.provisionedCompanyId,
     ).length;
 
     return [
@@ -80,14 +84,21 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
         tone: "green" as const,
       },
       {
-        label: t("Operational alerts"),
-        value: loading ? "..." : String(provisioningAlerts),
-        helper: t(
-          "Approved requests still missing a linked provisioned company.",
-        ),
-        tone: preferences.highlightProvisioningAlerts
-          ? ("amber" as const)
-          : ("blue" as const),
+        label: t("Approved requests"),
+        value: loading ? "..." : String(approvedCount),
+        helper:
+          provisioningAlerts > 0
+            ? t(
+                "{{count}} approved requests still need provisioning follow-up.",
+                {
+                  count: provisioningAlerts,
+                },
+              )
+            : t("Approved requests now visible in the admin company registry."),
+        tone:
+          preferences.highlightProvisioningAlerts && provisioningAlerts > 0
+            ? ("amber" as const)
+            : ("blue" as const),
       },
       {
         label: t("Review events"),
@@ -109,13 +120,15 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
     () =>
       requests
         .filter((request) => request.status === "Pending")
-        .sort(
-          (left, right) =>
-            new Date(right.createdAt).getTime() -
-            new Date(left.createdAt).getTime(),
+        .sort((left, right) =>
+          preferences.prioritizeFollowUpCompanies
+            ? new Date(left.createdAt).getTime() -
+              new Date(right.createdAt).getTime()
+            : new Date(right.createdAt).getTime() -
+              new Date(left.createdAt).getTime(),
         )
         .slice(0, 4),
-    [requests],
+    [preferences.prioritizeFollowUpCompanies, requests],
   );
 
   const recentDecisions = useMemo(
@@ -133,17 +146,27 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
     [events],
   );
 
-  const followUpCompanies = useMemo(
+  const recentProvisionedCompanies = useMemo(
     () =>
       records
-        .filter((record) => record.status === "Needs follow-up")
-        .sort(
-          (left, right) =>
-            new Date(right.reviewedAt ?? right.createdAt).getTime() -
-            new Date(left.reviewedAt ?? left.createdAt).getTime(),
+        .sort((left, right) =>
+          preferences.prioritizeFollowUpCompanies
+            ? new Date(left.reviewedAt ?? left.createdAt).getTime() -
+              new Date(right.reviewedAt ?? right.createdAt).getTime()
+            : new Date(right.reviewedAt ?? right.createdAt).getTime() -
+              new Date(left.reviewedAt ?? left.createdAt).getTime(),
         )
         .slice(0, 4),
-    [records],
+    [preferences.prioritizeFollowUpCompanies, records],
+  );
+
+  const provisioningAlerts = useMemo(
+    () =>
+      requests.filter(
+        (request) =>
+          request.status === "Approved" && !request.provisionedCompanyId,
+      ),
+    [requests],
   );
 
   return (
@@ -153,10 +176,10 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
       activeItemKey="Platform overview"
       title={t("Platform overview")}
       description={t(
-        "Monitor incoming demand, provisioning progress, and the operational health of the KapacitetNet platform from one platform-first workspace.",
+        "Monitor incoming demand, approval throughput, and the operational health of the KapacitetNet platform from one platform-first workspace.",
       )}
       sidebarNote={t(
-        "Use this overview to track review backlog, provisioning progress, and follow-up work across incoming company access requests.",
+        "Use this overview to track review backlog, approved company coverage, and decision history across incoming company access requests.",
       )}
       dataName="Platform Overview"
       dataNodeId="platform-overview"
@@ -246,16 +269,16 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
 
       <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         <PlatformSurfaceCard
-          eyebrow={t("Provisioning follow-up")}
-          title={t("Companies needing attention")}
+          eyebrow={t("Company registry")}
+          title={t("Recently provisioned companies")}
           description={t(
-            "Approved companies that still need provisioning follow-up before the registry is fully linked.",
+            "The most recently reviewed companies that are already linked into the platform registry.",
           )}
         >
           <PlatformActivityList
             t={t}
-            items={followUpCompanies.map((record) => ({
-              id: `follow-up-${record.requestId}`,
+            items={recentProvisionedCompanies.map((record) => ({
+              id: `company-${record.provisionedCompanyId ?? record.companyId ?? record.requestId}`,
               title: record.companyName,
               meta: `${record.categories.join(", ") || "—"} · ${record.location}`,
               helper: t("Reviewed {{date}} · {{email}}", {
@@ -267,11 +290,11 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
                   ? `companyId=${record.companyId ?? record.provisionedCompanyId}`
                   : `requestId=${record.requestId}`
               }`,
-              statusLabel: t("Needs follow-up"),
-              statusTone: "warning" as const,
+              statusLabel: t("Provisioned"),
+              statusTone: "success" as const,
             }))}
             emptyMessage={t(
-              "No companies currently need provisioning follow-up.",
+              "No provisioned companies are visible in the registry yet.",
             )}
             ctaLabel={t("Inspect")}
           />
@@ -295,15 +318,35 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
                 )}
               </p>
             </div>
-            <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
+            <div
+              className={`rounded-[12px] border px-4 py-3 ${
+                preferences.highlightProvisioningAlerts &&
+                provisioningAlerts.length > 0
+                  ? "border-[#fde68a] bg-[#fffbeb]"
+                  : "border-neutral-200 bg-[#fafafa]"
+              }`}
+            >
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                {t("Suggested next step")}
+                {preferences.highlightProvisioningAlerts &&
+                provisioningAlerts.length > 0
+                  ? t("Provisioning alerts")
+                  : t("Suggested next step")}
               </p>
-              <p className="mt-1 text-sm text-neutral-700">
-                {t(
-                  "Use the company registry for follow-up, then open the audit log when you need to trace a request from submission to activation.",
-                )}
-              </p>
+              {preferences.highlightProvisioningAlerts &&
+              provisioningAlerts.length > 0 ? (
+                <p className="mt-1 text-sm text-neutral-700">
+                  {t(
+                    "{{count}} approved requests do not yet show a linked company record. Open the access-request queue first if you need to verify provisioning follow-up.",
+                    { count: provisioningAlerts.length },
+                  )}
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-neutral-700">
+                  {t(
+                    "Use the company registry to inspect linked companies, then open the audit log when you need to trace a request from submission to activation.",
+                  )}
+                </p>
+              )}
             </div>
           </div>
         </PlatformSurfaceCard>

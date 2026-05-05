@@ -11,10 +11,8 @@ type CompanyRegistryCardProps = {
   highlighted?: boolean;
 };
 
-function getStatusClasses(status: CompanyRegistryRecord["status"]) {
-  return status === "Provisioned"
-    ? "border-[#b9f8cf] bg-[#f0fdf4] text-[#166534]"
-    : "border-[#fde68a] bg-[#fff8db] text-[#92400e]";
+function getStatusClasses() {
+  return "border-[#b9f8cf] bg-[#f0fdf4] text-[#166534]";
 }
 
 export function CompanyRegistryCard({
@@ -44,9 +42,7 @@ export function CompanyRegistryCard({
               {record.companyName}
             </h3>
             <span
-              className={`inline-flex rounded-[10px] border px-2.5 py-1 text-[11px] font-semibold ${getStatusClasses(
-                record.status,
-              )}`}
+              className={`inline-flex rounded-[10px] border px-2.5 py-1 text-[11px] font-semibold ${getStatusClasses()}`}
             >
               {t(record.status)}
             </span>
@@ -108,16 +104,12 @@ export function CompanyRegistryCard({
               {t("Operational note")}
             </p>
             <p className="mt-1 break-words leading-[22.75px] tracking-[-0.1504px]">
-              {record.status === "Provisioned"
-                ? t(
-                    "Provisioned from an approved access request and reviewed by {{actor}}.",
-                    {
-                      actor: record.reviewedBy ?? t("platform administrator"),
-                    },
-                  )
-                : t(
-                    "The request was approved but still needs provisioning follow-up before the company is fully linked.",
-                  )}
+              {t(
+                "Provisioned from an approved access request and reviewed by {{actor}}.",
+                {
+                  actor: record.reviewedBy ?? t("platform administrator"),
+                },
+              )}
             </p>
           </div>
         </div>

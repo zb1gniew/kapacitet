@@ -10,7 +10,6 @@ import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurface
 import { formatPlatformDateTime } from "@/components/admin/platform/utils";
 import { useAdminCompanies } from "@/hooks/useAdminCompanies";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
-import { usePlatformAdminPreferences } from "@/hooks/usePlatformAdminPreferences";
 import type { AuthenticatedUser } from "@/types/auth";
 import type {
   CompanyRegistryFilterTab,
@@ -27,7 +26,6 @@ export function PlatformCompaniesScreen({
   const searchParams = useSearchParams();
   const { t } = useLocalizedScreen();
   const { records, loading, errorMessage } = useAdminCompanies();
-  const { preferences } = usePlatformAdminPreferences();
   const [searchValue, setSearchValue] = useState("");
   const [activeFilter, setActiveFilter] =
     useState<CompanyRegistryFilterTab>("All");
@@ -70,9 +68,6 @@ export function PlatformCompaniesScreen({
     const provisionedRecords = records.filter(
       (record) => record.status === "Provisioned",
     );
-    const followUpRecords = records.filter(
-      (record) => record.status === "Needs follow-up",
-    );
     const now = new Date();
     const newThisMonth = provisionedRecords.filter((record) => {
       const referenceDate = record.reviewedAt ?? record.createdAt;
@@ -93,18 +88,20 @@ export function PlatformCompaniesScreen({
         tone: "green" as const,
       },
       {
-        label: t("Needs follow-up"),
-        value: loading ? "..." : String(followUpRecords.length),
-        helper: t("Approved requests still missing a linked company record."),
-        tone: "amber" as const,
-      },
-      {
         label: t("Reviewed companies"),
         value: loading ? "..." : String(records.length),
         helper: t(
           "Approved requests now visible in the admin company registry.",
         ),
         tone: "slate" as const,
+      },
+      {
+        label: t("Latest reviewed company"),
+        value: loading
+          ? "..."
+          : (provisionedRecords[0]?.companyName ?? t("Not available")),
+        helper: t("The most recently reviewed provisioned company record."),
+        tone: "blue" as const,
       },
       {
         label: t("New this month"),
@@ -139,12 +136,6 @@ export function PlatformCompaniesScreen({
 
     return [...filteredBySearch].sort(
       (left: CompanyRegistryRecord, right: CompanyRegistryRecord) => {
-        if (preferences.prioritizeFollowUpCompanies) {
-          if (left.status !== right.status) {
-            return left.status === "Needs follow-up" ? -1 : 1;
-          }
-        }
-
         const leftTime = new Date(left.reviewedAt ?? left.createdAt).getTime();
         const rightTime = new Date(
           right.reviewedAt ?? right.createdAt,
@@ -152,12 +143,7 @@ export function PlatformCompaniesScreen({
         return rightTime - leftTime;
       },
     );
-  }, [
-    activeFilter,
-    preferences.prioritizeFollowUpCompanies,
-    records,
-    searchValue,
-  ]);
+  }, [activeFilter, records, searchValue]);
 
   return (
     <PlatformAdminLayout
@@ -166,10 +152,10 @@ export function PlatformCompaniesScreen({
       activeItemKey="Companies"
       title={t("Companies")}
       description={t(
-        "Review provisioned organizations, identify onboarding follow-up, and keep the company registry visible from a platform-level perspective.",
+        "Review provisioned organizations and keep the company registry visible from a platform-level perspective.",
       )}
       sidebarNote={t(
-        "This registry is built from approved access requests and highlights which companies are already linked and which approvals still need provisioning follow-up.",
+        "This registry is built from approved access requests and highlights companies that have already been linked into the platform registry.",
       )}
       dataName="Platform Companies"
       dataNodeId="platform-companies"
@@ -198,13 +184,6 @@ export function PlatformCompaniesScreen({
             label: t("Provisioned"),
             count: records.filter((record) => record.status === "Provisioned")
               .length,
-          },
-          {
-            key: "Needs follow-up",
-            label: t("Needs follow-up"),
-            count: records.filter(
-              (record) => record.status === "Needs follow-up",
-            ).length,
           },
         ]}
       />
@@ -264,7 +243,7 @@ export function PlatformCompaniesScreen({
             eyebrow={t("Registry summary")}
             title={t("Current company coverage")}
             description={t(
-              "A quick read on how recently companies were reviewed and which part of the registry needs attention.",
+              "A quick read on how recently provisioned companies were reviewed and how complete the registry coverage is.",
             )}
           >
             <div className="space-y-3">
@@ -286,17 +265,12 @@ export function PlatformCompaniesScreen({
               </div>
               <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                  {t("Follow-up queue")}
+                  {t("Registry coverage")}
                 </p>
                 <p className="mt-1 text-sm font-medium text-neutral-900">
-                  {t(
-                    "{{count}} companies currently need provisioning attention.",
-                    {
-                      count: records.filter(
-                        (record) => record.status === "Needs follow-up",
-                      ).length,
-                    },
-                  )}
+                  {t("{{count}} provisioned companies are currently listed.", {
+                    count: records.length,
+                  })}
                 </p>
               </div>
             </div>

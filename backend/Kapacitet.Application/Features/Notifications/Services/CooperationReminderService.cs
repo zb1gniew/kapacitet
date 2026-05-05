@@ -42,6 +42,7 @@ public class CooperationReminderService : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+        var notificationService = scope.ServiceProvider.GetRequiredService<NotificationService>();
 
         var now = DateTime.UtcNow;
         var windowStart = now.AddHours(47);
@@ -67,6 +68,10 @@ public class CooperationReminderService : BackgroundService
             await emailService.SendCooperationReminderEmailIfEnabledAsync(
                 requesterCompanyId, agreement.Id, agreement.StartDate);
             await emailService.SendCooperationReminderEmailIfEnabledAsync(
+                supplierCompanyId, agreement.Id, agreement.StartDate);
+            await notificationService.QueueUpcomingCooperationNotificationAsync(
+                requesterCompanyId, agreement.Id, agreement.StartDate);
+            await notificationService.QueueUpcomingCooperationNotificationAsync(
                 supplierCompanyId, agreement.Id, agreement.StartDate);
 
             agreement.ReminderEmailSentAt = now;

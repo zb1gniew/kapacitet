@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { PreferenceToggleField } from "@/components/admin/platform/PreferenceToggleField";
 import { PlatformAdminLayout } from "@/components/admin/platform/PlatformAdminLayout";
+import { PreferenceToggleField } from "@/components/admin/platform/PreferenceToggleField";
 import { PlatformSummaryCard } from "@/components/admin/platform/PlatformSummaryCard";
 import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurfaceCard";
 import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
@@ -45,9 +45,8 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
     const pendingCount = requests.filter(
       (request) => request.status === "Pending",
     ).length;
-    const followUpCount = requests.filter(
-      (request) =>
-        request.status === "Approved" && !request.provisionedCompanyId,
+    const approvedCount = requests.filter(
+      (request) => request.status === "Approved",
     ).length;
 
     return [
@@ -64,15 +63,19 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
         tone: "amber" as const,
       },
       {
-        label: t("Provisioning mode"),
-        value: t("Hybrid"),
-        helper: t("DB provisioning plus Keycloak account activation."),
+        label: t("Approved requests"),
+        value: String(approvedCount),
+        helper: t(
+          "Approved requests now visible in the admin company registry.",
+        ),
         tone: "green" as const,
       },
       {
-        label: t("Follow-up items"),
-        value: String(followUpCount),
-        helper: t("Approved requests that still need provisioning attention."),
+        label: t("Registry source"),
+        value: t("Approved"),
+        helper: t(
+          "The company registry is built from approved access requests.",
+        ),
         tone: "slate" as const,
       },
     ];
@@ -115,7 +118,7 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
         "Configure operational preferences for the admin workspace and keep the platform review flow aligned with how you work.",
       )}
       sidebarNote={t(
-        "These settings focus on the admin workspace itself: which views open by default, how follow-up work is prioritized, and which alerts are emphasized.",
+        "These settings focus on the admin workspace itself: which views open by default and how the platform review workflow is presented.",
       )}
       dataName="Platform Settings"
       dataNodeId="platform-settings"
@@ -143,7 +146,7 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
           eyebrow={t("Review defaults")}
           title={t("Admin workflow defaults")}
           description={t(
-            "These preferences control how the admin workspace opens and how follow-up work is prioritized on the platform pages.",
+            "These preferences control how the admin workspace opens and how review information is surfaced on the platform pages.",
           )}
         >
           <div className="space-y-4">
@@ -190,21 +193,11 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
                 <option value="Provisioning">{t("Provisioning")}</option>
               </select>
             </label>
-          </div>
-        </PlatformSurfaceCard>
 
-        <PlatformSurfaceCard
-          eyebrow={t("Workspace preferences")}
-          title={t("Saved admin behavior")}
-          description={t(
-            "These controls are saved for the current admin workspace and are applied when the platform pages load.",
-          )}
-        >
-          <div className="space-y-4">
             <PreferenceToggleField
               label={t("Prioritize follow-up companies")}
               description={t(
-                "Show companies that still need provisioning attention before fully provisioned records in the company registry.",
+                "When enabled, the overview favors companies and requests that have been waiting longest for follow-up.",
               )}
               checked={currentDraft.prioritizeFollowUpCompanies}
               onChange={(checked) =>
@@ -214,8 +207,9 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
                 }))
               }
             />
+
             <PreferenceToggleField
-              label={t("Highlight provisioning alerts on overview")}
+              label={t("Highlight provisioning alerts")}
               description={t(
                 "Keep provisioning-related alerts emphasized in the platform overview cards.",
               )}
@@ -227,6 +221,20 @@ export function PlatformSettingsScreen({ user }: PlatformSettingsScreenProps) {
                 }))
               }
             />
+          </div>
+        </PlatformSurfaceCard>
+
+        <PlatformSurfaceCard
+          eyebrow={t("Workspace preferences")}
+          title={t("Saved admin behavior")}
+          description={t(
+            "Default tabs are saved for the current admin workspace and applied when the platform pages load.",
+          )}
+        >
+          <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 text-sm text-neutral-700">
+            {t(
+              "The admin workspace saves default views plus emphasis rules for follow-up and provisioning alerts.",
+            )}
           </div>
         </PlatformSurfaceCard>
       </section>

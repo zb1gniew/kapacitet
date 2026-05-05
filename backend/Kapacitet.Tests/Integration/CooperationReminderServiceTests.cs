@@ -23,6 +23,7 @@ public class CooperationReminderServiceTests
         services.AddSingleton(resendMock.Object);
         services.Configure<EmailOptions>(o => { o.DevMode = false; o.FromAddress = "test@resend.dev"; o.FromName = "Test"; });
         services.AddScoped<EmailService>();
+        services.AddScoped<NotificationService>();
         return services.BuildServiceProvider();
     }
 
@@ -80,6 +81,8 @@ public class CooperationReminderServiceTests
 
         resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         db.CooperationAgreements.Single().ReminderEmailSentAt.Should().NotBeNull();
+        db.Notifications.Should().Contain(n => n.Type == NotificationType.UpcomingCooperation);
+        db.Notifications.Count(n => n.Type == NotificationType.UpcomingCooperation).Should().Be(2);
     }
 
     [Fact]
