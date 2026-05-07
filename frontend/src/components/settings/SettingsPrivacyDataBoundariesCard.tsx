@@ -134,7 +134,7 @@ export function SettingsPrivacyDataBoundariesCard({
           <ul className="mt-2 space-y-1.5 text-xs leading-[19.5px] tracking-[-0.1172px] text-neutral-700">
             <li>
               {t(
-                "Capacity declarations are stored only for the declared availability period plus 90 days",
+                "Capacity declarations are retained for up to 12 months after the declared availability period ends",
               )}
             </li>
             <li>

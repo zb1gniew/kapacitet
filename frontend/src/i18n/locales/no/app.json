@@ -222,7 +222,7 @@
   "Capacity": "Kapasitet",
   "Capacity coordination": "Kapasitetskoordinering",
   "Capacity coordination platform authentication and onboarding": "Autentisering og onboarding for plattform for kapasitetskoordinering",
-  "Capacity declarations are stored only for the declared availability period plus 90 days": "Kapasitetserklæringer lagres kun for den oppgitte tilgjengelighetsperioden pluss 90 dager",
+  "Capacity declarations are retained for up to 12 months after the declared availability period ends": "Kapasitetserklæringer oppbevares i opptil 12 måneder etter at den oppgitte tilgjengelighetsperioden er avsluttet",
   "Capacity details": "Kapasitetsdetaljer",
   "Capacity request": "Kapasitetsforespørsel",
   "Carpentry": "Tømrerarbeid",

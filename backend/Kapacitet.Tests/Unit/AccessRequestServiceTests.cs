@@ -288,6 +288,49 @@ public class AccessRequestServiceTests
     }
 
     [Fact]
+    public async Task ReviewAsync_WhenAlreadyApprovedWithSameDecision_ReissuesSetupToken()
+    {
+        var reviewedAt = DateTime.UtcNow.AddHours(-2);
+        await using var db = await TestDbFactory.CreatePostgresAsync();
+        db.AccessRequests.Add(new AccessRequest
+        {
+            Id = 25,
+            Name = "Approved Request",
+            Cvr = "12345678",
+            Categories = ["construction"],
+            Location = "Aarhus",
+            ContactPhone = "+4512345678",
+            ContactEmail = "approved@test.com",
+            Status = AccessRequestStatus.Approved,
+            ReviewedBy = "initial-reviewer@test.com",
+            ReviewedAt = reviewedAt,
+            InitialPasswordSetupTokenHash = "old-token-hash",
+            InitialPasswordSetupTokenExpiresAt = DateTime.UtcNow.AddHours(-1),
+            CreatedAt = DateTime.UtcNow.AddDays(-1)
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db);
+
+        var result = await service.ReviewAsync(
+            25,
+            new ReviewAccessRequestDto
+            {
+                Decision = AccessRequestStatus.Approved
+            },
+            "second-reviewer@test.com");
+
+        result.Status.Should().Be(AccessRequestStatus.Approved);
+        result.ReviewedBy.Should().Be("initial-reviewer@test.com");
+        result.ReviewedAt.Should().Be(reviewedAt);
+
+        var savedRequest = await db.AccessRequests.FindAsync(25);
+        savedRequest.Should().NotBeNull();
+        savedRequest!.InitialPasswordSetupTokenHash.Should().NotBe("old-token-hash");
+        savedRequest.InitialPasswordSetupTokenExpiresAt.Should().BeAfter(DateTime.UtcNow.AddHours(47));
+    }
+
+    [Fact]
     public async Task ReviewAsync_WhenAlreadyReviewedWithDifferentDecision_ThrowsInvalidOperationException()
     {
         await using var db = await TestDbFactory.CreatePostgresAsync();

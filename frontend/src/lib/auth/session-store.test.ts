@@ -22,6 +22,7 @@ vi.mock("ioredis", () => {
 
 // Reset the module so the Redis singleton is recreated per test group
 afterEach(() => {
+  delete process.env.REDIS_URL;
   vi.resetModules();
   vi.clearAllMocks();
 });
@@ -30,6 +31,10 @@ const NOW_SECONDS = 1_777_370_400;
 
 function mockNow() {
   vi.spyOn(Date, "now").mockReturnValue(NOW_SECONDS * 1000);
+}
+
+function setRedisUrl() {
+  process.env.REDIS_URL = "redis://redis:6379";
 }
 
 const SESSION = {
@@ -41,7 +46,10 @@ const SESSION = {
 };
 
 describe("createServerSession", () => {
-  beforeEach(mockNow);
+  beforeEach(() => {
+    mockNow();
+    setRedisUrl();
+  });
 
   it("stores the session in Redis with the correct TTL and returns a UUID", async () => {
     redisMock.set.mockResolvedValue("OK");
@@ -74,7 +82,10 @@ describe("createServerSession", () => {
 });
 
 describe("getServerSession", () => {
-  beforeEach(mockNow);
+  beforeEach(() => {
+    mockNow();
+    setRedisUrl();
+  });
 
   it("returns null when the key does not exist in Redis", async () => {
     redisMock.get.mockResolvedValue(null);
@@ -108,7 +119,10 @@ describe("getServerSession", () => {
 });
 
 describe("updateServerSession", () => {
-  beforeEach(mockNow);
+  beforeEach(() => {
+    mockNow();
+    setRedisUrl();
+  });
 
   it("overwrites the stored session with a new TTL", async () => {
     redisMock.set.mockResolvedValue("OK");
@@ -127,6 +141,8 @@ describe("updateServerSession", () => {
 });
 
 describe("deleteServerSession", () => {
+  beforeEach(setRedisUrl);
+
   it("removes the key from Redis", async () => {
     redisMock.del.mockResolvedValue(1);
     const { deleteServerSession } = await import("./session-store");
@@ -135,6 +151,16 @@ describe("deleteServerSession", () => {
 
     expect(redisMock.del).toHaveBeenCalledWith(
       "kapacitet:session:session-uuid",
+    );
+  });
+});
+
+describe("REDIS_URL configuration", () => {
+  it("fails fast when REDIS_URL is missing", async () => {
+    const { createServerSession } = await import("./session-store");
+
+    await expect(createServerSession(SESSION)).rejects.toThrow(
+      "Missing required environment variable: REDIS_URL",
     );
   });
 });

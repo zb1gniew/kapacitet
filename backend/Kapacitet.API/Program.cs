@@ -31,6 +31,7 @@ using Microsoft.Extensions.Options;
 using Resend;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -148,6 +149,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.Configure<DevelopmentFeaturesOptions>(
     builder.Configuration.GetSection("DevelopmentFeatures"));
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // The backend is internal-only in our deployment topology, so trusting the
+    // front proxy headers is required for correct client IP and scheme handling.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.ForwardLimit = 2;
+});
+
 // Keycloak Admin Client
 builder.Services.Configure<KeycloakAdminOptions>(builder.Configuration.GetSection("KeycloakAdmin"));
 builder.Services.AddHttpClient<KeycloakAdminClient>();
@@ -221,7 +233,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(
         AuthorizationRoles.PlatformAdminPolicy,
-        policy => policy.RequireRole(AuthorizationRoles.Admin, AuthorizationRoles.LegacyOperatorAdmin));
+        policy => policy.RequireRole(AuthorizationRoles.PlatformAdminRealmRole, AuthorizationRoles.LegacyOperatorAdminRealmRole));
     options.AddPolicy(
         AuthorizationRoles.CompanyViewerPolicy,
         policy => policy.RequireClaim(
@@ -304,21 +316,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 else
 {
-    // HSTS: instruct browsers to only connect over HTTPS for 1 year.
-    // Only active in production — dev uses HTTP internally.
-    app.UseHsts();
+    ValidateProductionConfiguration(app.Configuration);
 }
-
-// Redirect any stray HTTP requests to HTTPS.
-// In production behind Caddy, the backend only ever receives internal HTTP
-// from the Docker network, so this middleware is a safety net for direct access.
-app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 app.UseRateLimiter();
@@ -401,4 +408,43 @@ static string ToCamelCase(string value)
 }
 
 // Expose Program as public so WebApplicationFactory<Program> works in the E2E test project.
+static void ValidateProductionConfiguration(IConfiguration configuration)
+{
+    var issues = new List<string>();
+
+    var authority = configuration["Keycloak:Authority"];
+    if (!string.IsNullOrWhiteSpace(authority) &&
+        authority.Contains("localhost", StringComparison.OrdinalIgnoreCase))
+    {
+        issues.Add("Keycloak:Authority still points to localhost.");
+    }
+
+    var adminPassword = configuration["KeycloakAdmin:AdminPassword"];
+    if (string.Equals(adminPassword, "admin", StringComparison.Ordinal))
+    {
+        issues.Add("KeycloakAdmin:AdminPassword still uses the development default.");
+    }
+
+    var connectionString = configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrWhiteSpace(connectionString) &&
+        connectionString.Contains("Password=strongpassword", StringComparison.OrdinalIgnoreCase))
+    {
+        issues.Add("ConnectionStrings:DefaultConnection still uses the development database password.");
+    }
+
+    if (configuration.GetValue<bool>("Email:DevMode"))
+    {
+        issues.Add("Email:DevMode is enabled.");
+    }
+
+    if (issues.Count == 0)
+    {
+        return;
+    }
+
+    throw new InvalidOperationException(
+        "Refusing to start with development defaults in production: " +
+        string.Join(" ", issues));
+}
+
 public partial class Program { protected Program() { } }

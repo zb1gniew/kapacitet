@@ -7,9 +7,18 @@ function nowInSeconds() {
 
 let _redis: Redis | null = null;
 
+function getRequiredRedisUrl(): string {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl) {
+    throw new Error("Missing required environment variable: REDIS_URL");
+  }
+
+  return redisUrl;
+}
+
 function getRedis(): Redis {
   if (!_redis) {
-    _redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379", {
+    _redis = new Redis(getRequiredRedisUrl(), {
       lazyConnect: false,
       enableReadyCheck: true,
     });

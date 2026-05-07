@@ -60,12 +60,11 @@ CodeCoverage/
 # NUnit
 *.VisualState.xml
 TestResult.xml
-nunit-*.xml. v s / 
+nunit-*.xml
+
+# Visual Studio
+.vs/
 
 # Claude
 
 .claude
-
-./vs
-
-

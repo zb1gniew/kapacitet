@@ -7,7 +7,7 @@
 #   OIDC_CLIENT_SECRET       - client secret for the kapacitet-app OIDC client
 #
 # Optional env vars (with defaults shown):
-#   KEYCLOAK_BASE_URL        (https://auth.yourdomain.com)
+#   KEYCLOAK_BASE_URL        (https://auth.example.invalid)
 #   KEYCLOAK_REALM           (kapacitet)
 #   KEYCLOAK_ADMIN_REALM     (master)
 #   KEYCLOAK_ADMIN_USER      (admin)
@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-KEYCLOAK_BASE_URL="${KEYCLOAK_BASE_URL:-https://auth.localhost}"
+KEYCLOAK_BASE_URL="${KEYCLOAK_BASE_URL:-https://auth.example.invalid}"
 KEYCLOAK_REALM="${KEYCLOAK_REALM:-kapacitet}"
 KEYCLOAK_ADMIN_REALM="${KEYCLOAK_ADMIN_REALM:-master}"
 KEYCLOAK_ADMIN_USER="${KEYCLOAK_ADMIN_USER:-admin}"

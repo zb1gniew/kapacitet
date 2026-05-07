@@ -137,6 +137,15 @@ public class AccessRequestService
         {
             if (request.Status == dto.Decision)
             {
+                if (request.Status == AccessRequestStatus.Approved)
+                {
+                    var setupToken = await _initialPasswordSetupService.IssueTokenAsync(request.Id);
+                    await _emailService.SendApprovalEmailAsync(
+                        request.ContactEmail,
+                        request.Name,
+                        setupToken);
+                }
+
                 _logger.LogInformation(
                     "Idempotent re-review of AccessRequest {RequestId} with same decision {Decision}",
                     id, dto.Decision);
