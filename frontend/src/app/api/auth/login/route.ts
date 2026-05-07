@@ -81,7 +81,12 @@ function createLoginResponse(
 }
 
 export async function GET(request: NextRequest) {
-  const rateLimited = checkRateLimit(request, "auth-login", 20, 60 * 1000);
+  const rateLimited = await checkRateLimit(
+    request,
+    "auth-login",
+    20,
+    60 * 1000,
+  );
   if (rateLimited) return rateLimited;
 
   const returnTo = sanitizeReturnTo(
@@ -103,7 +108,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const rateLimited = checkRateLimit(request, "auth-login", 20, 60 * 1000);
+  const rateLimited = await checkRateLimit(
+    request,
+    "auth-login",
+    20,
+    60 * 1000,
+  );
   if (rateLimited) return rateLimited;
 
   const formData = await request.formData();

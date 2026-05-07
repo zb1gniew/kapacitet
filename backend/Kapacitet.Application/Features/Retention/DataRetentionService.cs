@@ -81,11 +81,22 @@ public class DataRetentionService : BackgroundService
             .Where(n => n.CreatedAt <= cutoff)
             .ExecuteDeleteAsync(ct);
 
-        // Anonymize user emails older than 12 months
-        // Uses format "anonymized-{id}@deleted.local" to satisfy NOT NULL + unique constraints
+        // Anonymize user emails older than 12 months only when their company no longer has
+        // any active operational records. This prevents long-lived active accounts from
+        // losing their identity mapping during normal platform use.
         var anonymizedUsers = await db.Users
-            .Where(u => u.CreatedAt <= cutoff &&
-                !u.Email.StartsWith("anonymized-"))
+            .Where(u =>
+                u.CreatedAt <= cutoff &&
+                !u.Email.StartsWith("anonymized-") &&
+                !db.CapacityRequests.Any(r =>
+                    r.CompanyId == u.CompanyId &&
+                    (r.Status == ListingStatus.Active || r.Status == ListingStatus.Fulfilled)) &&
+                !db.AvailabilityDeclarations.Any(d =>
+                    d.CompanyId == u.CompanyId &&
+                    (d.Status == ListingStatus.Active || d.Status == ListingStatus.Fulfilled)) &&
+                !db.CooperationAgreements.Any(a =>
+                    (a.RequesterCompanyId == u.CompanyId || a.SupplierCompanyId == u.CompanyId) &&
+                    a.Status == AgreementStatus.Active))
             .ExecuteUpdateAsync(s => s
                 .SetProperty(u => u.Email, u => "anonymized-" + u.Id + "@deleted.local"), ct);
 

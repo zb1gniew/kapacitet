@@ -246,6 +246,22 @@ public class AvailabilityDeclarationServiceTests
     {
         var db = TestDbFactory.Create();
         SeedCatalog(db);
+        db.CapacityRequests.Add(new CapacityRequest
+        {
+            Id = 30,
+            CompanyId = 12,
+            ResourceType = ResourceType.Worker,
+            StartDate = DateTime.UtcNow.AddDays(10),
+            EndDate = DateTime.UtcNow.AddDays(20),
+            LocationCity = "Aarhus",
+            LocationRadiusKm = 20,
+            Quantity = 2,
+            Status = ListingStatus.Active,
+            Urgency = UrgencyLevel.Medium,
+            CreatedAt = DateTime.UtcNow.AddDays(-2),
+            Skills = [db.Skills.Single()],
+            Certificates = [db.Certificates.Single()]
+        });
         db.AvailabilityDeclarations.Add(new AvailabilityDeclaration
         {
             Id = 20,
@@ -261,6 +277,18 @@ public class AvailabilityDeclarationServiceTests
             Skills = [db.Skills.Single()],
             Certificates = [db.Certificates.Single()]
         });
+        db.MatchOffers.Add(new MatchOffer
+        {
+            Id = 40,
+            RequestId = 30,
+            AvailabilityId = 20,
+            OfferedQuantity = 2,
+            MatchScore = 90,
+            Explanation = "Open offer",
+            Status = MatchStatus.PendingRequesterReview,
+            CreatedAt = DateTime.UtcNow.AddHours(-3),
+            ExpiresAt = DateTime.UtcNow.AddDays(2)
+        });
         await db.SaveChangesAsync();
 
         var service = CreateService(db);
@@ -269,6 +297,7 @@ public class AvailabilityDeclarationServiceTests
 
         result.Status.Should().Be(ListingStatus.Cancelled);
         db.AvailabilityDeclarations.Single().Status.Should().Be(ListingStatus.Cancelled);
+        db.MatchOffers.Single().Status.Should().Be(MatchStatus.Withdrawn);
     }
 
     [Fact]

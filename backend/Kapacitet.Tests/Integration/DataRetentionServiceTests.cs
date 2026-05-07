@@ -50,7 +50,7 @@ public class DataRetentionServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task RunRetentionAsync_WhenRecordsAreOlderThanCutoff_DeletesTerminalDataAndAnonymizesUsers()
+    public async Task RunRetentionAsync_WhenRecordsAreOlderThanCutoff_DeletesTerminalDataAndOnlyAnonymizesInactiveUsers()
     {
         if (_dockerUnavailable)
         {
@@ -65,6 +65,7 @@ public class DataRetentionServiceTests : IAsyncLifetime
         var oldDate = DateTime.UtcNow.AddMonths(-13);
         var recentDate = DateTime.UtcNow.AddMonths(-2);
         var company = AddCompany(db, "Retention Co", oldDate);
+        var inactiveCompany = AddCompany(db, "Inactive Retention Co", oldDate);
 
         db.AccessRequests.AddRange(
             new AccessRequest
@@ -227,6 +228,13 @@ public class DataRetentionServiceTests : IAsyncLifetime
                 Email = "anonymized-77@deleted.local",
                 Role = UserRole.Admin,
                 CreatedAt = oldDate
+            },
+            new User
+            {
+                CompanyId = inactiveCompany.Id,
+                Email = "inactive-user@test.local",
+                Role = UserRole.Admin,
+                CreatedAt = oldDate
             });
 
         await db.SaveChangesAsync();
@@ -249,9 +257,13 @@ public class DataRetentionServiceTests : IAsyncLifetime
         (await assertDb.Notifications.SingleAsync()).Title.Should().Be("Recent notification");
 
         var users = await assertDb.Users.OrderBy(u => u.Id).ToListAsync();
-        users.Should().Contain(u => u.Email.StartsWith("anonymized-") && u.Email.EndsWith("@deleted.local"));
         users.Should().Contain(u => u.Email == "recent-user@test.local");
         users.Should().Contain(u => u.Email == "anonymized-77@deleted.local");
+        users.Should().Contain(u => u.Email == "historic-user@test.local");
+        users.Should().ContainSingle(u =>
+            u.CompanyId == inactiveCompany.Id &&
+            u.Email.StartsWith("anonymized-") &&
+            u.Email.EndsWith("@deleted.local"));
     }
 
     [Fact]

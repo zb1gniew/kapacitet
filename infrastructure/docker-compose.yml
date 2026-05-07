@@ -26,10 +26,11 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       # Tell Keycloak its public-facing URL so OIDC tokens have the correct issuer.
-      # DEV: https://auth.localhost  |  PROD: https://auth.yourdomain.com
-      KC_HOSTNAME: auth.localhost
+      # DEV: https://localhost/auth  |  PROD: https://auth.yourdomain.com
+      KC_HOSTNAME: localhost
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
       KC_PROXY_HEADERS: xforwarded
     # Keycloak is no longer exposed directly to the host.
     # Traffic reaches it only through the Caddy proxy.
@@ -37,10 +38,6 @@ services:
       - "8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      # tmpfs shadows the import subdirectory so the start script can always
-      # write the processed realm template without hitting volume permission errors.
-      - type: tmpfs
-        target: /opt/keycloak/data/import
       - ./keycloak/kapacitet-realm.json:/opt/keycloak/kapacitet-realm.json.template:ro
       - ./keycloak/themes:/opt/keycloak/themes:ro
       - ./keycloak/keycloak-start.sh:/opt/keycloak/keycloak-start.sh:ro
@@ -50,6 +47,8 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+    tmpfs:
+      - /opt/keycloak/data/import:mode=1777,exec
 
   migrator:
     build:
@@ -71,12 +70,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=kapacitetdb;Username=appuser;Password=strongpassword
       # Backend validates JWT tokens against Keycloak's public URL (authority).
-      # DEV: https://auth.localhost/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
-      Keycloak__Authority: ${KEYCLOAK_PUBLIC_URL:-https://auth.localhost}/realms/kapacitet
+      # DEV: https://localhost/auth/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
+      Keycloak__Authority: ${KEYCLOAK_PUBLIC_URL:-https://localhost/auth}/realms/kapacitet
       # Server-to-server metadata fetch uses the internal Docker network — no HTTPS needed here.
-      Keycloak__MetadataAddress: http://keycloak:8080/realms/kapacitet/.well-known/openid-configuration
+      Keycloak__MetadataAddress: http://keycloak:8080/auth/realms/kapacitet/.well-known/openid-configuration
       Keycloak__ClientId: kapacitet-app
-      KeycloakAdmin__BaseUrl: http://keycloak:8080
+      KeycloakAdmin__BaseUrl: http://keycloak:8080/auth
+      DataProtection__KeysPath: /var/kapacitet/data-protection-keys
       Email__ApiKey: ${Email__ApiKey:-}
       Email__FromAddress: ${Email__FromAddress:-onboarding@resend.dev}
       Email__DevMode: ${Email__DevMode:-true}
@@ -90,6 +90,8 @@ services:
         condition: service_completed_successfully
       keycloak:
         condition: service_healthy
+    volumes:
+      - backend_data_protection:/var/kapacitet/data-protection-keys
 
   redis:
     image: redis:7-alpine
@@ -117,10 +119,10 @@ services:
       # DEV: https://localhost  |  PROD: https://app.yourdomain.com
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-https://localhost}
       # Browser-facing OIDC URL — must match Keycloak's public HTTPS URL.
-      # DEV: https://auth.localhost/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
-      OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL:-https://auth.localhost}/realms/kapacitet
+      # DEV: https://localhost/auth/realms/kapacitet  |  PROD: https://auth.yourdomain.com/realms/kapacitet
+      OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL:-https://localhost/auth}/realms/kapacitet
       # Server-side token validation uses the internal Docker network.
-      OIDC_SERVER_ISSUER_URL: http://keycloak:8080/realms/kapacitet
+      OIDC_SERVER_ISSUER_URL: http://keycloak:8080/auth/realms/kapacitet
       OIDC_CLIENT_ID: kapacitet-app
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
       OIDC_SCOPES: openid profile email offline_access
@@ -166,6 +168,7 @@ services:
 volumes:
   postgres_data:
   keycloak_data:
+  backend_data_protection:
   redis_data:
   caddy_data:
   caddy_config:

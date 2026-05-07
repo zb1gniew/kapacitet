@@ -191,6 +191,18 @@ public class AvailabilityDeclarationService
             throw new InvalidOperationException("Only active declarations can be withdrawn");
 
         declaration.Status = ListingStatus.Cancelled;
+
+        var openOffers = await _db.MatchOffers
+            .Where(m =>
+                m.AvailabilityId == id &&
+                MatchingAllocationService.OpenStatuses.Contains(m.Status))
+            .ToListAsync();
+
+        foreach (var offer in openOffers)
+        {
+            offer.Status = MatchStatus.Withdrawn;
+        }
+
         await _db.SaveChangesAsync();
 
         return MapToDto(declaration);

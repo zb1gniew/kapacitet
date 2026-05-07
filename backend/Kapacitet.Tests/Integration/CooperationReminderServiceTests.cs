@@ -105,7 +105,7 @@ public class CooperationReminderServiceTests
     public async Task ProcessReminders_WhenAgreementOutsideWindow_SkipsEmail()
     {
         var db = TestDbFactory.Create();
-        var startDate = DateTime.UtcNow.AddHours(72); // za daleko
+        var startDate = DateTime.UtcNow.AddHours(72); // too far out
         await SeedAgreement(db, startDate);
 
         var resendMock = new Mock<IResend>();
