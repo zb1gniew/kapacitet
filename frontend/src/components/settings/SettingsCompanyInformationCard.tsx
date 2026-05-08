@@ -243,7 +243,7 @@ export function SettingsCompanyInformationCard({
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="text-xs leading-[19.5px] tracking-[-0.1172px]">
             {t(
-              "This information is used internally for account management and displayed to cooperation partners only after mutual confirmation. Changes require administrator approval.",
+              "This information is used internally for account management and displayed to cooperation partners only after mutual confirmation.",
             )}
           </p>
         </div>

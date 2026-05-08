@@ -32,7 +32,10 @@ public class MatchingGenerationServiceTests
             new Mock<IResend>().Object,
             emailOptions,
             NullLogger<EmailService>.Instance);
-        var notificationService = new NotificationService(db, emailService);
+        var notificationService = new NotificationService(
+            db,
+            emailService,
+            NullLogger<NotificationService>.Instance);
         var outreachService = new NetworkEscalationOutreachService(db, notificationService);
         var escalationService = new MatchingEscalationService(db, notificationService, outreachService);
 
@@ -107,5 +110,65 @@ public class MatchingGenerationServiceTests
 
         result.Should().BeEmpty();
         db.MatchOffers.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GenerateMatchesForRequestAsync_WhenSettingsRowMissing_AllowsCrossCategoryMatchesByDefault()
+    {
+        var db = TestDbFactory.Create();
+        var requester = new Company
+        {
+            Id = 1,
+            Name = "Requester Co",
+            Categories = ["construction"],
+            DefaultLocation = "Aarhus",
+            Status = CompanyStatus.Active,
+            CreatedAt = DateTime.UtcNow
+        };
+        var supplier = new Company
+        {
+            Id = 2,
+            Name = "Supplier Co",
+            Categories = ["electrical"],
+            DefaultLocation = "Aarhus",
+            Status = CompanyStatus.Active,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        db.Companies.AddRange(requester, supplier);
+        db.CapacityRequests.Add(new CapacityRequest
+        {
+            Id = 1,
+            CompanyId = requester.Id,
+            ResourceType = ResourceType.Worker,
+            Quantity = 2,
+            StartDate = new DateTime(2027, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EndDate = new DateTime(2027, 6, 30, 0, 0, 0, DateTimeKind.Utc),
+            LocationCity = "Aarhus",
+            Status = ListingStatus.Active,
+            PublishedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        });
+        db.AvailabilityDeclarations.Add(new AvailabilityDeclaration
+        {
+            Id = 1,
+            CompanyId = supplier.Id,
+            ResourceType = ResourceType.Worker,
+            Quantity = 2,
+            StartDate = new DateTime(2027, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            EndDate = new DateTime(2027, 6, 30, 0, 0, 0, DateTimeKind.Utc),
+            LocationCity = "Aarhus",
+            Status = ListingStatus.Active,
+            PublishedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db);
+
+        var result = await service.GenerateMatchesForRequestAsync(1);
+
+        result.Should().ContainSingle();
+        db.MatchOffers.Should().ContainSingle();
     }
 }

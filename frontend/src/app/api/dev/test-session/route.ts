@@ -5,7 +5,10 @@ import { createServerSession } from "@/lib/auth/session-store";
 import type { AuthSession } from "@/types/auth";
 
 export async function GET(request: Request) {
-  if (process.env.ENABLE_TEST_AUTH !== "true") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.ENABLE_TEST_AUTH !== "true"
+  ) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 

@@ -38,7 +38,10 @@ public class MatchingServiceUnitTests
         var emailService = new EmailService(
             db, new Mock<IResend>().Object, emailOptions, NullLogger<EmailService>.Instance);
 
-        var notificationService = new NotificationService(db, emailService);
+        var notificationService = new NotificationService(
+            db,
+            emailService,
+            NullLogger<NotificationService>.Instance);
         var outreachService = new NetworkEscalationOutreachService(db, notificationService);
         var escalationService = new MatchingEscalationService(db, notificationService, outreachService);
         var generationService = new MatchingGenerationService(
@@ -47,7 +50,7 @@ public class MatchingServiceUnitTests
 
         return new MatchingService(
             db, allocationService, escalationService,
-            generationService, queryService, notificationService, emailService);
+            generationService, queryService, notificationService);
     }
 
     // ── Seed helper ───────────────────────────────────────────────────────────

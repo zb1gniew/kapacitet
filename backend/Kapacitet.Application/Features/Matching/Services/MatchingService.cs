@@ -16,7 +16,6 @@ public class MatchingService : IMatchingOrchestrator
     private readonly MatchingGenerationService _generationService;
     private readonly MatchingQueryService _queryService;
     private readonly NotificationService _notificationService;
-    private readonly EmailService _emailService;
 
     public MatchingService(
         AppDbContext db,
@@ -24,8 +23,7 @@ public class MatchingService : IMatchingOrchestrator
         MatchingEscalationService escalationService,
         MatchingGenerationService generationService,
         MatchingQueryService queryService,
-        NotificationService notificationService,
-        EmailService emailService)
+        NotificationService notificationService)
     {
         _db = db;
         _allocationService = allocationService;
@@ -33,7 +31,6 @@ public class MatchingService : IMatchingOrchestrator
         _generationService = generationService;
         _queryService = queryService;
         _notificationService = notificationService;
-        _emailService = emailService;
     }
 
     public async Task<List<MatchOfferDto>> GenerateMatchesForRequestAsync(int requestId)
@@ -177,13 +174,6 @@ public class MatchingService : IMatchingOrchestrator
 
             await _db.SaveChangesAsync();
 
-            await _emailService.SendAgreementConfirmedEmailIfEnabledAsync(
-            offer.Request.CompanyId,
-            offer.Availability.CompanyId,
-            offer.Id,
-            agreement.StartDate,
-            agreement.EndDate);
-
             var updatedSnapshot = await _allocationService.CreateSnapshotAsync([offer.RequestId], [offer.AvailabilityId]);
             await _allocationService.EnsureListingStatusConsistencyAsync(offer.Request, updatedSnapshot);
             await _allocationService.EnsureListingStatusConsistencyAsync(offer.Availability, updatedSnapshot);
@@ -192,6 +182,13 @@ public class MatchingService : IMatchingOrchestrator
 
             await _db.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            await _notificationService.SendAgreementConfirmedEmailBestEffortAsync(
+                offer.Request.CompanyId,
+                offer.Availability.CompanyId,
+                offer.Id,
+                agreement.StartDate,
+                agreement.EndDate);
 
             return MatchOfferMapper.MapToDto(offer, companyId);
         }

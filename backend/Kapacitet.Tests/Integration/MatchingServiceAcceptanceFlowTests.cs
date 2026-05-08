@@ -63,7 +63,7 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
         return new AppDbContext(options);
     }
 
-    private MatchingService CreateMatchingService()
+    private MatchingService CreateMatchingService(bool devMode = true, IResend? resend = null)
     {
         var db = CreateDbContext();
 
@@ -73,14 +73,17 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
 
         var emailOptions = Options.Create(new EmailOptions
         {
-            DevMode = true,
+            DevMode = devMode,
             FromAddress = "noreply@test.local",
             FromName = "Test"
         });
         var emailService = new EmailService(
-            db, new Mock<IResend>().Object, emailOptions, NullLogger<EmailService>.Instance);
+            db, resend ?? new Mock<IResend>().Object, emailOptions, NullLogger<EmailService>.Instance);
 
-        var notificationService = new NotificationService(db, emailService);
+        var notificationService = new NotificationService(
+            db,
+            emailService,
+            NullLogger<NotificationService>.Instance);
         var outreachService = new NetworkEscalationOutreachService(db, notificationService);
         var escalationService = new MatchingEscalationService(db, notificationService, outreachService);
         var generationService = new MatchingGenerationService(
@@ -89,7 +92,7 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
 
         return new MatchingService(
             db, allocationService, escalationService,
-            generationService, queryService, notificationService, emailService);
+            generationService, queryService, notificationService);
     }
 
     private record SeedResult(
@@ -268,6 +271,27 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
         var offer = await db.MatchOffers.SingleAsync(o => o.Id == seed.OfferId);
         offer.Status.Should().Be(MatchStatus.AgreementCreated);
         offer.SupplierReviewedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ConfirmAsSupplier_WhenAgreementEmailFails_CommitsBusinessState()
+    {
+        if (_dockerUnavailable) return;
+
+        var seed = await SeedWithOffer();
+        await CreateMatchingService().AcceptAsRequesterAsync(seed.OfferId, seed.RequesterCompanyId);
+
+        var resendMock = new Mock<IResend>();
+        resendMock
+            .Setup(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("email down"));
+
+        await CreateMatchingService(devMode: false, resend: resendMock.Object)
+            .ConfirmAsSupplierAsync(seed.OfferId, seed.SupplierCompanyId);
+
+        await using var db = CreateDbContext();
+        db.CooperationAgreements.Should().ContainSingle(a => a.RequestId == seed.RequestId);
+        db.MatchOffers.Single(o => o.Id == seed.OfferId).Status.Should().Be(MatchStatus.AgreementCreated);
     }
 
     [Fact]
