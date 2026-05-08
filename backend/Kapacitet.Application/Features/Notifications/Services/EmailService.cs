@@ -109,7 +109,18 @@ public class EmailService
             var email = await GetCompanyAdminEmailAsync(companyId);
             if (email == null) continue;
 
-            await SendAsync(email, subject, body);
+            try
+            {
+                await SendAsync(email, subject, body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to send agreement confirmation email for company {CompanyId} and match {MatchOfferId}",
+                    companyId,
+                    matchOfferId);
+            }
         }
     }
 

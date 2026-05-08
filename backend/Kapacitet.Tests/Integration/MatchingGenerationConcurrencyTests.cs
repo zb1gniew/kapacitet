@@ -116,7 +116,10 @@ public class MatchingGenerationConcurrencyTests : IAsyncLifetime
             emailOptions,
             NullLogger<EmailService>.Instance);
 
-        var notificationService = new NotificationService(db, emailService);
+        var notificationService = new NotificationService(
+            db,
+            emailService,
+            NullLogger<NotificationService>.Instance);
         var outreachService = new NetworkEscalationOutreachService(db, notificationService);
         var escalationService = new MatchingEscalationService(db, notificationService, outreachService);
 

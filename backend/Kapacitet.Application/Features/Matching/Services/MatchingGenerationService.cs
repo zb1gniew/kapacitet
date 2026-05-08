@@ -223,7 +223,7 @@ public sealed class MatchingGenerationService
 
     private static bool CategoryFilterPasses(Company requester, Company supplier)
     {
-        if (requester.CompanySettings?.MatchOutsideCategory == true) return true;
+        if (requester.CompanySettings?.MatchOutsideCategory ?? true) return true;
         if (requester.Categories.Count == 0 || supplier.Categories.Count == 0) return true;
         return requester.Categories.Any(c => supplier.Categories.Contains(c));
     }

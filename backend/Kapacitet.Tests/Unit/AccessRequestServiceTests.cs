@@ -409,6 +409,13 @@ public class AccessRequestServiceTests
             user.CompanyId == savedRequest.ProvisionedCompanyId &&
             user.Email == "approved@test.com" &&
             user.Role == UserRole.Admin);
+
+        db.CompanySettings.Should().ContainSingle(settings =>
+            settings.CompanyId == savedRequest.ProvisionedCompanyId &&
+            settings.ReceiveCapacityRequests &&
+            settings.ParticipateInNetworkWide &&
+            settings.AllowPartialMatches &&
+            settings.MatchOutsideCategory);
     }
 
     private sealed class FakeNoOpKeycloakHandler : HttpMessageHandler

@@ -3,6 +3,7 @@ using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Kapacitet.Application.Features.Notifications.Services;
 
@@ -10,11 +11,16 @@ public class NotificationService
 {
     private readonly AppDbContext _db;
     private readonly EmailService _emailService;
+    private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(AppDbContext db, EmailService emailService)
+    public NotificationService(
+        AppDbContext db,
+        EmailService emailService,
+        ILogger<NotificationService> logger)
     {
         _db = db;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<List<NotificationDto>> GetForCompanyAsync(int companyId, CancellationToken ct = default)
@@ -89,29 +95,35 @@ public class NotificationService
             });
         }
 
-        await _emailService.SendNewMatchEmailIfEnabledAsync(requesterCompanyId, matchOfferId);
-        await _emailService.SendNewMatchEmailIfEnabledAsync(supplierCompanyId, matchOfferId);
+        await TrySendEmailAsync(
+            () => _emailService.SendNewMatchEmailIfEnabledAsync(requesterCompanyId, matchOfferId),
+            $"new match notification for requester company {requesterCompanyId}, match {matchOfferId}");
+        await TrySendEmailAsync(
+            () => _emailService.SendNewMatchEmailIfEnabledAsync(supplierCompanyId, matchOfferId),
+            $"new match notification for supplier company {supplierCompanyId}, match {matchOfferId}");
         // Caller must call SaveChangesAsync.
     }
 
     // Internal — called by MatchingService.AcceptAsRequesterAsync BEFORE SaveChangesAsync.
     public async Task QueueSupplierConfirmationNotificationAsync(int supplierCompanyId, int matchOfferId)
     {
-        if (!await IsInAppEnabledAsync(supplierCompanyId, p => p.InAppActionsRequired))
-            return;
-
-        _db.Notifications.Add(new Notification
+        if (await IsInAppEnabledAsync(supplierCompanyId, p => p.InAppActionsRequired))
         {
-            CompanyId = supplierCompanyId,
-            Type = NotificationType.SupplierConfirmationRequest,
-            Title = "Action required: confirm a match",
-            Body = "A company has accepted your availability offer. Please confirm or decline.",
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            Metadata = $"{{\"matchOfferId\":{matchOfferId}}}"
-        });
+            _db.Notifications.Add(new Notification
+            {
+                CompanyId = supplierCompanyId,
+                Type = NotificationType.SupplierConfirmationRequest,
+                Title = "Action required: confirm a match",
+                Body = "A company has accepted your availability offer. Please confirm or decline.",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                Metadata = $"{{\"matchOfferId\":{matchOfferId}}}"
+            });
+        }
 
-        await _emailService.SendSupplierConfirmationEmailIfEnabledAsync(supplierCompanyId, matchOfferId);
+        await TrySendEmailAsync(
+            () => _emailService.SendSupplierConfirmationEmailIfEnabledAsync(supplierCompanyId, matchOfferId),
+            $"supplier confirmation request for company {supplierCompanyId}, match {matchOfferId}");
         // Caller must call SaveChangesAsync.
     }
 
@@ -147,21 +159,23 @@ public class NotificationService
     // Internal — called by MatchingEscalationService when a new/re-opened escalation is created.
     public async Task QueueNetworkEscalationNotificationAsync(int requesterCompanyId, int requestId)
     {
-        if (!await IsInAppEnabledAsync(requesterCompanyId, p => p.InAppNetworkRequests))
-            return;
-
-        _db.Notifications.Add(new Notification
+        if (await IsInAppEnabledAsync(requesterCompanyId, p => p.InAppNetworkRequests))
         {
-            CompanyId = requesterCompanyId,
-            Type = NotificationType.NetworkEscalation,
-            Title = "Your request has been escalated",
-            Body = "No matches were found. Your capacity request has been escalated to the broader network.",
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            Metadata = $"{{\"requestId\":{requestId}}}"
-        });
+            _db.Notifications.Add(new Notification
+            {
+                CompanyId = requesterCompanyId,
+                Type = NotificationType.NetworkEscalation,
+                Title = "Your request has been escalated",
+                Body = "No matches were found. Your capacity request has been escalated to the broader network.",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                Metadata = $"{{\"requestId\":{requestId}}}"
+            });
+        }
         // Caller must call SaveChangesAsync.
-        await _emailService.SendNetworkEscalationEmailIfEnabledAsync(requesterCompanyId, requestId);
+        await TrySendEmailAsync(
+            () => _emailService.SendNetworkEscalationEmailIfEnabledAsync(requesterCompanyId, requestId),
+            $"network escalation for requester company {requesterCompanyId}, request {requestId}");
     }
 
     // Internal — called when eligible recipient companies should be notified.
@@ -170,31 +184,51 @@ public class NotificationService
         int requestId,
         DateTime triggeredAt)
     {
-        if (!await IsInAppEnabledAsync(recipientCompanyId, p => p.InAppNetworkRequests))
-            return;
-
         var metadata =
             $"{{\"requestId\":{requestId},\"triggeredAt\":\"{triggeredAt:O}\"}}";
 
-        var exists = await _db.Notifications.AnyAsync(n =>
-            n.CompanyId == recipientCompanyId &&
-            n.Type == NotificationType.NetworkEscalation &&
-            n.Metadata == metadata);
-
-        if (exists)
-            return;
-
-        _db.Notifications.Add(new Notification
+        if (await IsInAppEnabledAsync(recipientCompanyId, p => p.InAppNetworkRequests))
         {
-            CompanyId = recipientCompanyId,
-            Type = NotificationType.NetworkEscalation,
-            Title = "Action required: network request",
-            Body = "A high-priority network request is awaiting your company's response.",
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow,
-            Metadata = metadata
-        });
-        await _emailService.SendNetworkEscalationOutreachEmailIfEnabledAsync(recipientCompanyId, requestId);
+            var exists = await _db.Notifications.AnyAsync(n =>
+                n.CompanyId == recipientCompanyId &&
+                n.Type == NotificationType.NetworkEscalation &&
+                n.Metadata == metadata);
+
+            if (!exists)
+            {
+                _db.Notifications.Add(new Notification
+                {
+                    CompanyId = recipientCompanyId,
+                    Type = NotificationType.NetworkEscalation,
+                    Title = "Action required: network request",
+                    Body = "A high-priority network request is awaiting your company's response.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    Metadata = metadata
+                });
+            }
+        }
+
+        await TrySendEmailAsync(
+            () => _emailService.SendNetworkEscalationOutreachEmailIfEnabledAsync(recipientCompanyId, requestId),
+            $"network escalation outreach for company {recipientCompanyId}, request {requestId}");
+    }
+
+    public async Task SendAgreementConfirmedEmailBestEffortAsync(
+        int requesterCompanyId,
+        int supplierCompanyId,
+        int matchOfferId,
+        DateTime startDate,
+        DateTime endDate)
+    {
+        await TrySendEmailAsync(
+            () => _emailService.SendAgreementConfirmedEmailIfEnabledAsync(
+                requesterCompanyId,
+                supplierCompanyId,
+                matchOfferId,
+                startDate,
+                endDate),
+            $"agreement confirmation for match {matchOfferId}");
     }
 
     // Default to true if company has no preferences row yet.
@@ -203,5 +237,17 @@ public class NotificationService
         var prefs = await _db.NotificationPreferences
             .FirstOrDefaultAsync(p => p.CompanyId == companyId);
         return prefs == null || selector(prefs);
+    }
+
+    private async Task TrySendEmailAsync(Func<Task> sendAsync, string context)
+    {
+        try
+        {
+            await sendAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Best-effort email dispatch failed for {Context}", context);
+        }
     }
 }

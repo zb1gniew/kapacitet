@@ -5,13 +5,13 @@
 # Required env vars:
 #   PLATFORM_ADMIN_PASSWORD  - password for platform-admin@kapacitet.net
 #   OIDC_CLIENT_SECRET       - client secret for the kapacitet-app OIDC client
+#   KEYCLOAK_ADMIN_PASSWORD  - password for the Keycloak admin user
 #
 # Optional env vars (with defaults shown):
 #   KEYCLOAK_BASE_URL        (https://auth.example.invalid)
 #   KEYCLOAK_REALM           (kapacitet)
 #   KEYCLOAK_ADMIN_REALM     (master)
 #   KEYCLOAK_ADMIN_USER      (admin)
-#   KEYCLOAK_ADMIN_PASSWORD  (admin)
 #   KEYCLOAK_VERIFY_TLS      (true)
 
 set -euo pipefail
@@ -20,7 +20,7 @@ KEYCLOAK_BASE_URL="${KEYCLOAK_BASE_URL:-https://auth.example.invalid}"
 KEYCLOAK_REALM="${KEYCLOAK_REALM:-kapacitet}"
 KEYCLOAK_ADMIN_REALM="${KEYCLOAK_ADMIN_REALM:-master}"
 KEYCLOAK_ADMIN_USER="${KEYCLOAK_ADMIN_USER:-admin}"
-KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-admin}"
+KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}"
 KEYCLOAK_VERIFY_TLS="${KEYCLOAK_VERIFY_TLS:-true}"
 OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:?OIDC_CLIENT_SECRET is required}"
 PLATFORM_ADMIN_PASSWORD="${PLATFORM_ADMIN_PASSWORD:?PLATFORM_ADMIN_PASSWORD is required}"

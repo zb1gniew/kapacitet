@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandIcon } from "@/components/auth/icons";
 import { getDashboardNavItems } from "@/constants/dashboard";
 import { isCompanyManager } from "@/lib/auth/roles";
+import packageJson from "../../../package.json";
 import type {
   DashboardNavItem,
   DashboardNavItemKey,
@@ -64,7 +65,7 @@ export function DashboardSidebar({
     workspace === "platform"
       ? t("Platform operations")
       : t("Capacity coordination");
-  const version = workspace === "platform" ? t("Admin workspace") : "2.4.1";
+  const version = `v${packageJson.version}`;
 
   return (
     <aside className="flex w-full flex-col bg-gradient-to-b from-[#314158] to-[#1d293d] text-[#cad5e2] shadow-[0_20px_25px_rgba(0,0,0,0.1),0_8px_10px_rgba(0,0,0,0.1)] lg:w-72">

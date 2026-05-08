@@ -23,7 +23,7 @@ public class MatchingEscalationServiceTests
             FromName = "Test"
         });
         var emailSvc = new EmailService(db, new Mock<IResend>().Object, emailOptions, NullLogger<EmailService>.Instance);
-        var notifSvc = new NotificationService(db, emailSvc);
+        var notifSvc = new NotificationService(db, emailSvc, NullLogger<NotificationService>.Instance);
         var outreachSvc = new NetworkEscalationOutreachService(db, notifSvc);
         return new MatchingEscalationService(db, notifSvc, outreachSvc);
     }

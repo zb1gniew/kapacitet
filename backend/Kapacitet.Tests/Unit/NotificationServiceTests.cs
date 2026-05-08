@@ -19,7 +19,7 @@ public class NotificationServiceTests
         var resendMock = new Mock<IResend>();
         var emailOptions = Options.Create(new EmailOptions { DevMode = false, FromAddress = "test@resend.dev", FromName = "Test" });
         var emailSvc = new EmailService(db, resendMock.Object, emailOptions, NullLogger<EmailService>.Instance);
-        var notifSvc = new NotificationService(db, emailSvc);
+        var notifSvc = new NotificationService(db, emailSvc, NullLogger<NotificationService>.Instance);
         return (notifSvc, resendMock);
     }
 
@@ -83,6 +83,72 @@ public class NotificationServiceTests
         await db.SaveChangesAsync();
 
         db.Notifications.Count().Should().Be(1);
+    }
+
+    [Fact]
+    public async Task QueueSupplierConfirmation_WhenInAppDisabled_StillSendsEmail()
+    {
+        var db = TestDbFactory.Create();
+        db.Companies.Add(new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow });
+        db.Users.Add(new User { Id = 1, CompanyId = 1, Email = "supplier@test.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow });
+        db.NotificationPreferences.Add(new NotificationPreferences
+        {
+            CompanyId = 1,
+            InAppActionsRequired = false,
+            EmailActionsRequired = true
+        });
+        await db.SaveChangesAsync();
+
+        var (svc, resendMock) = CreateServices(db);
+        await svc.QueueSupplierConfirmationNotificationAsync(1, 42);
+        await db.SaveChangesAsync();
+
+        db.Notifications.Should().BeEmpty();
+        resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task QueueNetworkEscalation_WhenInAppDisabled_StillSendsEmail()
+    {
+        var db = TestDbFactory.Create();
+        db.Companies.Add(new Company { Id = 1, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow });
+        db.Users.Add(new User { Id = 1, CompanyId = 1, Email = "requester@test.com", Role = UserRole.Admin, CreatedAt = DateTime.UtcNow });
+        db.NotificationPreferences.Add(new NotificationPreferences
+        {
+            CompanyId = 1,
+            InAppNetworkRequests = false,
+            EmailNetworkRequests = true
+        });
+        await db.SaveChangesAsync();
+
+        var (svc, resendMock) = CreateServices(db);
+        await svc.QueueNetworkEscalationNotificationAsync(1, 17);
+        await db.SaveChangesAsync();
+
+        db.Notifications.Should().BeEmpty();
+        resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task QueueNewMatch_WhenEmailProviderFails_StillCreatesInAppNotifications()
+    {
+        var db = TestDbFactory.Create();
+        foreach (var (id, email) in new[] { (1, "a@a.com"), (2, "b@b.com") })
+        {
+            db.Companies.Add(new Company { Id = id, Name = "X", Industry = "Y", DefaultLocation = "Z", Status = CompanyStatus.Active, CreatedAt = DateTime.UtcNow });
+            db.Users.Add(new User { Id = id, CompanyId = id, Email = email, Role = UserRole.Admin, CreatedAt = DateTime.UtcNow });
+        }
+        await db.SaveChangesAsync();
+
+        var (svc, resendMock) = CreateServices(db);
+        resendMock
+            .Setup(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("email down"));
+
+        await svc.QueueNewMatchNotificationsAsync(1, 2, 99);
+        await db.SaveChangesAsync();
+
+        db.Notifications.Count().Should().Be(2);
     }
 
     [Fact]

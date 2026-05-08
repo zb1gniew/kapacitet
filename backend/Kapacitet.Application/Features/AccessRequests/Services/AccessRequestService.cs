@@ -236,6 +236,11 @@ public class AccessRequestService
         _db.Companies.Add(company);
         await _db.SaveChangesAsync();
 
+        _db.CompanySettings.Add(new Domain.Entities.CompanySettings
+        {
+            CompanyId = company.Id
+        });
+
         var user = new User
         {
             CompanyId = company.Id,
