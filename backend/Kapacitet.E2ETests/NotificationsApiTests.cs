@@ -13,6 +13,17 @@ namespace Kapacitet.E2ETests;
 public class NotificationsApiTests
 {
     [Fact]
+    public async Task GetAll_WhenUnauthenticated_ReturnsUnauthorized()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/notifications");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task GetAll_ReturnsOnlyCurrentCompanyNotificationsOrderedNewestFirst()
     {
         await using var factory = new ApiTestApplicationFactory();
@@ -174,6 +185,53 @@ public class NotificationsApiTests
 
             var foreign = await db.Notifications.SingleAsync(n => n.Company.Name == "Other");
             foreign.IsRead.Should().BeFalse();
+        });
+    }
+
+    [Fact]
+    public async Task MarkRead_WhenNotificationBelongsToAnotherCompany_ReturnsNotFound()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        var foreignNotificationId = 0;
+
+        await factory.SeedAsync(db =>
+        {
+            var requester = AddCompany(db, "Requester");
+            var supplier = AddCompany(db, "Supplier");
+
+            db.Users.Add(new User
+            {
+                Company = requester,
+                Email = "viewer@test.local",
+                Role = UserRole.Viewer,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            var foreignNotification = new Notification
+            {
+                Company = supplier,
+                Type = NotificationType.NewMatch,
+                Title = "Foreign",
+                Body = "Foreign body",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            db.Notifications.Add(foreignNotification);
+            db.SaveChanges();
+            foreignNotificationId = foreignNotification.Id;
+
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("viewer@test.local", AuthorizationRoles.Viewer);
+
+        var response = await client.PostAsync($"/api/notifications/{foreignNotificationId}/read", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await factory.ExecuteDbAsync(async db =>
+        {
+            var notification = await db.Notifications.FindAsync(foreignNotificationId);
+            notification!.IsRead.Should().BeFalse();
         });
     }
 

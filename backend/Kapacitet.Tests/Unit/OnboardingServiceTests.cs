@@ -114,6 +114,38 @@ public class OnboardingServiceTests
     }
 
     [Fact]
+    public async Task Complete_WithUnsupportedCity_ReturnsErrorsAndDoesNotMarkCompleted()
+    {
+        var db = TestDbFactory.Create();
+        var user = SeedUser(db);
+        var dto = new CompleteOnboardingDto { DefaultLocation = "Atlantis" };
+
+        var result = await new OnboardingService(db).CompleteOnboardingAsync(user.Email, dto);
+
+        result.Errors.Should().ContainSingle(error => error.Contains("supported city"));
+        db.Users.Single().OnboardingCompletedAt.Should().BeNull();
+        db.Companies.Single().DefaultLocation.Should().Be("Warsaw");
+    }
+
+    [Fact]
+    public async Task Complete_WithInvalidPhone_ReturnsErrorsAndKeepsExistingPhone()
+    {
+        var db = TestDbFactory.Create();
+        var user = SeedUser(db);
+        var company = db.Companies.Single();
+        company.ContactPhone = "+4511111111";
+        await db.SaveChangesAsync();
+
+        var result = await new OnboardingService(db).CompleteOnboardingAsync(
+            user.Email,
+            new CompleteOnboardingDto { ContactPhone = "12345" });
+
+        result.Errors.Should().ContainSingle(error => error.Contains("valid international phone number"));
+        db.Users.Single().OnboardingCompletedAt.Should().BeNull();
+        db.Companies.Single().ContactPhone.Should().Be("+4511111111");
+    }
+
+    [Fact]
     public async Task GetStatus_WhenUserNotFound_ThrowsUnauthorized()
     {
         var db = TestDbFactory.Create();

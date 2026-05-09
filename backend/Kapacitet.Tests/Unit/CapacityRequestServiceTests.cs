@@ -104,6 +104,21 @@ public class CapacityRequestServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_WhenCertificateIdsUnknown_ThrowsValidationException()
+    {
+        var db = TestDbFactory.Create();
+        SeedCatalog(db);
+        var service = CreateService(db);
+        var dto = CreateDto();
+        dto.CertificateIds = [999];
+
+        var act = async () => await service.CreateAsync(dto, 1);
+
+        var exception = await act.Should().ThrowAsync<ValidationException>();
+        exception.Which.FieldErrors.Should().ContainKey("certificateIds");
+    }
+
+    [Fact]
     public async Task GetAllByCompanyAsync_ReturnsNewestFirst()
     {
         var db = TestDbFactory.Create();
@@ -250,6 +265,37 @@ public class CapacityRequestServiceTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_WhenRequestBelongsToDifferentCompany_ThrowsKeyNotFoundException()
+    {
+        var db = TestDbFactory.Create();
+        SeedCatalog(db);
+        db.CapacityRequests.Add(new CapacityRequest
+        {
+            Id = 12,
+            CompanyId = 4,
+            ResourceType = ResourceType.Worker,
+            StartDate = DateTime.UtcNow.AddDays(1),
+            EndDate = DateTime.UtcNow.AddDays(2),
+            LocationCity = "Aarhus",
+            LocationRadiusKm = 10,
+            Quantity = 1,
+            Status = ListingStatus.Draft,
+            Urgency = UrgencyLevel.Low,
+            CreatedAt = DateTime.UtcNow,
+            Skills = [db.Skills.Single()],
+            Certificates = [db.Certificates.Single()]
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db);
+
+        var act = async () => await service.GetByIdAsync(12, 99);
+
+        await act.Should().ThrowAsync<KeyNotFoundException>()
+            .WithMessage("CapacityRequest 12 not found");
+    }
+
+    [Fact]
     public async Task CancelAsync_WithdrawsOpenOffersAndResolvesOpenEscalation()
     {
         var db = TestDbFactory.Create();
@@ -367,5 +413,36 @@ public class CapacityRequestServiceTests
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Request is already cancelled");
+    }
+
+    [Fact]
+    public async Task CancelAsync_WhenRequestBelongsToDifferentCompany_ThrowsKeyNotFoundException()
+    {
+        var db = TestDbFactory.Create();
+        SeedCatalog(db);
+        db.CapacityRequests.Add(new CapacityRequest
+        {
+            Id = 22,
+            CompanyId = 9,
+            ResourceType = ResourceType.Worker,
+            StartDate = DateTime.UtcNow.AddDays(10),
+            EndDate = DateTime.UtcNow.AddDays(20),
+            LocationCity = "Aarhus",
+            LocationRadiusKm = 20,
+            Quantity = 3,
+            Status = ListingStatus.Active,
+            Urgency = UrgencyLevel.High,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            Skills = [db.Skills.Single()],
+            Certificates = [db.Certificates.Single()]
+        });
+        await db.SaveChangesAsync();
+
+        var service = CreateService(db);
+
+        var act = async () => await service.CancelAsync(22, 3);
+
+        await act.Should().ThrowAsync<KeyNotFoundException>()
+            .WithMessage("CapacityRequest 22 not found");
     }
 }

@@ -127,6 +127,49 @@ public class CompanyServiceGeneralTests
     }
 
     [Fact]
+    public async Task UpdateInformationAsync_WithUnsupportedCity_ThrowsValidationExceptionAndPreservesValue()
+    {
+        var db = TestDbFactory.Create();
+        var user = SeedUser(db);
+        var service = new CompanyService(db);
+
+        var act = async () => await service.UpdateInformationAsync(
+            user.Email,
+            new UpdateCompanyInformationDto
+            {
+                DefaultLocation = "Atlantis"
+            });
+
+        var exception = await act.Should().ThrowAsync<ValidationException>();
+        exception.Which.FieldErrors.Should().ContainKey("defaultLocation");
+
+        db.Companies.Single(c => c.Id == user.CompanyId).DefaultLocation.Should().Be("Aarhus");
+    }
+
+    [Fact]
+    public async Task UpdateInformationAsync_WithTooManyCategories_ThrowsValidationExceptionAndPreservesCategories()
+    {
+        var db = TestDbFactory.Create();
+        var user = SeedUser(db);
+        var service = new CompanyService(db);
+
+        var act = async () => await service.UpdateInformationAsync(
+            user.Email,
+            new UpdateCompanyInformationDto
+            {
+                Categories = ["construction", "painting", "electrical", "plumbing"]
+            });
+
+        var exception = await act.Should().ThrowAsync<ValidationException>();
+        exception.Which.FieldErrors.Should().ContainKey("categories");
+
+        db.Companies.Single(c => c.Id == user.CompanyId)
+            .Categories
+            .Should()
+            .BeEquivalentTo(["construction"]);
+    }
+
+    [Fact]
     public async Task GetActivityAsync_ReturnsMostRecentItemsAcrossSources()
     {
         var db = TestDbFactory.Create();

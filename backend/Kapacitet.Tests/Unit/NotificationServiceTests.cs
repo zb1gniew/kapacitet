@@ -5,6 +5,7 @@ using Kapacitet.Infrastructure.Persistence;
 using Kapacitet.Domain.Entities;
 using Kapacitet.Domain.Enums;
 using Kapacitet.Tests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -195,5 +196,75 @@ public class NotificationServiceTests
         var act = async () => await svc.MarkAsReadAsync(999, 1);
 
         await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task MarkAllAsRead_UpdatesOnlyUnreadNotificationsForTheTargetCompany()
+    {
+        await using var db = await TestDbFactory.CreatePostgresAsync();
+        db.Companies.AddRange(
+            new Company
+            {
+                Id = 1,
+                Name = "Requester",
+                Industry = "Construction",
+                DefaultLocation = "Aarhus",
+                Status = CompanyStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Company
+            {
+                Id = 2,
+                Name = "Supplier",
+                Industry = "Construction",
+                DefaultLocation = "Odense",
+                Status = CompanyStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            });
+        db.Notifications.AddRange(
+            new Notification
+            {
+                Id = 1,
+                CompanyId = 1,
+                Type = NotificationType.NewMatch,
+                Title = "Unread",
+                Body = "B",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Notification
+            {
+                Id = 2,
+                CompanyId = 1,
+                Type = NotificationType.NewMatch,
+                Title = "Already read",
+                Body = "B",
+                IsRead = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Notification
+            {
+                Id = 3,
+                CompanyId = 2,
+                Type = NotificationType.NewMatch,
+                Title = "Other company",
+                Body = "B",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+        await db.SaveChangesAsync();
+
+        var (svc, _) = CreateServices(db);
+        await svc.MarkAllAsReadAsync(1);
+
+        db.ChangeTracker.Clear();
+
+        var notifications = db.Notifications
+            .AsNoTracking()
+            .OrderBy(notification => notification.Id)
+            .ToList();
+        notifications.Single(notification => notification.Id == 1).IsRead.Should().BeTrue();
+        notifications.Single(notification => notification.Id == 2).IsRead.Should().BeTrue();
+        notifications.Single(notification => notification.Id == 3).IsRead.Should().BeFalse();
     }
 }
