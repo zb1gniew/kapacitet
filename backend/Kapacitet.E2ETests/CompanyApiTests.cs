@@ -157,6 +157,60 @@ public class CompanyApiTests
         });
     }
 
+    [Fact]
+    public async Task UpdateInformation_WhenAuthenticatedAsViewer_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            var company = AddCompany(db, "Builders", "construction", "Aarhus");
+            db.Users.Add(new User
+            {
+                Company = company,
+                Email = "viewer@test.local",
+                Role = UserRole.Viewer,
+                CreatedAt = DateTime.UtcNow
+            });
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("viewer@test.local", AuthorizationRoles.Viewer);
+
+        var response = await client.PutAsJsonAsync("/api/company/information", new
+        {
+            defaultLocation = "Odense"
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateInformation_WhenPayloadContainsUnsupportedCity_ReturnsUnprocessableEntity()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            var company = AddCompany(db, "Builders", "construction", "Aarhus");
+            db.Users.Add(new User
+            {
+                Company = company,
+                Email = "manager@test.local",
+                Role = UserRole.Manager,
+                CreatedAt = DateTime.UtcNow
+            });
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.PutAsJsonAsync("/api/company/information", new
+        {
+            defaultLocation = "Atlantis"
+        });
+
+        response.StatusCode.Should().Be((HttpStatusCode)422);
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("supported city");
+    }
+
     private static Company AddCompany(AppDbContext db, string name, string category, string city)
     {
         var company = new Company

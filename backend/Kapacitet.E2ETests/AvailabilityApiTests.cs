@@ -124,6 +124,59 @@ public class AvailabilityApiTests
         document.RootElement.GetProperty("estimatedMatchCount").GetInt32().Should().BeGreaterThan(0);
     }
 
+    [Fact]
+    public async Task Create_WhenAuthenticatedAsViewer_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            SeedCompanyAndCatalog(db, "viewer@test.local");
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("viewer@test.local", AuthorizationRoles.Viewer);
+
+        var response = await client.PostAsJsonAsync("/api/availability", new
+        {
+            startDate = "2027-08-01T00:00:00Z",
+            endDate = "2027-08-15T00:00:00Z",
+            locationCity = "Aarhus",
+            locationRadiusKm = 30,
+            quantity = 4,
+            skillIds = new[] { 1 },
+            certificateIds = new[] { 1 }
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task PublishNew_WhenPayloadIsInvalid_ReturnsUnprocessableEntity()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            SeedCompanyAndCatalog(db, "manager@test.local");
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.PostAsJsonAsync("/api/availability/publish", new
+        {
+            startDate = "2027-09-10T00:00:00Z",
+            endDate = "2027-09-01T00:00:00Z",
+            locationCity = "Aarhus",
+            locationRadiusKm = 30,
+            quantity = 0,
+            skillIds = Array.Empty<int>(),
+            certificateIds = Array.Empty<int>()
+        });
+
+        response.StatusCode.Should().Be((HttpStatusCode)422);
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("At least one skill is required");
+        body.Should().Contain("Quantity must be greater than zero");
+    }
+
     private static (Company company, Skill skill, Certificate certificate) SeedCompanyAndCatalog(AppDbContext db, string email)
     {
         var company = new Company

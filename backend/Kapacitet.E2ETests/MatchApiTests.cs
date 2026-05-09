@@ -52,6 +52,51 @@ public class MatchApiTests
         });
     }
 
+    [Fact]
+    public async Task Accept_WhenOfferBelongsToDifferentCompany_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        var offerId = 0;
+        await factory.SeedAsync(db =>
+        {
+            offerId = SeedOffer(db, "other-requester@test.local");
+            db.Users.Add(new User
+            {
+                CompanyId = 999,
+                Email = "manager@test.local",
+                Role = UserRole.Manager,
+                CreatedAt = DateTime.UtcNow
+            });
+            db.Companies.Add(new Company
+            {
+                Id = 999,
+                Name = "Foreign Company",
+                Industry = "Construction",
+                DefaultLocation = "Odense",
+                Status = CompanyStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            });
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.PostAsync($"/api/matches/{offerId}/accept", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task Accept_WhenOfferDoesNotExistAndCompanyDoesNotOwnIt_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(_ => Task.CompletedTask);
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.PostAsync("/api/matches/9999/accept", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
     private static int SeedOffer(AppDbContext db, string requesterEmail)
     {
         var requester = new Company

@@ -14,6 +14,33 @@ namespace Kapacitet.E2ETests;
 public class CapacityRequestApiTests
 {
     [Fact]
+    public async Task Create_WhenViewerAttemptsToCreate_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            SeedCompanyAndCatalog(db, "viewer@test.local");
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("viewer@test.local", AuthorizationRoles.Viewer);
+
+        var response = await client.PostAsJsonAsync("/api/requests", new
+        {
+            startDate = "2027-08-01T00:00:00Z",
+            endDate = "2027-08-15T00:00:00Z",
+            locationCity = "Aarhus",
+            locationRadiusKm = 25,
+            quantity = 3,
+            urgency = "High",
+            experienceLevel = "mid",
+            skillIds = new[] { 1 },
+            certificateIds = new[] { 1 }
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task Create_WhenManagerPostsValidDraft_ReturnsCreated()
     {
         await using var factory = new ApiTestApplicationFactory();
@@ -74,6 +101,35 @@ public class CapacityRequestApiTests
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         document.RootElement.GetProperty("status").GetString().Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task PublishNew_WhenPayloadIsInvalid_ReturnsValidationProblem()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(db =>
+        {
+            SeedCompanyAndCatalog(db, "manager@test.local");
+            return Task.CompletedTask;
+        });
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.PostAsJsonAsync("/api/requests/publish", new
+        {
+            startDate = "2027-09-01T00:00:00Z",
+            endDate = "2027-09-10T00:00:00Z",
+            locationCity = "Atlantis",
+            locationRadiusKm = 25,
+            quantity = 1,
+            urgency = "Critical",
+            skillIds = new[] { 1 },
+            certificateIds = new[] { 1 }
+        });
+
+        response.StatusCode.Should().Be((HttpStatusCode)422);
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var fieldErrors = document.RootElement.GetProperty("fieldErrors");
+        fieldErrors.GetProperty("locationCity")[0].GetString().Should().Contain("supported city");
     }
 
     [Fact]

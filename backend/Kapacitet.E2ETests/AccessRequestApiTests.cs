@@ -110,4 +110,28 @@ public class AccessRequestApiTests
         items[0].GetProperty("name").GetString().Should().Be("Request Two");
         items[1].GetProperty("name").GetString().Should().Be("Request One");
     }
+
+    [Fact]
+    public async Task GetAll_WhenUnauthenticated_ReturnsUnauthorized()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(_ => Task.CompletedTask);
+        using var client = factory.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+
+        var response = await client.GetAsync("/api/AccessRequest");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetAll_WhenAuthenticatedAsCompanyManager_ReturnsForbidden()
+    {
+        await using var factory = new ApiTestApplicationFactory();
+        await factory.SeedAsync(_ => Task.CompletedTask);
+        using var client = factory.CreateAuthenticatedClient("manager@test.local", AuthorizationRoles.Manager);
+
+        var response = await client.GetAsync("/api/AccessRequest");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
 }
