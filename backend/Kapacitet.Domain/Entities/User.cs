@@ -11,6 +11,9 @@ public class User
     public DateTime CreatedAt { get; set; }
     public DateTime? OnboardingCompletedAt { get; set; }
 
+    public string? PasswordResetTokenHash { get; set; }
+    public DateTime? PasswordResetTokenExpiresAt { get; set; }
+
     public Company Company { get; set; } = null!;
     public PlatformAdminPreferences? PlatformAdminPreferences { get; set; }
 }

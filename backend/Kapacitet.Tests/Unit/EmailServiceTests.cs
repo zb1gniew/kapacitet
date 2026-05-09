@@ -57,7 +57,7 @@ public class EmailServiceTests
 
         _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
         sentMessage.Should().NotBeNull();
-        sentMessage!.Subject.Should().Be("You're approved — welcome to Kapacitet");
+        sentMessage!.Subject.Should().Contain("You're approved — welcome to KapacitetNet");
         sentMessage.HtmlBody.Should().Contain("setupToken=setup-token");
         sentMessage.HtmlBody.Should().Contain("expires in 48 hours");
     }

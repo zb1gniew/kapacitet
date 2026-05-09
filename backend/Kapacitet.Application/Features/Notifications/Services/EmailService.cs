@@ -28,25 +28,54 @@ public class EmailService
     // ── Trigger 1: User approved ──────────────────────────────────────────────
     public async Task SendApprovalEmailAsync(string toEmail, string companyName, string setupToken)
     {
-        var loginUrl = System.Net.WebUtility.HtmlEncode(_options.AppUrl);
-        var setupUrl = System.Net.WebUtility.HtmlEncode(
-            $"{_options.AppUrl.TrimEnd('/')}/?setupToken={Uri.EscapeDataString(setupToken)}");
-        var subject = "You're approved — welcome to Kapacitet";
-        var body = $"""
-            <h2>Welcome to Kapacitet, {System.Net.WebUtility.HtmlEncode(companyName)}!</h2>
-            <p>Your access request has been approved and your account is ready.</p>
-            <p>
-              Start by setting your password here:
-              <a href="{setupUrl}">{setupUrl}</a>
-            </p>
-            <p>This secure setup link is tied to <strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong> and expires in 48 hours.</p>
-            <p>After setting your password, sign in at <a href="{loginUrl}">{loginUrl}</a>.</p>
+        var setupUrl = $"{_options.AppUrl.TrimEnd('/')}/?setupToken={Uri.EscapeDataString(setupToken)}";
+        var subject = "Du er godkendt — velkommen til KapacitetNet / You're approved — welcome to KapacitetNet";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Velkommen til KapacitetNet, {H(companyName)}!</h2>
+            <p style="margin:0 0 16px;color:#374151;">Din adgangsanmodning er godkendt og din konto er klar.</p>
+            <p style="margin:0 0 24px;color:#374151;">Start med at oprette din adgangskode ved at klikke på knappen nedenfor:</p>
+            {Btn("Opret adgangskode", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">Dette sikre opsætningslink er knyttet til <strong>{H(toEmail)}</strong> og udløber om 48 timer.</p>
             """;
 
-        await SendAsync(toEmail, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Welcome to KapacitetNet, {H(companyName)}!</h2>
+            <p style="margin:0 0 16px;color:#374151;">Your access request has been approved and your account is ready.</p>
+            <p style="margin:0 0 24px;color:#374151;">Start by setting your password using the button below:</p>
+            {Btn("Set password", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">This secure setup link is tied to <strong>{H(toEmail)}</strong> and expires in 48 hours.</p>
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english));
     }
 
-    // ── Trigger 2: New matches found ──────────────────────────────────────────
+    // ── Trigger 2: Password reset ─────────────────────────────────────────────
+    public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken)
+    {
+        var resetUrl = $"{_options.AppUrl.TrimEnd('/')}/?resetToken={Uri.EscapeDataString(resetToken)}";
+        var subject = "Nulstil din adgangskode / Reset your KapacitetNet password";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Nulstilling af adgangskode</h2>
+            <p style="margin:0 0 16px;color:#374151;">Vi har modtaget en anmodning om at nulstille adgangskoden for <strong>{H(toEmail)}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Klik på knappen nedenfor for at oprette en ny adgangskode:</p>
+            {Btn("Nulstil adgangskode", resetUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">Dette link udløber om 1 time. Hvis du ikke har anmodet om nulstilling, kan du se bort fra denne e-mail.</p>
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Password reset request</h2>
+            <p style="margin:0 0 16px;color:#374151;">We received a request to reset the password for <strong>{H(toEmail)}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Click the button below to set a new password:</p>
+            {Btn("Reset password", resetUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english));
+    }
+
+    // ── Trigger 3: New matches found ──────────────────────────────────────────
     public async Task SendNewMatchEmailIfEnabledAsync(int companyId, int matchOfferId)
     {
         if (!await IsEmailEnabledAsync(companyId, p => p.EmailNewMatches))
@@ -55,13 +84,22 @@ public class EmailService
         var email = await GetCompanyAdminEmailAsync(companyId);
         if (email == null) return;
 
-        var subject = "New capacity match found";
-        var body = $"""
-            <h2>A new match has been found</h2>
-            <p>Log in to Kapacitet to review match #{matchOfferId} and accept or decline.</p>
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Nyt kapacitetsmatch fundet / New capacity match found";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Nyt match fundet</h2>
+            <p style="margin:0 0 24px;color:#374151;">Der er fundet et nyt kapacitetsmatch til dig. Log ind på KapacitetNet for at se match #{matchOfferId} og acceptere eller afvise.</p>
+            {Btn("Se match", dashboardUrl)}
             """;
 
-        await SendAsync(email, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">New match found</h2>
+            <p style="margin:0 0 24px;color:#374151;">A new capacity match has been found for you. Log in to KapacitetNet to review match #{matchOfferId} and accept or decline.</p>
+            {Btn("View match", dashboardUrl)}
+            """;
+
+        await SendAsync(email, subject, Wrap(danish, english));
     }
 
     // ── Trigger 3a: Supplier must confirm ────────────────────────────────────
@@ -73,13 +111,24 @@ public class EmailService
         var email = await GetCompanyAdminEmailAsync(supplierCompanyId);
         if (email == null) return;
 
-        var subject = "Action required: confirm a capacity match";
-        var body = $"""
-            <h2>A company has accepted your availability offer</h2>
-            <p>Please log in to Kapacitet to confirm or decline match #{matchOfferId}.</p>
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Handling påkrævet: bekræft kapacitetsmatch / Action required: confirm a capacity match";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Handling påkrævet</h2>
+            <p style="margin:0 0 16px;color:#374151;">En virksomhed har accepteret dit kapacitetstilbud.</p>
+            <p style="margin:0 0 24px;color:#374151;">Log ind på KapacitetNet for at bekræfte eller afvise match #{matchOfferId}.</p>
+            {Btn("Bekræft match", dashboardUrl)}
             """;
 
-        await SendAsync(email, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Action required</h2>
+            <p style="margin:0 0 16px;color:#374151;">A company has accepted your availability offer.</p>
+            <p style="margin:0 0 24px;color:#374151;">Please log in to KapacitetNet to confirm or decline match #{matchOfferId}.</p>
+            {Btn("Confirm match", dashboardUrl)}
+            """;
+
+        await SendAsync(email, subject, Wrap(danish, english));
     }
 
     // ── Trigger 3b: Both parties — agreement confirmed ────────────────────────
@@ -90,15 +139,29 @@ public class EmailService
         DateTime startDate,
         DateTime endDate)
     {
-        var formattedStart = startDate.ToString("yyyy-MM-dd");
-        var formattedEnd = endDate.ToString("yyyy-MM-dd");
-        var subject = "Cooperation confirmed";
-        var body = $"""
-            <h2>Cooperation agreement confirmed</h2>
-            <p>Match #{matchOfferId} has been confirmed by both parties.</p>
-            <p><strong>Start:</strong> {formattedStart}<br/>
-               <strong>End:</strong> {formattedEnd}</p>
-            <p>Log in to Kapacitet to view the full agreement details.</p>
+        var formattedStart = startDate.ToString("dd.MM.yyyy");
+        var formattedEnd = endDate.ToString("dd.MM.yyyy");
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Samarbejde bekræftet / Cooperation confirmed";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Samarbejdsaftale bekræftet</h2>
+            <p style="margin:0 0 16px;color:#374151;">Match #{matchOfferId} er bekræftet af begge parter.</p>
+            <table style="margin:0 0 24px;border-collapse:collapse;">
+              <tr><td style="padding:4px 16px 4px 0;color:#6b7280;font-size:14px;">Startdato</td><td style="padding:4px 0;font-weight:600;color:#0f2033;">{formattedStart}</td></tr>
+              <tr><td style="padding:4px 16px 4px 0;color:#6b7280;font-size:14px;">Slutdato</td><td style="padding:4px 0;font-weight:600;color:#0f2033;">{formattedEnd}</td></tr>
+            </table>
+            {Btn("Se aftaledetaljer", dashboardUrl)}
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Cooperation agreement confirmed</h2>
+            <p style="margin:0 0 16px;color:#374151;">Match #{matchOfferId} has been confirmed by both parties.</p>
+            <table style="margin:0 0 24px;border-collapse:collapse;">
+              <tr><td style="padding:4px 16px 4px 0;color:#6b7280;font-size:14px;">Start date</td><td style="padding:4px 0;font-weight:600;color:#0f2033;">{formattedStart}</td></tr>
+              <tr><td style="padding:4px 16px 4px 0;color:#6b7280;font-size:14px;">End date</td><td style="padding:4px 0;font-weight:600;color:#0f2033;">{formattedEnd}</td></tr>
+            </table>
+            {Btn("View agreement details", dashboardUrl)}
             """;
 
         foreach (var companyId in new[] { requesterCompanyId, supplierCompanyId })
@@ -106,12 +169,12 @@ public class EmailService
             if (!await IsEmailEnabledAsync(companyId, p => p.EmailActionsRequired))
                 continue;
 
-            var email = await GetCompanyAdminEmailAsync(companyId);
-            if (email == null) continue;
+            var companyEmail = await GetCompanyAdminEmailAsync(companyId);
+            if (companyEmail == null) continue;
 
             try
             {
-                await SendAsync(email, subject, body);
+                await SendAsync(companyEmail, subject, Wrap(danish, english));
             }
             catch (Exception ex)
             {
@@ -136,17 +199,25 @@ public class EmailService
         var email = await GetCompanyAdminEmailAsync(companyId);
         if (email == null) return;
 
-        var subject = "Reminder: cooperation starts in 48 hours";
-        var body = $"""
-            <h2>Your cooperation starts soon</h2>
-            <p>Agreement #{agreementId} begins on <strong>{startDate:yyyy-MM-dd}</strong>.</p>
-            <p>Log in to Kapacitet to review the details.</p>
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Påmindelse: samarbejdet starter om 48 timer / Reminder: cooperation starts in 48 hours";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Samarbejdet starter snart</h2>
+            <p style="margin:0 0 24px;color:#374151;">Aftale #{agreementId} starter den <strong>{startDate:dd.MM.yyyy}</strong>. Log ind for at gennemgå detaljerne.</p>
+            {Btn("Se aftale", dashboardUrl)}
             """;
 
-        await SendAsync(email, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Your cooperation starts soon</h2>
+            <p style="margin:0 0 24px;color:#374151;">Agreement #{agreementId} begins on <strong>{startDate:dd.MM.yyyy}</strong>. Log in to review the details.</p>
+            {Btn("View agreement", dashboardUrl)}
+            """;
+
+        await SendAsync(email, subject, Wrap(danish, english));
     }
 
-    // ── Trigger 5a: Requester — their requests is in the network ──────────────────
+    // ── Trigger 5a: Requester — request escalated to network ─────────────────
     public async Task SendNetworkEscalationEmailIfEnabledAsync(int requesterCompanyId, int requestId)
     {
         if (!await IsEmailEnabledAsync(requesterCompanyId, p => p.EmailNetworkRequests))
@@ -155,17 +226,25 @@ public class EmailService
         var email = await GetCompanyAdminEmailAsync(requesterCompanyId);
         if (email == null) return;
 
-        var subject = "Your request has been escalated to the network";
-        var body = $"""
-            <h2>No immediate match found</h2>
-            <p>Your capacity request #{requestId} has been escalated to the broader network.</p>
-            <p>Log in to Kapacitet to monitor incoming responses.</p>
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Din anmodning er sendt til netværket / Your request has been escalated to the network";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Ingen øjeblikkelig match</h2>
+            <p style="margin:0 0 24px;color:#374151;">Din kapacitetsanmodning #{requestId} er sendt videre til det bredere netværk. Log ind for at følge med i indkomne svar.</p>
+            {Btn("Se anmodning", dashboardUrl)}
             """;
 
-        await SendAsync(email, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">No immediate match found</h2>
+            <p style="margin:0 0 24px;color:#374151;">Your capacity request #{requestId} has been escalated to the broader network. Log in to monitor incoming responses.</p>
+            {Btn("View request", dashboardUrl)}
+            """;
+
+        await SendAsync(email, subject, Wrap(danish, english));
     }
 
-    // ── Trigger 5b: Recipient — urgent request in the network waiting ───────────────────
+    // ── Trigger 5b: Recipient — urgent network request ───────────────────────
     public async Task SendNetworkEscalationOutreachEmailIfEnabledAsync(int recipientCompanyId, int requestId)
     {
         if (!await IsEmailEnabledAsync(recipientCompanyId, p => p.EmailNetworkRequests))
@@ -174,17 +253,91 @@ public class EmailService
         var email = await GetCompanyAdminEmailAsync(recipientCompanyId);
         if (email == null) return;
 
-        var subject = "Urgent network request — action needed";
-        var body = $"""
-            <h2>A high-priority request needs your response</h2>
-            <p>An urgent capacity request #{requestId} has been escalated to the network.</p>
-            <p>Log in to Kapacitet to review and respond.</p>
+        var dashboardUrl = $"{_options.AppUrl.TrimEnd('/')}/dashboard/matches";
+        var subject = "Presserende netværksanmodning — handling påkrævet / Urgent network request — action needed";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Anmodning med høj prioritet</h2>
+            <p style="margin:0 0 24px;color:#374151;">En presserende kapacitetsanmodning #{requestId} er eskaleret til netværket. Log ind for at gennemgå og svare.</p>
+            {Btn("Se anmodning", dashboardUrl)}
             """;
 
-        await SendAsync(email, subject, body);
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">High-priority request needs your response</h2>
+            <p style="margin:0 0 24px;color:#374151;">An urgent capacity request #{requestId} has been escalated to the network. Log in to review and respond.</p>
+            {Btn("View request", dashboardUrl)}
+            """;
+
+        await SendAsync(email, subject, Wrap(danish, english));
     }
 
-    // ── Shared helpers ────────────────────────────────────────────────────────
+    // ── Layout helpers ────────────────────────────────────────────────────────
+
+    private static string H(string value) => System.Net.WebUtility.HtmlEncode(value);
+
+    private static string Btn(string label, string url)
+    {
+        var encodedUrl = System.Net.WebUtility.HtmlEncode(url);
+        return $"""
+            <a href="{encodedUrl}" style="display:inline-block;padding:13px 28px;background:#1d4ed8;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;border-radius:8px;letter-spacing:-0.2px;">{label}</a>
+            """;
+    }
+
+    private string Wrap(string danishContent, string englishContent)
+    {
+        var appUrl = System.Net.WebUtility.HtmlEncode(_options.AppUrl);
+        return $"""
+            <!DOCTYPE html>
+            <html lang="da">
+            <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+            <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 16px;">
+                <tr><td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+                    <!-- Header -->
+                    <tr><td style="background:#0f2033;border-radius:12px 12px 0 0;padding:28px 40px;">
+                      <p style="margin:0;font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.4px;">KapacitetNet</p>
+                      <p style="margin:4px 0 0;font-size:13px;color:#94a3b8;letter-spacing:-0.1px;">Kapacitetskoordinering</p>
+                    </td></tr>
+
+                    <!-- Danish content -->
+                    <tr><td style="background:#ffffff;padding:40px 40px 32px;">
+                      {danishContent}
+                    </td></tr>
+
+                    <!-- Divider -->
+                    <tr><td style="background:#ffffff;padding:0 40px;">
+                      <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="border-top:1px solid #e5e7eb;padding-top:24px;padding-bottom:8px;">
+                            <p style="margin:0;font-size:12px;color:#9ca3af;font-style:italic;">For English version see below</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td></tr>
+
+                    <!-- English content -->
+                    <tr><td style="background:#ffffff;padding:24px 40px 40px;border-top:1px solid #f3f4f6;">
+                      {englishContent}
+                    </td></tr>
+
+                    <!-- Footer -->
+                    <tr><td style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:20px 40px;">
+                      <p style="margin:0;font-size:12px;color:#9ca3af;">
+                        KapacitetNet &mdash; <a href="{appUrl}" style="color:#6b7280;text-decoration:none;">{appUrl}</a>
+                      </p>
+                    </td></tr>
+
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+    }
+
+    // ── Shared send ───────────────────────────────────────────────────────────
     private async Task SendAsync(string to, string subject, string htmlBody)
     {
         if (_options.DevMode)

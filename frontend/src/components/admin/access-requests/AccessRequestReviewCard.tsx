@@ -11,6 +11,7 @@ type AccessRequestReviewCardProps = {
   highlighted?: boolean;
   onApprove: () => void;
   onReject: () => void;
+  onResendSetupEmail: () => void;
 };
 
 type InfoPillProps = {
@@ -44,6 +45,7 @@ export function AccessRequestReviewCard({
   highlighted = false,
   onApprove,
   onReject,
+  onResendSetupEmail,
 }: AccessRequestReviewCardProps) {
   const reviewedAtLabel = formatAccessRequestDateTime(request.reviewedAt);
 
@@ -185,6 +187,24 @@ export function AccessRequestReviewCard({
                 className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[#fca5a5] bg-white px-4 text-sm font-semibold text-[#dc2626] transition hover:bg-[#fff5f5]"
               >
                 {t("Reject request")}
+              </button>
+            </div>
+          ) : request.status === "Approved" ? (
+            <div className="flex w-full flex-col gap-3">
+              <div className="rounded-[12px] border border-neutral-200 bg-[#fafafa] p-4">
+                <p className="text-sm font-semibold text-neutral-900">
+                  {t("Review completed")}
+                </p>
+                <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+                  {t("This request has already been processed.")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onResendSetupEmail}
+                className="inline-flex h-11 items-center justify-center rounded-[10px] bg-[#1d4ed8] px-4 text-sm font-semibold text-white shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] transition hover:bg-[#1e40af]"
+              >
+                {t("Resend setup email")}
               </button>
             </div>
           ) : (

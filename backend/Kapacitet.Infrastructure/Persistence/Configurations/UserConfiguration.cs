@@ -30,6 +30,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.OnboardingCompletedAt)
             .IsRequired(false);
 
+        builder.Property(u => u.PasswordResetTokenHash)
+            .HasMaxLength(128)
+            .IsRequired(false);
+
+        builder.Property(u => u.PasswordResetTokenExpiresAt)
+            .IsRequired(false);
+
         builder.HasOne(u => u.Company)
             .WithMany(c => c.Users)
             .HasForeignKey(u => u.CompanyId)

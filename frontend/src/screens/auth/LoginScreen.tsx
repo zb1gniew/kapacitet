@@ -16,7 +16,11 @@ import {
 type ScreenState =
   | { step: "email" }
   | { step: "set-password"; email: string; token: string }
-  | { step: "password-set"; email: string };
+  | { step: "password-set"; email: string }
+  | { step: "forgot-password" }
+  | { step: "forgot-password-sent"; email: string }
+  | { step: "reset-password"; email: string; token: string }
+  | { step: "password-reset"; email: string };
 
 type SetupContextResponse = {
   email?: string;
@@ -101,6 +105,54 @@ export function LoginScreen() {
     searchParams.get("authError") ? t("Sign-in failed. Please try again.") : "",
   );
   const setupToken = searchParams.get("setupToken");
+  const resetToken = searchParams.get("resetToken");
+
+  useEffect(() => {
+    if (!resetToken) return;
+
+    let active = true;
+    setLoading(true);
+    setErrorMessage("");
+
+    void fetch(
+      `/api/account/password-reset-context?token=${encodeURIComponent(resetToken)}`,
+    )
+      .then(async (response) => {
+        if (!active) return;
+        if (!response.ok) {
+          throw new Error(
+            await getResponseMessage(
+              response,
+              "This password reset link is invalid or expired.",
+            ),
+          );
+        }
+        const data = (await response.json()) as SetupContextResponse;
+        if (!data.email)
+          throw new Error("This password reset link is invalid or expired.");
+        setState({
+          step: "reset-password",
+          email: data.email,
+          token: resetToken,
+        });
+      })
+      .catch((error) => {
+        if (!active) return;
+        setState({ step: "email" });
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "This password reset link is invalid or expired.",
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [resetToken]);
 
   useEffect(() => {
     if (!setupToken) {
@@ -154,6 +206,73 @@ export function LoginScreen() {
     if (!email) return;
 
     redirectToKeycloak(email);
+  }
+
+  async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage("");
+
+    const formData = new FormData(event.currentTarget);
+    const email = getTrimmedFormValue(formData, "email");
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      await fetch("/api/account/forgot-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      // Always show confirmation regardless of whether email exists (avoid enumeration).
+      setState({ step: "forgot-password-sent", email });
+    } catch {
+      setErrorMessage(t("Unable to process request. Please try again."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (state.step !== "reset-password") return;
+
+    setErrorMessage("");
+    const formData = new FormData(event.currentTarget);
+    const password = getRawFormValue(formData, "password");
+    const confirmPassword = getRawFormValue(formData, "confirmPassword");
+
+    if (password.length < 8) {
+      setErrorMessage(t("Password must be at least 8 characters."));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage(t("Passwords do not match."));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/account/reset-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: state.token, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          await getResponseMessage(response, t("Unable to reset password.")),
+        );
+      }
+
+      setState({ step: "password-reset", email: state.email });
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : t("Unable to reset password."),
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSetPassword(event: FormEvent<HTMLFormElement>) {
@@ -256,6 +375,24 @@ export function LoginScreen() {
         >
           {t("Request platform access")}
         </Link>
+
+        <div className="relative my-6">
+          <div className="border-t border-neutral-300" />
+          <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-sm tracking-[-0.1504px] text-neutral-500">
+            {t("or")}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setState({ step: "forgot-password" });
+            setErrorMessage("");
+          }}
+          className={secondaryLinkClassName}
+        >
+          {t("I forgot my password")}
+        </button>
       </>
     );
   }
@@ -325,6 +462,159 @@ export function LoginScreen() {
     );
   }
 
+  function renderForgotPasswordStep() {
+    return (
+      <>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Reset your password")}
+        </h2>
+        <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t(
+            "Enter your email address and we'll send you a link to reset your password.",
+          )}
+        </p>
+
+        {errorMessage ? (
+          <div className="mt-3 rounded-[10px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-sm text-[#b91c1c]">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <form
+          className="mt-6 space-y-5"
+          aria-label={t("Forgot password form")}
+          onSubmit={handleForgotPassword}
+        >
+          <AuthInput
+            id="email"
+            label={t("Email address")}
+            type="email"
+            placeholder="admin@company.com"
+            autoComplete="email"
+            icon={<EmailIcon className="h-[18px] w-[18px]" />}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={primaryButtonClassName}
+          >
+            {loading ? t("Sending...") : t("Send reset link")}
+          </button>
+        </form>
+
+        <button
+          type="button"
+          onClick={resetToEmailStep}
+          className="mt-4 w-full text-center text-sm text-neutral-500 hover:text-neutral-700"
+        >
+          {t("Back to sign in")}
+        </button>
+      </>
+    );
+  }
+
+  function renderForgotPasswordSentStep(email: string) {
+    return (
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dbeafe]">
+          <EmailIcon className="h-7 w-7 text-[#1d4ed8]" />
+        </div>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Check your email")}
+        </h2>
+        <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t(
+            "If an account exists for {{email}}, a password reset link has been sent. The link expires in 1 hour.",
+            { email },
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={resetToEmailStep}
+          className="mt-6 w-full text-center text-sm text-neutral-500 hover:text-neutral-700"
+        >
+          {t("Back to sign in")}
+        </button>
+      </div>
+    );
+  }
+
+  function renderResetPasswordStep(email: string) {
+    return (
+      <>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Set a new password")}
+        </h2>
+
+        <div className="mt-4 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-4 py-3 text-xs leading-[19.5px] text-[#193cb8]">
+          {t("Resetting password for")}{" "}
+          <span className="font-semibold">{email}</span>
+        </div>
+
+        {errorMessage ? (
+          <div className="mt-4 rounded-[10px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-xs text-[#b91c1c]">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <form
+          className="mt-6 space-y-5"
+          aria-label={t("Reset password form")}
+          onSubmit={handleResetPassword}
+        >
+          <AuthInput
+            id="password"
+            label={t("New password")}
+            type="password"
+            placeholder={t("Min. 8 characters")}
+            autoComplete="new-password"
+            icon={<LockIcon className="h-[18px] w-[18px]" />}
+          />
+          <AuthInput
+            id="confirmPassword"
+            label={t("Confirm password")}
+            type="password"
+            placeholder={t("Repeat your password")}
+            autoComplete="new-password"
+            icon={<LockIcon className="h-[18px] w-[18px]" />}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={primaryButtonClassName}
+          >
+            {loading ? t("Resetting...") : t("Reset password")}
+          </button>
+        </form>
+      </>
+    );
+  }
+
+  function renderPasswordResetStep(email: string) {
+    return (
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#dcfce7]">
+          <PasswordSetSuccessIcon />
+        </div>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("Password reset successfully")}
+        </h2>
+        <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t("Your password has been updated. Click below to sign in.")}
+        </p>
+        <button
+          type="button"
+          onClick={() => redirectToKeycloak(email)}
+          className="mt-6 h-[52px] w-full rounded-[10px] bg-blue-600 text-base font-semibold tracking-[-0.3125px] text-white shadow-[0_10px_15px_rgba(0,0,0,0.10),0_4px_6px_rgba(0,0,0,0.10)] transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        >
+          {t("Sign in now")}
+        </button>
+      </div>
+    );
+  }
+
   function renderPasswordSetStep(email: string) {
     return (
       <>
@@ -379,6 +669,16 @@ export function LoginScreen() {
             : null}
           {state.step === "password-set"
             ? renderPasswordSetStep(state.email)
+            : null}
+          {state.step === "forgot-password" ? renderForgotPasswordStep() : null}
+          {state.step === "forgot-password-sent"
+            ? renderForgotPasswordSentStep(state.email)
+            : null}
+          {state.step === "reset-password"
+            ? renderResetPasswordStep(state.email)
+            : null}
+          {state.step === "password-reset"
+            ? renderPasswordResetStep(state.email)
             : null}
         </section>
 
