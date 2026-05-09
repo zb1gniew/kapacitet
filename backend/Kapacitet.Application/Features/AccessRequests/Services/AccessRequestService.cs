@@ -128,6 +128,20 @@ public class AccessRequestService
         return requests.Select(MapToDto).ToList();
     }
 
+    public async Task ResendSetupEmailAsync(int id)
+    {
+        var request = await _db.AccessRequests.FindAsync(id)
+            ?? throw new KeyNotFoundException($"AccessRequest {id} not found");
+
+        if (request.Status != AccessRequestStatus.Approved)
+            throw new InvalidOperationException("Setup email can only be resent for approved requests.");
+
+        var setupToken = await _initialPasswordSetupService.IssueTokenAsync(request.Id);
+        await _emailService.SendApprovalEmailAsync(request.ContactEmail, request.Name, setupToken);
+
+        _logger.LogInformation("Setup email resent: RequestId={RequestId}", id);
+    }
+
     public async Task<AccessRequestDto> ReviewAsync(int id, ReviewAccessRequestDto dto, string reviewedBy)
     {
         var request = await _db.AccessRequests.FindAsync(id)

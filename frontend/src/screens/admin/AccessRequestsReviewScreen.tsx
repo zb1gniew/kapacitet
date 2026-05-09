@@ -148,6 +148,38 @@ export function AccessRequestsReviewScreen({
     }
   }
 
+  async function handleResendSetupEmail(request: AccessRequest) {
+    setSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `/api/admin/access-requests/${request.id}/resend-setup-email`,
+        { method: "POST" },
+      );
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        throw new Error(
+          errorBody?.message || `Unable to resend email (${response.status})`,
+        );
+      }
+
+      setToastMessage(
+        t("Setup email resent to {{email}}.", {
+          email: request.contactEmail,
+        }),
+      );
+    } catch (error) {
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : t("Unable to resend setup email right now."),
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function handleTabChange(nextTab: AccessRequestFilterTab) {
     setActiveTab(nextTab);
   }
@@ -205,6 +237,7 @@ export function AccessRequestsReviewScreen({
             setRejectionReason("");
             setDialog({ type: "reject", request });
           }}
+          onResendSetupEmail={handleResendSetupEmail}
         />
       </PlatformAdminLayout>
 

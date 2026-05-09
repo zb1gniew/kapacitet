@@ -33,6 +33,14 @@ public class AccessRequestController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("{id}/resend-setup-email")]
+    [Authorize(Policy = AuthorizationRoles.PlatformAdminPolicy)]
+    public async Task<IActionResult> ResendSetupEmail(int id)
+    {
+        await _service.ResendSetupEmailAsync(id);
+        return NoContent();
+    }
+
     [HttpPost("{id}/review")]
     [Authorize(Policy = AuthorizationRoles.PlatformAdminPolicy)]
     public async Task<IActionResult> Review(int id, [FromBody] ReviewAccessRequestDto dto)

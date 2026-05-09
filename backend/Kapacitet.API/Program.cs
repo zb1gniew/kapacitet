@@ -164,6 +164,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.Configure<KeycloakAdminOptions>(builder.Configuration.GetSection("KeycloakAdmin"));
 builder.Services.AddHttpClient<KeycloakAdminClient>();
 builder.Services.AddScoped<InitialPasswordSetupService>();
+builder.Services.AddScoped<PasswordResetService>();
 
 var dataProtectionBuilder = builder.Services
     .AddDataProtection()

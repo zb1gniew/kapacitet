@@ -40,6 +40,7 @@ type AccessRequestsReviewContentProps = {
   onDeleteSavedView: (id: string) => void;
   onApproveRequest: (request: AccessRequest) => void;
   onRejectRequest: (request: AccessRequest) => void;
+  onResendSetupEmail: (request: AccessRequest) => void;
 };
 
 export function AccessRequestsReviewContent({
@@ -67,6 +68,7 @@ export function AccessRequestsReviewContent({
   onDeleteSavedView,
   onApproveRequest,
   onRejectRequest,
+  onResendSetupEmail,
 }: AccessRequestsReviewContentProps) {
   const pendingCount = requests.filter(
     (request) => request.status === "Pending",
@@ -181,6 +183,7 @@ export function AccessRequestsReviewContent({
               t={t}
               onApprove={() => onApproveRequest(request)}
               onReject={() => onRejectRequest(request)}
+              onResendSetupEmail={() => onResendSetupEmail(request)}
             />
           ))}
         </section>
