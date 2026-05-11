@@ -44,6 +44,22 @@ localhost {
         X-Frame-Options "SAMEORIGIN"
         # Prevent MIME type sniffing
         X-Content-Type-Options "nosniff"
+        # Referrer policy — don't leak URL to third parties
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Permissions policy — disable unused browser features
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        # Content Security Policy
+        # - default-src 'self': block everything not explicitly allowed
+        # - script-src 'self' 'unsafe-inline': Next.js requires unsafe-inline for hydration
+        # - style-src 'self' 'unsafe-inline': Tailwind inline styles
+        # - img-src 'self' data: blob:: avatars and Next.js image optimisation
+        # - font-src 'self': self-hosted fonts only
+        # - connect-src 'self': API calls stay on same origin
+        # - frame-src 'self': Keycloak login lives on same origin (/auth/*)
+        # - frame-ancestors 'self': matches X-Frame-Options SAMEORIGIN
+        # - base-uri 'self': prevent base-tag hijacking
+        # - form-action 'self': forms only submit to own origin
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"
     }
 
     encode gzip
