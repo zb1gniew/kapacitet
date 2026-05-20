@@ -11,13 +11,16 @@ namespace Kapacitet.Tests.Unit;
 
 public class AvailabilityDeclarationServiceTests
 {
+    private static DateTime FutureStartDate => DateTime.UtcNow.Date.AddDays(10);
+    private static DateTime FutureEndDate => FutureStartDate.AddDays(10);
+
     private static AvailabilityDeclarationService CreateService(AppDbContext db) =>
         new(db, null!);
 
     private static CreateAvailabilityDeclarationDto CreateDto() => new()
     {
-        StartDate = new DateTime(2026, 05, 10, 0, 0, 0, DateTimeKind.Utc),
-        EndDate = new DateTime(2026, 05, 20, 0, 0, 0, DateTimeKind.Utc),
+        StartDate = FutureStartDate,
+        EndDate = FutureEndDate,
         LocationCity = "Aarhus",
         LocationRadiusKm = 25,
         Quantity = 4,
@@ -159,8 +162,8 @@ public class AvailabilityDeclarationServiceTests
             CompanyId = 4,
             ClientDraftKey = "old-key",
             ResourceType = ResourceType.Worker,
-            StartDate = new DateTime(2026, 05, 01, 0, 0, 0, DateTimeKind.Utc),
-            EndDate = new DateTime(2026, 05, 05, 0, 0, 0, DateTimeKind.Utc),
+            StartDate = FutureStartDate,
+            EndDate = FutureStartDate.AddDays(4),
             LocationCity = "Aarhus",
             LocationRadiusKm = 10,
             Quantity = 1,
@@ -178,8 +181,8 @@ public class AvailabilityDeclarationServiceTests
             10,
             new UpdateAvailabilityDeclarationDto
             {
-                StartDate = new DateTime(2026, 06, 01, 0, 0, 0, DateTimeKind.Utc),
-                EndDate = new DateTime(2026, 06, 10, 0, 0, 0, DateTimeKind.Utc),
+                StartDate = FutureStartDate.AddDays(30),
+                EndDate = FutureStartDate.AddDays(39),
                 LocationCity = "Odense",
                 LocationRadiusKm = 35,
                 Quantity = 6,

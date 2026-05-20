@@ -86,6 +86,7 @@ export function RequestCapacityWorkersStep3Screen({
   const [showValidationMessage, setShowValidationMessage] = useState(false);
   const radiusKm = draft.locationRadiusKm;
   const urgency = draft.urgency as RequestUrgency;
+  const today = new Date().toISOString().split("T")[0];
   const stepErrors = getWorkerPeriodStepErrors(draft);
   const { hints, isLoading } = useWorkflowHints("request", draft, 3);
 
@@ -138,6 +139,7 @@ export function RequestCapacityWorkersStep3Screen({
                 <input
                   type="date"
                   value={draft.startDate}
+                  min={today}
                   onChange={(event) =>
                     setField("startDate", event.target.value)
                   }
@@ -153,6 +155,7 @@ export function RequestCapacityWorkersStep3Screen({
                 <input
                   type="date"
                   value={draft.endDate}
+                  min={draft.startDate || today}
                   onChange={(event) => setField("endDate", event.target.value)}
                   className="h-[50px] w-full rounded-[10px] border border-neutral-300 bg-white pl-11 pr-4 text-base tracking-[-0.3125px] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)] focus:border-blue-600 focus:outline-none"
                 />

@@ -94,9 +94,12 @@ export function getWorkerPeriodStepErrors(
 ) {
   const errors: string[] = [];
   const locationCity = normalizeInput(draft.locationCity);
+  const today = new Date().toISOString().split("T")[0];
 
   if (!draft.startDate) {
     errors.push("Select a start date.");
+  } else if (draft.startDate < today) {
+    errors.push("Start date cannot be in the past.");
   }
 
   if (!draft.endDate) {
@@ -169,9 +172,14 @@ function validateSharedDraftFields(
     ];
   }
 
+  const today = new Date().toISOString().split("T")[0];
+
   if (!draft.startDate) {
     errors.push("Select a start date.");
     fieldErrors.startDate = ["Select a start date."];
+  } else if (draft.startDate < today) {
+    errors.push("Start date cannot be in the past.");
+    fieldErrors.startDate = ["Start date cannot be in the past."];
   }
 
   if (!draft.endDate) {

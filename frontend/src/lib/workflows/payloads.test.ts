@@ -19,6 +19,12 @@ const catalog: WorkflowCatalog = {
   certificates: [{ id: 10, name: "Lift license" }],
 };
 
+const futureDate = (daysFromNow: number) => {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + daysFromNow);
+  return date.toISOString().slice(0, 10);
+};
+
 describe("workflow payload helpers", () => {
   it("builds storage keys and detects completed worker details", () => {
     expect(getAvailabilityDraftStorageKey("u1")).toBe(
@@ -58,14 +64,17 @@ describe("workflow payload helpers", () => {
   });
 
   it("builds an availability payload for a valid draft", () => {
+    const startDate = futureDate(10);
+    const endDate = futureDate(19);
+
     const result = buildAvailabilityCreatePayload(
       {
         quantity: "4",
         experienceLevel: "mid",
         skillIds: [1],
         certificateIds: [10],
-        startDate: "2026-05-01",
-        endDate: "2026-05-10",
+        startDate,
+        endDate,
         locationCity: "Copenhagen",
         locationRadiusKm: 75,
       },
@@ -77,8 +86,8 @@ describe("workflow payload helpers", () => {
       ok: true,
       value: {
         clientDraftKey: "draft-1",
-        startDate: "2026-05-01",
-        endDate: "2026-05-10",
+        startDate,
+        endDate,
         locationCity: "Copenhagen",
         locationRadiusKm: 75,
         quantity: 4,
@@ -90,14 +99,17 @@ describe("workflow payload helpers", () => {
   });
 
   it("builds a capacity request payload and maps urgency to backend values", () => {
+    const startDate = futureDate(10);
+    const endDate = futureDate(19);
+
     const result = buildCapacityRequestCreatePayload(
       {
         quantity: "2",
         experienceLevel: "",
         skillIds: [2],
         certificateIds: [10],
-        startDate: "2026-05-01",
-        endDate: "2026-05-10",
+        startDate,
+        endDate,
         locationCity: "Odense",
         locationRadiusKm: 50,
         urgency: "urgent",
@@ -110,8 +122,8 @@ describe("workflow payload helpers", () => {
       ok: true,
       value: {
         clientDraftKey: "draft-2",
-        startDate: "2026-05-01",
-        endDate: "2026-05-10",
+        startDate,
+        endDate,
         locationCity: "Odense",
         locationRadiusKm: 50,
         quantity: 2,
@@ -124,6 +136,8 @@ describe("workflow payload helpers", () => {
 
   it("returns structured errors for invalid drafts and normalizes stored drafts", () => {
     vi.spyOn(crypto, "randomUUID").mockReturnValue("client-key");
+    const startDate = futureDate(19);
+    const endDate = futureDate(10);
 
     const invalid = buildAvailabilityCreatePayload(
       {
@@ -131,8 +145,8 @@ describe("workflow payload helpers", () => {
         experienceLevel: "invalid" as never,
         skillIds: [999],
         certificateIds: [],
-        startDate: "2026-05-10",
-        endDate: "2026-05-01",
+        startDate,
+        endDate,
         locationCity: "Unknown",
         locationRadiusKm: 10,
       },

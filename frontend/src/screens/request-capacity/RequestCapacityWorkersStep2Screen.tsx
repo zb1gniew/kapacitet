@@ -160,21 +160,23 @@ export function RequestCapacityWorkersStep2Screen({
           <div className="space-y-2">
             <AvailabilityFieldLabel label={t("Required certificates")} />
 
-            <div className="rounded-[10px] border border-[#ffa2a2] bg-[#fef2f2] p-4 text-[#9f0712] shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)]">
-              <div className="flex items-start gap-2">
-                <AlertIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#e7000b]" />
-                <div>
-                  <p className="text-sm font-bold leading-5 tracking-[-0.1504px] text-[#82181a]">
-                    {t("Mandatory for compliance and matching")}
-                  </p>
-                  <p className="mt-1 text-xs leading-[19.5px] tracking-[-0.1172px]">
-                    {t(
-                      "Select all certificates that workers must hold. Only capacity with these exact certificates will be matched. This ensures safety and legal compliance.",
-                    )}
-                  </p>
+            {draft.certificateIds.length === 0 && (
+              <div className="rounded-[10px] border border-[#ffa2a2] bg-[#fef2f2] p-4 text-[#9f0712] shadow-[0_4px_6px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.1)]">
+                <div className="flex items-start gap-2">
+                  <AlertIcon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#e7000b]" />
+                  <div>
+                    <p className="text-sm font-bold leading-5 tracking-[-0.1504px] text-[#82181a]">
+                      {t("Mandatory for compliance and matching")}
+                    </p>
+                    <p className="mt-1 text-xs leading-[19.5px] tracking-[-0.1172px]">
+                      {t(
+                        "Select all certificates that workers must hold. Only capacity with these exact certificates will be matched. This ensures safety and legal compliance.",
+                      )}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <AvailabilityMultiSelectMenu
               items={catalog?.certificates ?? []}

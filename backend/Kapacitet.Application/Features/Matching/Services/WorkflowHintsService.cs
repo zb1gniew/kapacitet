@@ -13,7 +13,17 @@ public sealed class WorkflowHintsService(AppDbContext db)
     {
         var hasDateRange = req.StartDate.HasValue && req.EndDate.HasValue
                            && req.EndDate.Value > req.StartDate.Value;
-        var hasCity = !string.IsNullOrWhiteSpace(req.LocationCity);
+
+        var requester = await db.Companies
+            .Include(c => c.CompanySettings)
+            .AsNoTracking()
+            .FirstAsync(c => c.Id == companyId);
+
+        var effectiveCity = !string.IsNullOrWhiteSpace(req.LocationCity)
+            ? req.LocationCity
+            : requester.DefaultLocation;
+        var hasCity = !string.IsNullOrWhiteSpace(effectiveCity);
+        var matchOutsideCategory = requester.CompanySettings?.MatchOutsideCategory ?? true;
 
         var skills = req.SkillIds.Count > 0
             ? await db.Skills.AsNoTracking().Where(s => req.SkillIds.Contains(s.Id)).ToListAsync()
@@ -22,7 +32,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
             ? await db.Certificates.AsNoTracking().Where(c => req.CertificateIds.Contains(c.Id)).ToListAsync()
             : [];
 
-          var baseQuery = db.AvailabilityDeclarations
+        var baseQuery = db.AvailabilityDeclarations
             .AsSplitQuery()
             .Include(a => a.Company).ThenInclude(c => c.CompanySettings)
             .Include(a => a.Skills)
@@ -61,7 +71,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
 
         var hints = new List<WorkflowHintDto>();
 
-        var baseMatches = FilterAvailabilities(pool, req.SkillIds, req.CertificateIds, req.LocationCity, req.LocationRadiusKm);
+        var baseMatches = FilterAvailabilities(pool, req.SkillIds, req.CertificateIds, effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories);
         var baseCount = baseMatches.Count;
 
         // 1. Overall match count
@@ -81,12 +91,12 @@ public sealed class WorkflowHintsService(AppDbContext db)
         if (hasCity && req.LocationRadiusKm < 175)
         {
             var suggested = SuggestRadius(req.LocationRadiusKm);
-            var expanded = FilterAvailabilities(pool, req.SkillIds, req.CertificateIds, req.LocationCity, suggested);
+            var expanded = FilterAvailabilities(pool, req.SkillIds, req.CertificateIds, effectiveCity, suggested, matchOutsideCategory, requester.Categories);
             var diff = expanded.Count - baseCount;
             if (diff >= 1)
                 hints.Add(Info("radius",
-                    $"Expanding your radius from {req.LocationRadiusKm} km to {suggested} km near {req.LocationCity} would add {diff} potential {Plural("match", diff)} ({expanded.Count} total).",
-                    new { current = req.LocationRadiusKm, suggested, city = req.LocationCity, count = diff, total = expanded.Count }));
+                    $"Expanding your radius from {req.LocationRadiusKm} km to {suggested} km near {effectiveCity} would add {diff} potential {Plural("match", diff)} ({expanded.Count} total).",
+                    new { current = req.LocationRadiusKm, suggested, city = effectiveCity, count = diff, total = expanded.Count }));
         }
 
         // 3. Certificate bottleneck
@@ -96,7 +106,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
                 .Select(cert =>
                 {
                     var without = req.CertificateIds.Where(id => id != cert.Id).ToList();
-                    var count = FilterAvailabilities(pool, req.SkillIds, without, req.LocationCity, req.LocationRadiusKm).Count;
+                    var count = FilterAvailabilities(pool, req.SkillIds, without, effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories).Count;
                     return (cert, diff: count - baseCount);
                 })
                 .Where(x => x.diff > 0)
@@ -111,7 +121,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
 
             if (req.CertificateIds.Count >= 2)
             {
-                var noCerts = FilterAvailabilities(pool, req.SkillIds, [], req.LocationCity, req.LocationRadiusKm).Count;
+                var noCerts = FilterAvailabilities(pool, req.SkillIds, [], effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories).Count;
                 if (noCerts > baseCount)
                     hints.Add(Info("cert-all",
                         $"Removing all certificate requirements would expand your pool to {noCerts} {Plural("match", noCerts)}.",
@@ -126,7 +136,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
                 .Select(skill =>
                 {
                     var without = req.SkillIds.Where(id => id != skill.Id).ToList();
-                    var count = FilterAvailabilities(pool, without, req.CertificateIds, req.LocationCity, req.LocationRadiusKm).Count;
+                    var count = FilterAvailabilities(pool, without, req.CertificateIds, effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories).Count;
                     return (skill, diff: count - baseCount);
                 })
                 .Where(x => x.diff > 0)
@@ -155,7 +165,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
         if (hasDateRange)
         {
             // Partial overlaps: declarations that overlap but don't fully cover the period
-            var partialMatches = FilterAvailabilities(partialPool, req.SkillIds, req.CertificateIds, req.LocationCity, req.LocationRadiusKm);
+            var partialMatches = FilterAvailabilities(partialPool, req.SkillIds, req.CertificateIds, effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories);
             if (partialMatches.Count > 0)
                 hints.Add(Info("date-partial",
                     $"{partialMatches.Count} {Plural("declaration", partialMatches.Count)} partially overlap your dates but don't cover the full period. Adjusting your start or end date could unlock {(partialMatches.Count == 1 ? "it" : "them")}.",
@@ -178,7 +188,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
                         a.StartDate <= req.StartDate!.Value &&
                         a.EndDate >= extendedEnd)
                     .ToListAsync();
-                var extendedMatches = FilterAvailabilities(extendedPool, req.SkillIds, req.CertificateIds, req.LocationCity, req.LocationRadiusKm);
+                var extendedMatches = FilterAvailabilities(extendedPool, req.SkillIds, req.CertificateIds, effectiveCity, req.LocationRadiusKm, matchOutsideCategory, requester.Categories);
                 var extDiff = extendedMatches.Count - baseCount;
                 if (extDiff > 0)
                     hints.Add(Info("date-extend",
@@ -250,11 +260,19 @@ public sealed class WorkflowHintsService(AppDbContext db)
     {
         var hasDateRange = req.StartDate.HasValue && req.EndDate.HasValue
                            && req.EndDate.Value > req.StartDate.Value;
-        var hasCity = !string.IsNullOrWhiteSpace(req.LocationCity);
+
+        var supplier = await db.Companies
+            .AsNoTracking()
+            .FirstAsync(c => c.Id == companyId);
+
+        var effectiveCity = !string.IsNullOrWhiteSpace(req.LocationCity)
+            ? req.LocationCity
+            : supplier.DefaultLocation;
+        var hasCity = !string.IsNullOrWhiteSpace(effectiveCity);
 
         var baseQuery = db.CapacityRequests
             .AsSplitQuery()
-            .Include(r => r.Company)
+            .Include(r => r.Company).ThenInclude(c => c.CompanySettings)
             .Include(r => r.Skills)
             .Include(r => r.Certificates)
             .AsNoTracking()
@@ -287,7 +305,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
 
         var hints = new List<WorkflowHintDto>();
 
-        var baseMatches = FilterRequests(pool, req.SkillIds, req.CertificateIds, req.LocationCity, req.LocationRadiusKm);
+        var baseMatches = FilterRequests(pool, req.SkillIds, req.CertificateIds, effectiveCity, req.LocationRadiusKm, supplier.Categories);
         var baseCount = baseMatches.Count;
 
         // 1. Match count
@@ -302,12 +320,12 @@ public sealed class WorkflowHintsService(AppDbContext db)
         if (hasCity && req.LocationRadiusKm < 175)
         {
             var suggested = SuggestRadius(req.LocationRadiusKm);
-            var expanded = FilterRequests(pool, req.SkillIds, req.CertificateIds, req.LocationCity, suggested);
+            var expanded = FilterRequests(pool, req.SkillIds, req.CertificateIds, effectiveCity, suggested, supplier.Categories);
             var diff = expanded.Count - baseCount;
             if (diff >= 1)
                 hints.Add(Info("radius",
-                    $"Expanding your service radius to {suggested} km near {req.LocationCity} would make you eligible for {diff} more {Plural("request", diff)}.",
-                    new { suggested, city = req.LocationCity, count = diff }));
+                    $"Expanding your service radius to {suggested} km near {effectiveCity} would make you eligible for {diff} more {Plural("request", diff)}.",
+                    new { suggested, city = effectiveCity, count = diff }));
         }
 
         // 3. Certificate opportunity
@@ -348,7 +366,7 @@ public sealed class WorkflowHintsService(AppDbContext db)
         // 5. Date coverage extension
         if (hasDateRange && nearMissPool.Count > 0)
         {
-            var nearMissMatches = FilterRequests(nearMissPool, req.SkillIds, req.CertificateIds, req.LocationCity, req.LocationRadiusKm);
+            var nearMissMatches = FilterRequests(nearMissPool, req.SkillIds, req.CertificateIds, effectiveCity, req.LocationRadiusKm, supplier.Categories);
             if (nearMissMatches.Count > 0)
                 hints.Add(Info("date-coverage",
                     $"{nearMissMatches.Count} {Plural("request", nearMissMatches.Count)} start within your window but end after your availability period. Extending your end date could cover {(nearMissMatches.Count == 1 ? "it" : "them")}.",
@@ -376,7 +394,9 @@ public sealed class WorkflowHintsService(AppDbContext db)
         List<int> requiredSkillIds,
         List<int> requiredCertIds,
         string? city,
-        int radiusKm)
+        int radiusKm,
+        bool matchOutsideCategory = true,
+        List<string>? requesterCategories = null)
     {
         return candidates.Where(a =>
         {
@@ -385,6 +405,12 @@ public sealed class WorkflowHintsService(AppDbContext db)
 
             var aCerts = a.Certificates.Select(c => c.Id).ToHashSet();
             if (requiredCertIds.Any(id => !aCerts.Contains(id))) return false;
+
+            if (!matchOutsideCategory
+                && requesterCategories?.Count > 0
+                && a.Company.Categories.Count > 0
+                && !requesterCategories.Any(c => a.Company.Categories.Contains(c)))
+                return false;
 
             if (!string.IsNullOrWhiteSpace(city))
                 return LocationMatches(city, radiusKm, a.LocationCity, a.LocationRadiusKm);
@@ -399,7 +425,8 @@ public sealed class WorkflowHintsService(AppDbContext db)
         List<int> ourSkillIds,
         List<int> ourCertIds,
         string? ourCity,
-        int ourRadiusKm)
+        int ourRadiusKm,
+        List<string>? ourCategories = null)
     {
         var ourSkills = ourSkillIds.ToHashSet();
         var ourCerts = ourCertIds.ToHashSet();
@@ -408,6 +435,13 @@ public sealed class WorkflowHintsService(AppDbContext db)
         {
             if (r.Skills.Any(s => !ourSkills.Contains(s.Id))) return false;
             if (r.Certificates.Any(c => !ourCerts.Contains(c.Id))) return false;
+
+            var requesterAllowsOutside = r.Company.CompanySettings?.MatchOutsideCategory ?? true;
+            if (!requesterAllowsOutside
+                && ourCategories?.Count > 0
+                && r.Company.Categories.Count > 0
+                && !ourCategories.Any(c => r.Company.Categories.Contains(c)))
+                return false;
 
             if (!string.IsNullOrWhiteSpace(ourCity))
                 return LocationMatches(ourCity, ourRadiusKm, r.LocationCity, r.LocationRadiusKm);
