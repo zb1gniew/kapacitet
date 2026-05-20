@@ -15,7 +15,8 @@ import {
 
 type ScreenState =
   | { step: "email" }
-  | { step: "set-password"; email: string; token: string }
+  | { step: "set-password"; email: string; token: string; isInvitation: boolean }
+  | { step: "set-name"; email: string }
   | { step: "password-set"; email: string }
   | { step: "forgot-password" }
   | { step: "forgot-password-sent"; email: string }
@@ -24,6 +25,7 @@ type ScreenState =
 
 type SetupContextResponse = {
   email?: string;
+  isInvitation?: boolean;
 };
 
 type MessageResponse = {
@@ -51,7 +53,7 @@ function redirectToKeycloak(email: string) {
   window.location.assign(loginUrl.toString());
 }
 
-async function getSetupContext(token: string): Promise<string> {
+async function getSetupContext(token: string): Promise<SetupContextResponse> {
   const response = await fetch(
     `/api/account/setup-context?token=${encodeURIComponent(token)}`,
   );
@@ -69,7 +71,7 @@ async function getSetupContext(token: string): Promise<string> {
     throw new Error("This password setup link is invalid or expired.");
   }
 
-  return data.email;
+  return data;
 }
 
 async function getResponseMessage(
@@ -164,11 +166,11 @@ export function LoginScreen() {
     setErrorMessage("");
 
     void getSetupContext(setupToken)
-      .then((email) => {
+      .then((ctx) => {
         if (!active) {
           return;
         }
-        setState({ step: "set-password", email, token: setupToken });
+        setState({ step: "set-password", email: ctx.email!, token: setupToken, isInvitation: ctx.isInvitation ?? false });
       })
       .catch((error) => {
         if (!active) {
@@ -308,11 +310,45 @@ export function LoginScreen() {
         );
       }
 
-      setState({ step: "password-set", email: state.email });
+      if (state.isInvitation) {
+        setState({ step: "set-name", email: state.email });
+      } else {
+        setState({ step: "password-set", email: state.email });
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : t("Unable to set password."),
       );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSetName(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (state.step !== "set-name") return;
+
+    setErrorMessage("");
+    const formData = new FormData(event.currentTarget);
+    const firstName = getTrimmedFormValue(formData, "firstName");
+    const lastName = getTrimmedFormValue(formData, "lastName");
+
+    if (!firstName || !lastName) {
+      setErrorMessage(t("First name and last name are required."));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await fetch("/api/account/set-invitee-name", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: state.email, firstName, lastName }),
+      });
+      // Proceed to success regardless of name update result
+      setState({ step: "password-set", email: state.email });
+    } catch {
+      setState({ step: "password-set", email: state.email });
     } finally {
       setLoading(false);
     }
@@ -458,6 +494,61 @@ export function LoginScreen() {
         >
           {t("Back to sign in")}
         </button>
+      </>
+    );
+  }
+
+  function renderSetNameStep(email: string) {
+    return (
+      <>
+        <h2 className="text-[20px] font-bold tracking-[-0.4492px] text-neutral-900">
+          {t("One more step")}
+        </h2>
+        <p className="mt-2 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-600">
+          {t("Tell us your name so your colleagues can identify you.")}
+        </p>
+
+        <div className="mt-4 rounded-[10px] border border-[#bedbff] bg-[#eff6ff] px-4 py-3 text-xs leading-[19.5px] text-[#193cb8]">
+          {t("Setting up account for")}{" "}
+          <span className="font-semibold">{email}</span>
+        </div>
+
+        {errorMessage ? (
+          <div className="mt-4 rounded-[10px] border border-[#fecaca] bg-[#fff5f5] px-4 py-3 text-xs text-[#b91c1c]">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <form
+          className="mt-6 space-y-5"
+          aria-label={t("Set name form")}
+          onSubmit={handleSetName}
+        >
+          <AuthInput
+            id="firstName"
+            label={t("First name")}
+            type="text"
+            placeholder={t("Your first name")}
+            autoComplete="given-name"
+            icon={<EmailIcon className="h-[18px] w-[18px]" />}
+          />
+          <AuthInput
+            id="lastName"
+            label={t("Last name")}
+            type="text"
+            placeholder={t("Your last name")}
+            autoComplete="family-name"
+            icon={<EmailIcon className="h-[18px] w-[18px]" />}
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={primaryButtonClassName}
+          >
+            {loading ? t("Saving...") : t("Continue")}
+          </button>
+        </form>
       </>
     );
   }
@@ -666,6 +757,9 @@ export function LoginScreen() {
           {state.step === "email" ? renderEmailStep() : null}
           {state.step === "set-password"
             ? renderSetPasswordStep(state.email)
+            : null}
+          {state.step === "set-name"
+            ? renderSetNameStep(state.email)
             : null}
           {state.step === "password-set"
             ? renderPasswordSetStep(state.email)

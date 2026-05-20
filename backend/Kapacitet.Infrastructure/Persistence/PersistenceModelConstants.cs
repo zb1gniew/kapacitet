@@ -8,4 +8,8 @@ public static class PersistenceModelConstants
     public const string UsersNormalizedEmailIndex = "IX_users_normalized_email";
     public const string AccessRequestsPendingNormalizedContactEmailIndex =
         "IX_access_requests_pending_normalized_contact_email";
+
+    public const string NormalizedInvitationEmailProperty = "NormalizedEmail";
+    public const string UserInvitationsPendingEmailCompanyIndex =
+        "IX_user_invitations_pending_normalized_email_company";
 }

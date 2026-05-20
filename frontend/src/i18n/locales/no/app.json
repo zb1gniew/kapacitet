@@ -1172,5 +1172,18 @@
   "your market": "ditt marked",
   "Your password has been set. Click below to sign in with your new credentials.": "Adgangskoden din er lagret. Klikk nedenfor for å logge inn med dine nye brukeropplysninger.",
   "Your request has been recorded and is awaiting platform review. Reference ID: {{submittedRequestId}}.": "Din forespørsel er registrert og venter på vurdering. Referanse-ID: {{submittedRequestId}}.",
-  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Forespørselen din er aktiv, og vi overvåker kapasiteten i nettverket for relevante muligheter."
+  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Forespørselen din er aktiv, og vi overvåker kapasiteten i nettverket for relevante muligheter.",
+  "Team members": "Teammedlemmer",
+  "Invite": "Inviter",
+  "Send invite": "Send invitasjon",
+  "Sending…": "Sender…",
+  "Email address": "E-postadresse",
+  "Failed to send invitation.": "Kunne ikke sende invitasjon.",
+  "Unable to load team members right now.": "Kan ikke laste teammedlemmer akkurat nå.",
+  "Pending invitations": "Ventende invitasjoner",
+  "Pending": "Venter",
+  "Cancel": "Avbryt",
+  "No team members yet.": "Ingen teammedlemmer ennå.",
+  "Administrator": "Administrator",
+  "you": "deg"
 }

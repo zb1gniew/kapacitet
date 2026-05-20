@@ -9,6 +9,7 @@ public static class AuthorizationRoles
     public const string PlatformAdminPolicy = "PlatformAdmin";
     public const string CompanyViewerPolicy = "CompanyViewer";
     public const string CompanyManagerPolicy = "CompanyManager";
+    public const string CompanyAdminPolicy = "CompanyAdmin";
 
     // Keycloak realm roles (checked via RequireRole / the "roles" claim)
     public const string PlatformAdminRealmRole = "Admin";

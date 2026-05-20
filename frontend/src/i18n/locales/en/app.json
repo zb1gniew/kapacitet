@@ -1172,5 +1172,18 @@
   "your market": "your market",
   "Your password has been set. Click below to sign in with your new credentials.": "Your password has been set. Click below to sign in with your new credentials.",
   "Your request has been recorded and is awaiting platform review. Reference ID: {{submittedRequestId}}.": "Your request has been recorded and is awaiting platform review. Reference ID: {{submittedRequestId}}.",
-  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Your request is active and we are monitoring network capacity for relevant opportunities."
+  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Your request is active and we are monitoring network capacity for relevant opportunities.",
+  "Team members": "Team members",
+  "Invite": "Invite",
+  "Send invite": "Send invite",
+  "Sending…": "Sending…",
+  "Email address": "Email address",
+  "Failed to send invitation.": "Failed to send invitation.",
+  "Unable to load team members right now.": "Unable to load team members right now.",
+  "Pending invitations": "Pending invitations",
+  "Pending": "Pending",
+  "Cancel": "Cancel",
+  "No team members yet.": "No team members yet.",
+  "Administrator": "Administrator",
+  "you": "you"
 }

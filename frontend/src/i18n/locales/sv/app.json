@@ -1172,5 +1172,18 @@
   "your market": "din marknad",
   "Your password has been set. Click below to sign in with your new credentials.": "Ditt lösenord har ställts in. Klicka nedan för att logga in med dina nya uppgifter.",
   "Your request has been recorded and is awaiting platform review. Reference ID: {{submittedRequestId}}.": "Din förfrågan har registrerats och väntar på granskning av plattformen. Referens-ID: {{submittedRequestId}}.",
-  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Din förfrågan är aktiv och vi övervakar nätverkskapaciteten efter relevanta möjligheter."
+  "Your request is active and we are monitoring network capacity for relevant opportunities.": "Din förfrågan är aktiv och vi övervakar nätverkskapaciteten efter relevanta möjligheter.",
+  "Team members": "Teammedlemmar",
+  "Invite": "Bjud in",
+  "Send invite": "Skicka inbjudan",
+  "Sending…": "Skickar…",
+  "Email address": "E-postadress",
+  "Failed to send invitation.": "Det gick inte att skicka inbjudan.",
+  "Unable to load team members right now.": "Det gick inte att läsa in teammedlemmar just nu.",
+  "Pending invitations": "Väntande inbjudningar",
+  "Pending": "Väntar",
+  "Cancel": "Avbryt",
+  "No team members yet.": "Inga teammedlemmar ännu.",
+  "Administrator": "Administratör",
+  "you": "dig"
 }

@@ -17,6 +17,7 @@ using Kapacitet.Application.Features.Admin.Services;
 using Kapacitet.Application.Features.CompanySettings.Services;
 using Kapacitet.Application.Features.NetworkEscalations.Services;
 using Kapacitet.Application.Features.Notifications.Services;
+using Kapacitet.Application.Features.UserInvitations.Services;
 using Kapacitet.Application.Features.Retention;
 using Kapacitet.API.Infrastructure;
 using Kapacitet.API.Auth;
@@ -198,6 +199,9 @@ builder.Services.AddScoped<AdminDataService>();
 // Company settings
 builder.Services.AddScoped<CompanyService>();
 
+// User invitations
+builder.Services.AddScoped<UserInvitationService>();
+
 // Matching and agreements
 builder.Services.AddScoped<MatchingService>();
 builder.Services.AddScoped<IMatchingOrchestrator>(sp => sp.GetRequiredService<MatchingService>());
@@ -248,6 +252,11 @@ builder.Services.AddAuthorization(options =>
             AuthorizationRoles.AppRoleClaimType,
             AuthorizationRoles.Admin,
             AuthorizationRoles.Manager));
+    options.AddPolicy(
+        AuthorizationRoles.CompanyAdminPolicy,
+        policy => policy.RequireClaim(
+            AuthorizationRoles.AppRoleClaimType,
+            AuthorizationRoles.Admin));
 });
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
