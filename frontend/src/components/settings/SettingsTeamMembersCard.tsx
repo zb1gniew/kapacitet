@@ -277,7 +277,9 @@ export function SettingsTeamMembersCard({
           )}
 
           {members.length === 0 && invitations.length === 0 && (
-            <p className="text-xs text-neutral-500">{t("No team members yet.")}</p>
+            <p className="text-xs text-neutral-500">
+              {t("No team members yet.")}
+            </p>
           )}
         </div>
       )}

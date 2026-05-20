@@ -15,7 +15,12 @@ import {
 
 type ScreenState =
   | { step: "email" }
-  | { step: "set-password"; email: string; token: string; isInvitation: boolean }
+  | {
+      step: "set-password";
+      email: string;
+      token: string;
+      isInvitation: boolean;
+    }
   | { step: "set-name"; email: string }
   | { step: "password-set"; email: string }
   | { step: "forgot-password" }
@@ -170,7 +175,12 @@ export function LoginScreen() {
         if (!active) {
           return;
         }
-        setState({ step: "set-password", email: ctx.email!, token: setupToken, isInvitation: ctx.isInvitation ?? false });
+        setState({
+          step: "set-password",
+          email: ctx.email!,
+          token: setupToken,
+          isInvitation: ctx.isInvitation ?? false,
+        });
       })
       .catch((error) => {
         if (!active) {
@@ -758,9 +768,7 @@ export function LoginScreen() {
           {state.step === "set-password"
             ? renderSetPasswordStep(state.email)
             : null}
-          {state.step === "set-name"
-            ? renderSetNameStep(state.email)
-            : null}
+          {state.step === "set-name" ? renderSetNameStep(state.email) : null}
           {state.step === "password-set"
             ? renderPasswordSetStep(state.email)
             : null}
