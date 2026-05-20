@@ -72,6 +72,31 @@ public class EmailService
         await SendAsync(toEmail, subject, Wrap(danish, english));
     }
 
+    // ── Trigger 1c: Invite user to company ───────────────────────────────────
+    public async Task SendInvitationEmailAsync(string toEmail, string companyName, Domain.Enums.UserRole role, string setupToken)
+    {
+        var setupUrl = $"{_options.AppUrl.TrimEnd('/')}/?setupToken={Uri.EscapeDataString(setupToken)}";
+        var subject = "Du er inviteret til KapacitetNet / You've been invited to KapacitetNet";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Du er inviteret, {H(companyName)}!</h2>
+            <p style="margin:0 0 16px;color:#374151;">Du er blevet inviteret til at deltage i KapacitetNet som <strong>{role}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Klik på knappen nedenfor for at oprette din adgangskode og aktivere din konto:</p>
+            {Btn("Accepter invitation", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">Dette sikre opsætningslink er knyttet til <strong>{H(toEmail)}</strong> og udløber om 48 timer.</p>
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">You're invited, {H(companyName)}!</h2>
+            <p style="margin:0 0 16px;color:#374151;">You have been invited to join KapacitetNet as <strong>{role}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Click the button below to set your password and activate your account:</p>
+            {Btn("Accept invitation", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">This secure setup link is tied to <strong>{H(toEmail)}</strong> and expires in 48 hours.</p>
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english));
+    }
+
     // ── Trigger 2: Password reset ─────────────────────────────────────────────
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken)
     {
