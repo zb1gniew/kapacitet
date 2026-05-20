@@ -96,7 +96,17 @@ public class EmailService
             <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">This setup link is tied to <strong>{H(toEmail)}</strong> and expires in 48 hours.</p>
             """;
 
-        await SendAsync(toEmail, subject, Wrap(danish, english));
+        var textBody = $"""
+            Du er inviteret til at deltage i {companyName} på KapacitetNet som {roleLabel}.
+            Acceptér invitationen og opret din adgangskode her:
+            {setupUrl}
+
+            You have been invited to join {companyName} on KapacitetNet as {roleLabel}.
+            Accept the invitation and set your password here:
+            {setupUrl}
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english), textBody);
     }
 
     // ── Trigger 2: Password reset ─────────────────────────────────────────────
