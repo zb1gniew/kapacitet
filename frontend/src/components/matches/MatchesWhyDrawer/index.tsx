@@ -44,7 +44,7 @@ export function MatchesWhyDrawer({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0f172acc] backdrop-blur-sm">
-      <div className="flex min-h-full justify-end">
+      <div className="flex h-full justify-end">
         <button
           type="button"
           aria-label={t("Close")}
@@ -52,7 +52,7 @@ export function MatchesWhyDrawer({
           onClick={onClose}
         />
 
-        <aside className="flex min-h-screen w-full max-w-[720px] flex-col border-l border-neutral-200 bg-[#f8fafc] shadow-[-24px_0_48px_rgba(15,23,42,0.18)]">
+        <aside className="flex h-full w-full max-w-[720px] flex-col border-l border-neutral-200 bg-[#f8fafc] shadow-[-24px_0_48px_rgba(15,23,42,0.18)]">
           <div className="flex items-start justify-between gap-4 border-b border-neutral-200 bg-white px-5 py-5 sm:px-6">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[#2563eb]">

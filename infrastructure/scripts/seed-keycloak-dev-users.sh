@@ -133,6 +133,12 @@ def get_user_by_username(token: str, username: str):
     query = urllib.parse.urlencode({"username": username, "exact": "true"})
     _, body = request("GET", f"/admin/realms/{realm}/users?{query}", headers=auth_headers(token))
     users_payload = json.loads(body)
+    if users_payload:
+        return users_payload[0]
+    # Fallback: search by email (handles users created with a different username)
+    query = urllib.parse.urlencode({"email": username, "exact": "true"})
+    _, body = request("GET", f"/admin/realms/{realm}/users?{query}", headers=auth_headers(token))
+    users_payload = json.loads(body)
     return users_payload[0] if users_payload else None
 
 

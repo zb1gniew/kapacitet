@@ -30,6 +30,8 @@ public sealed class NetworkEscalationService
             (company.CompanySettings?.ReceiveCapacityRequests ?? true) &&
             (company.CompanySettings?.ParticipateInNetworkWide ?? true);
 
+        var now = DateTime.UtcNow;
+
         var escalations = await _db.NetworkEscalations
             .AsNoTracking()
             .AsSplitQuery()
@@ -39,25 +41,21 @@ public sealed class NetworkEscalationService
             .Include(e => e.Responses)
             .Where(e =>
                 e.Request.CompanyId != companyId &&
+                // Never show escalations whose underlying request has already ended,
+                // unless this company has already responded (preserve response history).
+                (e.Request.EndDate >= now || e.Responses.Any(r => r.CompanyId == companyId)) &&
                 (e.Status == NetworkEscalationStatus.Open ||
                  e.Responses.Any(r => r.CompanyId == companyId)) &&
                 (eligibleForNetworkWide || e.Responses.Any(r => r.CompanyId == companyId)))
             .OrderByDescending(e => e.TriggeredAt)
             .ToListAsync();
 
-        var alreadyResponded = escalations
-            .Where(e => e.Responses.Any(r => r.CompanyId == companyId))
-            .ToList();
-
-        var newEscalations = escalations
-            .Except(alreadyResponded)
-            .Where(e => SharesCategory(company.Categories, e.Request.Company.Categories))
-            .ToList();
-
-        return alreadyResponded
-            .Concat(newEscalations)
+        // Return all visible escalations — category is surfaced as the
+        // SharesCategory flag in the DTO so the frontend "Same category" filter
+        // can highlight or hide them client-side. The backend never gates on it.
+        return escalations
             .OrderByDescending(e => e.TriggeredAt)
-            .Select(e => MapToDto(e, companyId))
+            .Select(e => MapToDto(e, companyId, company.Categories))
             .ToList();
     }
 
@@ -103,12 +101,6 @@ public sealed class NetworkEscalationService
                 "This company is not eligible to respond to network-wide requests");
         }
 
-        if (!SharesCategory(company.Categories, escalation.Request.Company.Categories))
-        {
-            throw new UnauthorizedAccessException(
-                "This company does not share any categories with the requesting company");
-        }
-
         if (escalation.Responses.Any(r => r.CompanyId == companyId))
         {
             throw new InvalidOperationException(
@@ -133,7 +125,16 @@ public sealed class NetworkEscalationService
             await CreateDerivedCapacityRequestAsync(escalation.Request, companyId);
         }
 
-        return MapToDto(escalation, companyId);
+        // FR-5.3: when a company signals they can help, automatically publish an
+        // AvailabilityDeclaration on their behalf mirroring the escalated request's
+        // parameters. The matching engine then runs against the original request so
+        // a match offer is created immediately.
+        if (dto.ResponseType == NetworkResponseType.CanHelp)
+        {
+            await CreateDerivedAvailabilityAsync(escalation.Request, companyId);
+        }
+
+        return MapToDto(escalation, companyId, company.Categories);
     }
 
     private async Task CreateDerivedCapacityRequestAsync(CapacityRequest source, int companyId)
@@ -165,6 +166,32 @@ public sealed class NetworkEscalationService
         await _matchingOrchestrator.GenerateMatchesForRequestAsync(derivedRequest.Id);
     }
 
+    private async Task CreateDerivedAvailabilityAsync(CapacityRequest source, int companyId)
+    {
+        var derivedAvailability = new AvailabilityDeclaration
+        {
+            CompanyId = companyId,
+            ResourceType = source.ResourceType,
+            StartDate = source.StartDate,
+            EndDate = source.EndDate,
+            LocationCity = source.LocationCity,
+            LocationRadiusKm = source.LocationRadiusKm,
+            Quantity = source.Quantity,
+            ExperienceLevel = source.ExperienceLevel,
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow,
+            PublishedAt = DateTime.UtcNow,
+            // Mirror the same skills and certificates as the original request.
+            Skills = source.Skills.ToList(),
+            Certificates = source.Certificates.ToList()
+        };
+
+        _db.AvailabilityDeclarations.Add(derivedAvailability);
+        await _db.SaveChangesAsync();
+
+        await _matchingOrchestrator.GenerateMatchesForRequestAsync(source.Id);
+    }
+
     private static bool SharesCategory(List<string> a, List<string> b)
     {
         if (a.Count == 0 || b.Count == 0)
@@ -172,7 +199,7 @@ public sealed class NetworkEscalationService
         return a.Any(b.Contains);
     }
 
-    private static NetworkEscalationDto MapToDto(NetworkEscalation escalation, int companyId)
+    private static NetworkEscalationDto MapToDto(NetworkEscalation escalation, int companyId, List<string>? companyCategories = null)
     {
         var companyResponse = escalation.Responses
             .Where(r => r.CompanyId == companyId)
@@ -204,7 +231,9 @@ public sealed class NetworkEscalationService
             NeedCapacityResponses = escalation.Responses.Count(r => r.ResponseType == NetworkResponseType.NeedCapacity),
             HasResponded = companyResponse is not null,
             ResponseType = companyResponse?.ResponseType,
-            RespondedAt = companyResponse?.CreatedAt
+            RespondedAt = companyResponse?.CreatedAt,
+            SharesCategory = companyCategories is not null &&
+                             SharesCategory(companyCategories, escalation.Request.Company.Categories)
         };
     }
 }

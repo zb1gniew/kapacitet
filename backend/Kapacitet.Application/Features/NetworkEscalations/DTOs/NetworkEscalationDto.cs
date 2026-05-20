@@ -22,4 +22,5 @@ public class NetworkEscalationDto
     public bool HasResponded { get; set; }
     public NetworkResponseType? ResponseType { get; set; }
     public DateTime? RespondedAt { get; set; }
+    public bool SharesCategory { get; set; }
 }

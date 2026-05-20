@@ -109,6 +109,12 @@ export function createAuthSession(
         : tokenResponse.refresh_expires_in === 0
           ? now + 30 * 24 * 60 * 60
           : previousSession?.refreshExpiresAt,
+    // Preserve onboarding status across token refreshes. Without this, every
+    // 5-minute access-token refresh wipes onboardingCompleted → undefined, which
+    // causes proxy.ts to treat the user as not-onboarded and redirect them to
+    // /onboarding/welcome in an infinite loop with the onboarding page's own
+    // "already done → /dashboard" redirect.
+    onboardingCompleted: previousSession?.onboardingCompleted,
   };
 }
 

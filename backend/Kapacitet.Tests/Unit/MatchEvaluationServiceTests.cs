@@ -183,8 +183,8 @@ public class MatchEvaluationServiceTests
     {
         var result = _svc.Evaluate(BaseRequest(), BaseAvailability(), 5, 5);
         result.Should().NotBeNull();
-        result!.Score.SkillScore.Should().Be(30,  "no required skills → full skill weight");
-        result.Score.CertificateScore.Should().Be(35, "no required certs → full cert weight");
+        result!.Score.SkillScore.Should().Be(20,  "no required skills → full skill weight");
+        result.Score.CertificateScore.Should().Be(25, "no required certs → full cert weight");
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class MatchEvaluationServiceTests
     {
         var result = _svc.Evaluate(BaseRequest(), BaseAvailability(), 5, 5);
         result.Should().NotBeNull();
-        result!.Score.QuantityScore.Should().Be(5);
+        result!.Score.QuantityScore.Should().Be(30);
     }
 
     [Fact]
@@ -203,6 +203,6 @@ public class MatchEvaluationServiceTests
         avail.EndDate = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
         var result = _svc.Evaluate(BaseRequest(), avail, 5, 5);
         result.Should().NotBeNull();
-        result!.Score.DateScore.Should().Be(20, "zero slack days → alignment = 1 → max date score");
+        result!.Score.DateScore.Should().Be(15, "zero slack days → alignment = 1 → max date score");
     }
 }

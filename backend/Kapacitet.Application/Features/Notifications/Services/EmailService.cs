@@ -50,6 +50,28 @@ public class EmailService
         await SendAsync(toEmail, subject, Wrap(danish, english));
     }
 
+    // ── Trigger 1b: Access request rejected ──────────────────────────────────
+    public async Task SendRejectionEmailAsync(string toEmail, string companyName)
+    {
+        var subject = "Din adgangsanmodning er ikke godkendt / Your access request was not approved";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Vi har gennemgået din anmodning</h2>
+            <p style="margin:0 0 16px;color:#374151;">Tak for din interesse i KapacitetNet, {H(companyName)}.</p>
+            <p style="margin:0 0 16px;color:#374151;">Efter en gennemgang af dine oplysninger har vi besluttet ikke at godkende din adgangsanmodning på nuværende tidspunkt.</p>
+            <p style="margin:0 0 0;color:#374151;">Du er velkommen til at søge igen på et senere tidspunkt, hvis dine omstændigheder ændrer sig.</p>
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">We've reviewed your application</h2>
+            <p style="margin:0 0 16px;color:#374151;">Thank you for your interest in KapacitetNet, {H(companyName)}.</p>
+            <p style="margin:0 0 16px;color:#374151;">After reviewing your credentials, we have decided not to approve your access request at this time.</p>
+            <p style="margin:0 0 0;color:#374151;">You are welcome to apply again in the future if your circumstances change.</p>
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english));
+    }
+
     // ── Trigger 2: Password reset ─────────────────────────────────────────────
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken)
     {

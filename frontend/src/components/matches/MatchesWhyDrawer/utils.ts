@@ -2,11 +2,11 @@ import type { MatchOfferResponse } from "@/types/api-matches";
 import type { TranslateFn } from "@/types/i18n";
 
 export const SCORE_LIMITS = {
-  date: 20,
+  date: 15,
   location: 10,
-  skills: 30,
-  certificates: 35,
-  quantity: 5,
+  skills: 20,
+  certificates: 25,
+  quantity: 30,
 } as const;
 
 export function normalizeCity(value: string) {
