@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { getCategoryLabel } from "@/constants/categories";
 import { APP_ROUTES } from "@/constants/routes";
 import type { CompanyRegistryRecord } from "@/types/admin";
 import type { TranslateFn } from "@/types/i18n";
-import { CATEGORY_LABELS } from "@/constants/categories";
 import { formatPlatformDateTime } from "./utils";
 
 type CompanyRegistryCardProps = {
@@ -63,12 +63,7 @@ export function CompanyRegistryCard({
               <p className="mt-1 break-words text-sm font-medium text-neutral-900">
                 {record.categories.length > 0
                   ? record.categories
-                      .map((k) =>
-                        t(
-                          CATEGORY_LABELS[k as keyof typeof CATEGORY_LABELS] ??
-                            k,
-                        ),
-                      )
+                      .map((category) => t(getCategoryLabel(category)))
                       .join(", ")
                   : "—"}
               </p>

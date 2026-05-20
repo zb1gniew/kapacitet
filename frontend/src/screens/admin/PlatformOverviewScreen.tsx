@@ -9,6 +9,7 @@ import {
   formatPlatformDate,
   formatPlatformDateTime,
 } from "@/components/admin/platform/utils";
+import { getCategoryLabel } from "@/constants/categories";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAdminAudit } from "@/hooks/useAdminAudit";
 import { useAdminAccessRequests } from "@/hooks/useAdminAccessRequests";
@@ -210,7 +211,7 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
             items={pendingRequests.map((request) => ({
               id: `pending-${request.id}`,
               title: request.name,
-              meta: `${request.categories.join(", ") || "—"} · ${request.location}`,
+              meta: `${request.categories.map(getCategoryLabel).join(", ") || "—"} · ${request.location}`,
               helper: t("Submitted {{date}} · {{email}}", {
                 date: formatPlatformDate(request.createdAt),
                 email: request.contactEmail,
@@ -280,7 +281,7 @@ export function PlatformOverviewScreen({ user }: PlatformOverviewScreenProps) {
             items={recentProvisionedCompanies.map((record) => ({
               id: `company-${record.provisionedCompanyId ?? record.companyId ?? record.requestId}`,
               title: record.companyName,
-              meta: `${record.categories.join(", ") || "—"} · ${record.location}`,
+              meta: `${record.categories.map(getCategoryLabel).join(", ") || "—"} · ${record.location}`,
               helper: t("Reviewed {{date}} · {{email}}", {
                 date: formatPlatformDateTime(record.reviewedAt),
                 email: record.contactEmail,

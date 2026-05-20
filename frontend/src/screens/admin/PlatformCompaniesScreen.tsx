@@ -8,6 +8,7 @@ import { PlatformCollectionToolbar } from "@/components/admin/platform/PlatformC
 import { PlatformSummaryCard } from "@/components/admin/platform/PlatformSummaryCard";
 import { PlatformSurfaceCard } from "@/components/admin/platform/PlatformSurfaceCard";
 import { formatPlatformDateTime } from "@/components/admin/platform/utils";
+import { getCategoryLabel } from "@/constants/categories";
 import { useAdminCompanies } from "@/hooks/useAdminCompanies";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { AuthenticatedUser } from "@/types/auth";
@@ -125,7 +126,7 @@ export function PlatformCompaniesScreen({
           [
             record.companyName,
             record.contactEmail,
-            record.categories.join(" "),
+            record.categories.map(getCategoryLabel).join(" "),
             record.location,
             record.reviewedBy,
           ]

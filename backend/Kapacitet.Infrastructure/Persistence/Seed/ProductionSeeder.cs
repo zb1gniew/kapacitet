@@ -6,38 +6,67 @@ namespace Kapacitet.Infrastructure.Persistence.Seed;
 
 public static class ProductionSeeder
 {
+    private static readonly SeedCompanyProfile PlatformAdminCompanyProfile = new(
+        "Kapacitet Platform Operations",
+        "00000001",
+        "Platform services",
+        ["facility_services", "logistics"],
+        "Copenhagen",
+        "+45 70 20 30 40");
+
     public static async Task SeedAsync(AppDbContext db)
     {
         await SeedCatalogAsync(db);
         await SeedPlatformAdminAsync(db);
+        await BackfillExistingCompaniesAsync(db);
     }
 
     private static async Task SeedPlatformAdminAsync(AppDbContext db)
     {
         var now = DateTime.UtcNow;
-        var company = await EnsureCompanyAsync(db, "Kapacitet Platform Operations", "Platform services", "Copenhagen", "+45 70 20 30 40", now);
+        var company = await EnsureCompanyAsync(db, PlatformAdminCompanyProfile, now);
         await EnsureUserAsync(db, company, "platform-admin@kapacitet.net", UserRole.Admin, now);
     }
 
     internal static async Task<Company> EnsureCompanyAsync(
         AppDbContext db,
-        string name,
-        string industry,
-        string defaultLocation,
-        string contactPhone,
+        SeedCompanyProfile profile,
         DateTime now)
     {
-        var company = await db.Companies.FirstOrDefaultAsync(c => c.Name == name);
-        if (company is not null)
-            return company;
+        var company = await db.Companies
+            .Include(c => c.CompanySettings)
+            .Include(c => c.NotificationPreferences)
+            .FirstOrDefaultAsync(c => c.Name == profile.Name);
+        var isNewCompany = company is null;
 
-        company = CreateCompany(name, industry, defaultLocation, now, contactPhone);
-        db.Companies.Add(company);
+        if (company is null)
+        {
+            company = new Company
+            {
+                CreatedAt = now
+            };
+            db.Companies.Add(company);
+        }
+
+        ApplyCompanyProfile(company, profile);
         await db.SaveChangesAsync();
 
-        db.CompanySettings.Add(CreateCompanySettings(company));
-        db.NotificationPreferences.Add(CreateNotificationPreferences(company));
-        await db.SaveChangesAsync();
+        if (company.CompanySettings is null)
+        {
+            company.CompanySettings = CreateCompanySettings(company.Id);
+            db.CompanySettings.Add(company.CompanySettings);
+        }
+
+        if (company.NotificationPreferences is null)
+        {
+            company.NotificationPreferences = CreateNotificationPreferences(company.Id);
+            db.NotificationPreferences.Add(company.NotificationPreferences);
+        }
+
+        if (isNewCompany || company.CompanySettings is not null || company.NotificationPreferences is not null)
+        {
+            await db.SaveChangesAsync();
+        }
 
         return company;
     }
@@ -49,31 +78,34 @@ public static class ProductionSeeder
         UserRole role,
         DateTime now)
     {
-        var exists = await db.Users.AnyAsync(u => u.Email == email);
-        if (exists)
-            return;
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        db.Users.Add(CreateUser(company, email, role, now));
+        if (user is null)
+        {
+            db.Users.Add(CreateUser(company, email, role, now));
+            await db.SaveChangesAsync();
+            return;
+        }
+
+        user.CompanyId = company.Id;
+        user.Role = role;
+        user.OnboardingCompletedAt ??= now;
         await db.SaveChangesAsync();
     }
 
-    private static Company CreateCompany(
-        string name,
-        string industry,
-        string defaultLocation,
-        DateTime createdAt,
-        string contactPhone)
+    internal static void ApplyCompanyProfile(
+        Company company,
+        SeedCompanyProfile profile)
     {
-        return new Company
-        {
-            Name = name,
-            Industry = industry,
-            Categories = [],
-            DefaultLocation = defaultLocation,
-            ContactPhone = contactPhone,
-            Status = CompanyStatus.Active,
-            CreatedAt = createdAt
-        };
+        company.Name = profile.Name;
+        company.Cvr = profile.Cvr;
+        company.Industry = profile.Industry;
+        company.Categories = profile.Categories
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        company.DefaultLocation = profile.DefaultLocation;
+        company.ContactPhone = profile.ContactPhone;
+        company.Status = CompanyStatus.Active;
     }
 
     private static User CreateUser(
@@ -92,22 +124,23 @@ public static class ProductionSeeder
         };
     }
 
-    private static CompanySettings CreateCompanySettings(Company company)
+    private static CompanySettings CreateCompanySettings(int companyId)
     {
         return new CompanySettings
         {
-            CompanyId = company.Id,
+            CompanyId = companyId,
             ReceiveCapacityRequests = true,
             ParticipateInNetworkWide = true,
-            AllowPartialMatches = true
+            AllowPartialMatches = true,
+            MatchOutsideCategory = true
         };
     }
 
-    private static NotificationPreferences CreateNotificationPreferences(Company company)
+    private static NotificationPreferences CreateNotificationPreferences(int companyId)
     {
         return new NotificationPreferences
         {
-            CompanyId = company.Id,
+            CompanyId = companyId,
             EmailNewMatches = true,
             EmailActionsRequired = true,
             EmailUpcomingCooperation = true,
@@ -117,6 +150,87 @@ public static class ProductionSeeder
             EmailNetworkRequests = true,
             InAppNetworkRequests = true
         };
+    }
+
+    private static async Task BackfillExistingCompaniesAsync(AppDbContext db)
+    {
+        var companies = await db.Companies
+            .Include(c => c.CompanySettings)
+            .Include(c => c.NotificationPreferences)
+            .OrderBy(c => c.Id)
+            .ToListAsync();
+
+        var latestApprovedRequests = await db.AccessRequests
+            .Where(request =>
+                request.Status == AccessRequestStatus.Approved
+                && request.ProvisionedCompanyId.HasValue)
+            .OrderByDescending(request => request.ReviewedAt ?? request.CreatedAt)
+            .ToListAsync();
+
+        var latestApprovedRequestByCompanyId = latestApprovedRequests
+            .GroupBy(request => request.ProvisionedCompanyId!.Value)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        var changed = false;
+
+        foreach (var company in companies)
+        {
+            if (company.CompanySettings is null)
+            {
+                company.CompanySettings = CreateCompanySettings(company.Id);
+                db.CompanySettings.Add(company.CompanySettings);
+                changed = true;
+            }
+
+            if (company.NotificationPreferences is null)
+            {
+                company.NotificationPreferences = CreateNotificationPreferences(company.Id);
+                db.NotificationPreferences.Add(company.NotificationPreferences);
+                changed = true;
+            }
+
+            if (!latestApprovedRequestByCompanyId.TryGetValue(company.Id, out var request))
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(company.Cvr) && !string.IsNullOrWhiteSpace(request.Cvr))
+            {
+                company.Cvr = request.Cvr;
+                changed = true;
+            }
+
+            if (company.Categories.Count == 0 && request.Categories.Count > 0)
+            {
+                company.Categories = request.Categories
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                changed = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(company.Industry) && !string.IsNullOrWhiteSpace(request.Industry))
+            {
+                company.Industry = request.Industry;
+                changed = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(company.DefaultLocation) && !string.IsNullOrWhiteSpace(request.Location))
+            {
+                company.DefaultLocation = request.Location;
+                changed = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(company.ContactPhone) && !string.IsNullOrWhiteSpace(request.ContactPhone))
+            {
+                company.ContactPhone = request.ContactPhone;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task SeedCatalogAsync(AppDbContext db)
@@ -249,4 +363,11 @@ public static class ProductionSeeder
     }
 
     internal sealed record CatalogSeedItem(string Code, string Name, string Category);
+    internal sealed record SeedCompanyProfile(
+        string Name,
+        string? Cvr,
+        string Industry,
+        IReadOnlyList<string> Categories,
+        string DefaultLocation,
+        string ContactPhone);
 }
