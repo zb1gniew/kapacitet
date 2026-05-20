@@ -221,6 +221,14 @@ public class AvailabilityDeclarationService
 
     private static void ValidateDateRange(DateTime startDate, DateTime endDate)
     {
+        if (startDate.Date < DateTime.UtcNow.Date)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["startDate"] = ["Start date cannot be in the past."]
+            });
+        }
+
         if (endDate <= startDate)
         {
             throw new ValidationException(new Dictionary<string, string[]>
