@@ -437,7 +437,7 @@ export function LoginScreen() {
           }}
           className={secondaryLinkClassName}
         >
-          {t("I forgot my password")}
+          {t("Forgot password?")}
         </button>
       </>
     );

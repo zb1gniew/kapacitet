@@ -221,6 +221,8 @@ public class AccessRequestService
                 _logger.LogInformation(
                     "Access request rejected: RequestId={RequestId}, ReviewedBy={ReviewedBy}, Email={Email}, Reason={Reason}",
                     request.Id, reviewedBy, request.ContactEmail, request.RejectionReason);
+
+                await _emailService.SendRejectionEmailAsync(request.ContactEmail, request.Name);
             }
         }
 

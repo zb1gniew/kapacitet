@@ -5,11 +5,11 @@ namespace Kapacitet.Application.Features.Matching.Services;
 
 public sealed class MatchEvaluationService
 {
-    private const int SkillWeight = 30;
-    private const int CertificateWeight = 35;
-    private const int DateWeight = 20;
+    private const int SkillWeight = 20;
+    private const int CertificateWeight = 25;
+    private const int DateWeight = 15;
     private const int LocationWeight = 10;
-    private const int QuantityWeight = 5;
+    private const int QuantityWeight = 30;
 
     public MatchEvaluationResult? Evaluate(
         CapacityRequest request,

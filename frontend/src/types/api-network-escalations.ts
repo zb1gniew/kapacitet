@@ -21,4 +21,5 @@ export type NetworkEscalationResponse = {
   hasResponded: boolean;
   responseType: NetworkResponseType | null;
   respondedAt: string | null;
+  sharesCategory: boolean;
 };

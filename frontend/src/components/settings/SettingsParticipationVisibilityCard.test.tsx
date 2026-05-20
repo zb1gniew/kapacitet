@@ -71,8 +71,8 @@ describe("SettingsParticipationVisibilityCard", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
-            receiveCapacityRequests: false,
-            participateInNetworkWide: true,
+            receiveCapacityRequests: true,
+            participateInNetworkWide: false,
             allowPartialMatches: false,
             matchOutsideCategory: false,
           }),
@@ -105,8 +105,8 @@ describe("SettingsParticipationVisibilityCard", () => {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          receiveCapacityRequests: false,
-          participateInNetworkWide: true,
+          receiveCapacityRequests: true,
+          participateInNetworkWide: false,
           allowPartialMatches: false,
           matchOutsideCategory: false,
         }),

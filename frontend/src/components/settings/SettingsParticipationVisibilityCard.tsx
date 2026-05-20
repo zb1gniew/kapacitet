@@ -107,7 +107,7 @@ export function SettingsParticipationVisibilityCard({
       <article className="rounded-[14px] border border-neutral-200 bg-white p-6 shadow-[0_10px_15px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)]">
         <div className="h-6 w-52 animate-pulse rounded bg-neutral-200" />
         <div className="mt-5 space-y-3">
-          {[1, 2, 3, 4].map((item) => (
+          {[1, 2, 3].map((item) => (
             <div
               key={item}
               className="h-20 animate-pulse rounded-[10px] bg-neutral-100"
@@ -152,21 +152,6 @@ export function SettingsParticipationVisibilityCard({
       </p>
 
       <div className={`mt-5 space-y-3 ${saving ? "opacity-75" : ""}`}>
-        <SettingsPreferenceCard
-          title={t("Receive capacity requests")}
-          description={t(
-            "Allow other companies in your network to send capacity requests that match your declared availability. You can review and respond to each request individually.",
-          )}
-          checked={settings.receiveCapacityRequests}
-          onToggle={
-            canManageCompany
-              ? () => toggle("receiveCapacityRequests")
-              : undefined
-          }
-          disabled={!canManageCompany}
-          t={t}
-        />
-
         <SettingsPreferenceCard
           title={t("Participate in network-wide requests")}
           description={t(

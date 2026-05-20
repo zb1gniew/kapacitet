@@ -236,9 +236,13 @@ export function CertificatesSection({ offer, t }: SectionProps) {
 export function QuantitySection({ offer, t }: SectionProps) {
   return (
     <MatchInsightCard
-      barClassName="bg-[#2563eb]"
-      pillClassName="border-[#bfdbfe] bg-[#eff6ff] text-[#1d4ed8]"
-      title={t("Quantity fit")}
+      barClassName={offer.isPartial ? "bg-[#f97316]" : "bg-[#8b5cf6]"}
+      pillClassName={
+        offer.isPartial
+          ? "border-[#fed7aa] bg-[#fff7ed] text-[#c2410c]"
+          : "border-[#e9d5ff] bg-[#faf5ff] text-[#7c3aed]"
+      }
+      title={t("Worker quantity")}
       summary={
         offer.isPartial
           ? t(
@@ -255,7 +259,7 @@ export function QuantitySection({ offer, t }: SectionProps) {
               },
             )
       }
-      fitLabel={offer.isPartial ? t("Partial coverage") : t("Full coverage")}
+      fitLabel={offer.isPartial ? t("Partial match") : t("Full match")}
       maxScore={SCORE_LIMITS.quantity}
     >
       <div className="grid gap-3 sm:grid-cols-3">

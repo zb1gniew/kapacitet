@@ -41,6 +41,23 @@ function mapEndpointToBrowserOrigin(endpoint: string): string {
   return mapped.toString();
 }
 
+/**
+ * Maps a discovery-document endpoint URL to the internal server origin
+ * (e.g. http://keycloak:8080) so that Next.js server-side calls reach
+ * Keycloak directly over the Docker network instead of going through the
+ * public HTTPS URL (https://localhost) which is unreachable from inside
+ * a Docker container.
+ */
+function mapEndpointToServerOrigin(endpoint: string): string {
+  const { serverIssuerUrl } = getAuthConfig();
+  const serverBase = new URL(serverIssuerUrl);
+  const mapped = new URL(endpoint);
+  mapped.protocol = serverBase.protocol;
+  mapped.hostname = serverBase.hostname;
+  mapped.port = serverBase.port;
+  return mapped.toString();
+}
+
 type VerifiedIdTokenPayload = {
   sub?: string;
   nonce?: string;
@@ -62,7 +79,9 @@ async function verifyIdToken(
     const { clientId, issuerUrl } = getAuthConfig();
 
     if (!cachedJwks) {
-      cachedJwks = createRemoteJWKSet(new URL(discovery.jwks_uri));
+      cachedJwks = createRemoteJWKSet(
+        new URL(mapEndpointToServerOrigin(discovery.jwks_uri)),
+      );
     }
 
     const verification = await jwtVerify(idToken, cachedJwks, {
@@ -139,12 +158,15 @@ async function performTokenRequest(
     bodyParams.set("client_id", clientId);
   }
 
-  const response = await fetch(discovery.token_endpoint, {
-    method: "POST",
-    headers: createTokenRequestHeaders(clientId, clientSecret),
-    body: bodyParams.toString(),
-    cache: "no-store",
-  });
+  const response = await fetch(
+    mapEndpointToServerOrigin(discovery.token_endpoint),
+    {
+      method: "POST",
+      headers: createTokenRequestHeaders(clientId, clientSecret),
+      body: bodyParams.toString(),
+      cache: "no-store",
+    },
+  );
 
   if (!response.ok) {
     const failureBody = await response.text();
@@ -186,14 +208,17 @@ export async function fetchUserInfo(
   accessToken: string,
 ): Promise<OidcUserInfo> {
   const discovery = await fetchDiscoveryDocument();
-  const response = await fetch(discovery.userinfo_endpoint, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json",
+  const response = await fetch(
+    mapEndpointToServerOrigin(discovery.userinfo_endpoint),
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
     },
-    cache: "no-store",
-  });
+  );
 
   if (!response.ok) {
     throw new Error(`OIDC userinfo failed with status ${response.status}`);

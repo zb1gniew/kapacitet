@@ -27,7 +27,12 @@ services:
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       # Tell Keycloak its public-facing URL so OIDC tokens have the correct issuer.
       # DEV: https://localhost/auth  |  PROD: https://auth.yourdomain.com
-      KC_HOSTNAME: localhost
+      # Explicit public URL — overrides dynamic protocol detection from proxy headers.
+      # Without this, Keycloak issues tokens with https:// (via Caddy) but validates
+      # refresh tokens against http:// (direct Next.js → Keycloak calls have no
+      # X-Forwarded-Proto), causing a refresh_token issuer mismatch every ~5 minutes.
+      # NOTE: KC_HOSTNAME_URL replaces KC_HOSTNAME — they cannot be set together.
+      KC_HOSTNAME_URL: "https://localhost/auth"
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /auth
