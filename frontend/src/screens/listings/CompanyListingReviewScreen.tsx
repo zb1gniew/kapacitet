@@ -69,6 +69,19 @@ function formatStatus(status: ListingStatus) {
   }
 }
 
+function formatExperienceLevel(experienceLevel: string | null | undefined) {
+  switch (experienceLevel) {
+    case "junior":
+      return "Junior (0-3 years)";
+    case "mid":
+      return "Mid-level (3-7 years)";
+    case "senior":
+      return "Senior (7+ years)";
+    default:
+      return "Not specified";
+  }
+}
+
 function DetailCard({ label, value }: { label: string; value: string }) {
   return (
     <article className="rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
@@ -290,11 +303,7 @@ export function CompanyListingReviewScreen({
                     />
                     <DetailCard
                       label={t("Experience level")}
-                      value={
-                        listing.experienceLevel
-                          ? t(listing.experienceLevel)
-                          : t("Not specified")
-                      }
+                      value={t(formatExperienceLevel(listing.experienceLevel))}
                     />
                     <DetailCard
                       label={t("Created")}

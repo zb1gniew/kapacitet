@@ -114,7 +114,7 @@ export function ConfirmCompanyDetailsScreen({ company }: Props) {
               label={t("CVR number")}
               value={company.cvr}
               readOnly
-              helperText={t("Company registration number — cannot be changed")}
+              helperText={t("Company registration number - cannot be changed")}
             />
           ) : null}
 
