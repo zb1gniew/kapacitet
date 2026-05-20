@@ -6,6 +6,30 @@ namespace Kapacitet.Infrastructure.Persistence.Seed;
 
 public static class DevelopmentSeeder
 {
+    private static readonly ProductionSeeder.SeedCompanyProfile RequesterCompanyProfile = new(
+        "Test Company A/S",
+        "00000002",
+        "Construction",
+        ["construction", "metal_work"],
+        "Sonderborg",
+        "+45 70 11 22 33");
+
+    private static readonly ProductionSeeder.SeedCompanyProfile SupplierCompanyProfile = new(
+        "Nordic Capacity Partners",
+        "00000003",
+        "Electrical services",
+        ["electrical", "construction"],
+        "Sonderborg",
+        "+45 70 44 55 66");
+
+    private static readonly ProductionSeeder.SeedCompanyProfile PartnerCompanyProfile = new(
+        "Southern Field Services",
+        "00000004",
+        "Industrial services",
+        ["scaffolding", "facility_services"],
+        "Esbjerg",
+        "+45 70 77 88 99");
+
     public static async Task SeedAsync(AppDbContext db)
     {
         await ProductionSeeder.SeedAsync(db);
@@ -191,9 +215,9 @@ public static class DevelopmentSeeder
     {
         var now = DateTime.UtcNow;
 
-        var requesterCompany = await ProductionSeeder.EnsureCompanyAsync(db, "Test Company A/S", "Construction", "Sonderborg", "+45 70 11 22 33", now);
-        var supplierCompany = await ProductionSeeder.EnsureCompanyAsync(db, "Nordic Capacity Partners", "Construction", "Sonderborg", "+45 70 44 55 66", now);
-        var partnerCompany = await ProductionSeeder.EnsureCompanyAsync(db, "Southern Field Services", "Industrial services", "Esbjerg", "+45 70 77 88 99", now);
+        var requesterCompany = await ProductionSeeder.EnsureCompanyAsync(db, RequesterCompanyProfile, now);
+        var supplierCompany = await ProductionSeeder.EnsureCompanyAsync(db, SupplierCompanyProfile, now);
+        var partnerCompany = await ProductionSeeder.EnsureCompanyAsync(db, PartnerCompanyProfile, now);
 
         await ProductionSeeder.EnsureUserAsync(db, requesterCompany, "testuser@kapacitet.net", UserRole.Admin, now);
         await ProductionSeeder.EnsureUserAsync(db, requesterCompany, "request.manager@kapacitet.net", UserRole.Manager, now);
@@ -205,37 +229,48 @@ public static class DevelopmentSeeder
         await ProductionSeeder.EnsureUserAsync(db, partnerCompany, "partner.manager@kapacitet.net", UserRole.Manager, now);
         await ProductionSeeder.EnsureUserAsync(db, partnerCompany, "partner.viewer@kapacitet.net", UserRole.Viewer, now);
 
-        await NormalizeRequesterDemoUsersAsync(
+        await NormalizeDemoUsersAsync(
             db,
+            [
+                "testuser@kapacitet.net",
+                "request.manager@kapacitet.net",
+                "request.viewer@kapacitet.net"
+            ],
             requesterCompany.Id,
-            "Test Company A/S",
-            "Construction",
-            "Sonderborg",
-            "+45 70 11 22 33");
+            RequesterCompanyProfile);
+        await NormalizeDemoUsersAsync(
+            db,
+            [
+                "supplier@kapacitet.net",
+                "supplier.manager@kapacitet.net",
+                "supplier.viewer@kapacitet.net"
+            ],
+            supplierCompany.Id,
+            SupplierCompanyProfile);
+        await NormalizeDemoUsersAsync(
+            db,
+            [
+                "partner.admin@kapacitet.net",
+                "partner.manager@kapacitet.net",
+                "partner.viewer@kapacitet.net"
+            ],
+            partnerCompany.Id,
+            PartnerCompanyProfile);
     }
 
-    private static async Task NormalizeRequesterDemoUsersAsync(
+    private static async Task NormalizeDemoUsersAsync(
         AppDbContext db,
+        string[] userEmails,
         int fallbackCompanyId,
-        string canonicalName,
-        string canonicalIndustry,
-        string canonicalLocation,
-        string canonicalPhone)
+        ProductionSeeder.SeedCompanyProfile profile)
     {
-        var requesterEmails = new[]
-        {
-            "testuser@kapacitet.net",
-            "request.manager@kapacitet.net",
-            "request.viewer@kapacitet.net"
-        };
-
-        var requesterUsers = await db.Users
-            .Where(user => requesterEmails.Contains(user.Email))
+        var companyUsers = await db.Users
+            .Where(user => userEmails.Contains(user.Email))
             .OrderBy(user => user.Id)
             .ToListAsync();
 
-        var targetCompanyId = requesterUsers
-            .FirstOrDefault(user => user.Email == "testuser@kapacitet.net")
+        var targetCompanyId = companyUsers
+            .FirstOrDefault(user => user.Role == UserRole.Admin)
             ?.CompanyId ?? fallbackCompanyId;
 
         var targetCompany = await db.Companies.FindAsync(targetCompanyId);
@@ -244,14 +279,12 @@ public static class DevelopmentSeeder
             return;
         }
 
-        targetCompany.Name = canonicalName;
-        targetCompany.Industry = canonicalIndustry;
-        targetCompany.DefaultLocation = canonicalLocation;
-        targetCompany.ContactPhone = canonicalPhone;
+        ProductionSeeder.ApplyCompanyProfile(targetCompany, profile);
 
-        foreach (var requesterUser in requesterUsers)
+        foreach (var companyUser in companyUsers)
         {
-            requesterUser.CompanyId = targetCompanyId;
+            companyUser.CompanyId = targetCompanyId;
+            companyUser.OnboardingCompletedAt ??= DateTime.UtcNow;
         }
 
         await db.SaveChangesAsync();

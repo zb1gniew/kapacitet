@@ -55,6 +55,28 @@ export const CATEGORY_LABELS: Record<CompanyCategory, string> = {
   interior_finishing: "Interior Finishing",
 };
 
+const CATEGORY_LABEL_ALIASES: Record<string, string> = {
+  glass_insitallation: "Glass Installation",
+};
+
+export function getCategoryLabel(category: string): string {
+  const normalizedCategory = category.trim().toLowerCase();
+
+  if (normalizedCategory in CATEGORY_LABELS) {
+    return CATEGORY_LABELS[normalizedCategory as CompanyCategory];
+  }
+
+  if (normalizedCategory in CATEGORY_LABEL_ALIASES) {
+    return CATEGORY_LABEL_ALIASES[normalizedCategory];
+  }
+
+  return normalizedCategory
+    .split("_")
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
+}
+
 export function isValidCategory(value: string): value is CompanyCategory {
   return (COMPANY_CATEGORIES as readonly string[]).includes(value);
 }

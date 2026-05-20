@@ -105,6 +105,25 @@ public class KeycloakAdminClient
         return users is { Length: > 0 } && HasRequiredAction(users[0], UpdatePasswordAction);
     }
 
+    public async Task UpdateUserNameAsync(string email, string firstName, string lastName)
+    {
+        var keycloakUserId = await FindUserByEmailAsync(email)
+            ?? throw new InvalidOperationException($"Keycloak user with email {email} not found");
+
+        var token = await GetAdminTokenAsync();
+        var url = $"{_options.BaseUrl}/admin/realms/{_options.Realm}/users/{keycloakUserId}";
+
+        var payload = new { firstName, lastName };
+
+        using var request = CreateAuthorizedRequest(HttpMethod.Put, url, token);
+        request.Content = JsonContent.Create(payload);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        _logger.LogInformation("Updated name for Keycloak user {Email}", email);
+    }
+
     public async Task SetPermanentPasswordAsync(string email, string password)
     {
         var keycloakUserId = await FindUserByEmailAsync(email)

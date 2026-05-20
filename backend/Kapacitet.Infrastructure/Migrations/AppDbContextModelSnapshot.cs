@@ -812,6 +812,57 @@ namespace Kapacitet.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Kapacitet.Domain.Entities.UserInvitation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasComputedColumnSql("lower(btrim(\"Email\"))", true);
+
+                    b.Property<string>("InvitationTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("InvitationTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("NormalizedEmail", "CompanyId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_user_invitations_pending_normalized_email_company")
+                        .HasFilter("\"AcceptedAt\" IS NULL");
+
+                    b.ToTable("user_invitations", (string)null);
+                });
+
             modelBuilder.Entity("AvailabilityDeclarationCertificate", b =>
                 {
                     b.HasOne("Kapacitet.Domain.Entities.AvailabilityDeclaration", null)
@@ -1044,6 +1095,17 @@ namespace Kapacitet.Infrastructure.Migrations
                         .WithMany("Users")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Kapacitet.Domain.Entities.UserInvitation", b =>
+                {
+                    b.HasOne("Kapacitet.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Company");

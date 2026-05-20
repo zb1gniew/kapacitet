@@ -62,6 +62,26 @@ public class EmailServiceTests
         sentMessage.HtmlBody.Should().Contain("expires in 48 hours");
     }
 
+    [Fact]
+    public async Task SendInvitationEmail_NotDevMode_UsesExplicitKapacitetNetTextBody()
+    {
+        await using var db = await TestDbFactory.CreatePostgresAsync();
+        var svc = CreateService(db, devMode: false);
+
+        EmailMessage? sentMessage = null;
+        _resendMock
+            .Setup(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .Callback<EmailMessage, CancellationToken>((message, _) => sentMessage = message)
+            .Returns(Task.FromResult<ResendResponse<Guid>>(null!));
+
+        await svc.SendInvitationEmailAsync("test@test.com", "Southern Field Services", UserRole.Manager, "setup-token");
+
+        _resendMock.Verify(r => r.EmailSendAsync(It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+        sentMessage.Should().NotBeNull();
+        sentMessage!.TextBody.Should().Contain("You have been invited to join Southern Field Services on KapacitetNet as Manager.");
+        sentMessage.TextBody.Should().NotContain("CapacitanceNet");
+    }
+
     // ── Preference checks ────────────────────────────────────────────────────
 
     [Fact]

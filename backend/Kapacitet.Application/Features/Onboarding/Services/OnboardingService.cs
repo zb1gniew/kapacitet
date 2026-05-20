@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.Matching.Services;
 using Kapacitet.Application.Features.Onboarding.DTOs;
+using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,7 @@ public class OnboardingService
 
         return new OnboardingStatusDto
         {
-            IsOnboardingCompleted = user.OnboardingCompletedAt.HasValue,
+            IsOnboardingCompleted = user.OnboardingCompletedAt.HasValue || user.Role != UserRole.Admin,
             AppRole = user.Role.ToString(),
             Company = new CompanyDetailsDto
             {
