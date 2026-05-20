@@ -3,6 +3,7 @@
 import { SettingsAccountAccessCard } from "@/components/settings/SettingsAccountAccessCard";
 import { SettingsLanguageCard } from "@/components/settings/SettingsLanguageCard";
 import { SettingsScreenLayout } from "@/components/settings/SettingsScreenLayout";
+import { SettingsTeamMembersCard } from "@/components/settings/SettingsTeamMembersCard";
 import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { AuthenticatedUser } from "@/types/auth";
 
@@ -25,6 +26,7 @@ export function SettingsAccountAccessScreen({
       <div className="space-y-4">
         <SettingsLanguageCard />
         <SettingsAccountAccessCard t={t} user={user} />
+        <SettingsTeamMembersCard t={t} user={user} />
       </div>
     </SettingsScreenLayout>
   );

@@ -1,5 +1,6 @@
 using Kapacitet.Application.Features.AccountSetup.Services;
 using Kapacitet.Application.Features.Notifications.Services;
+using Kapacitet.Application.Features.UserInvitations.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kapacitet.API.Controllers;
@@ -11,15 +12,18 @@ public class AccountSetupController : ControllerBase
     private readonly InitialPasswordSetupService _setupService;
     private readonly PasswordResetService _passwordResetService;
     private readonly EmailService _emailService;
+    private readonly UserInvitationService _invitationService;
 
     public AccountSetupController(
         InitialPasswordSetupService setupService,
         PasswordResetService passwordResetService,
-        EmailService emailService)
+        EmailService emailService,
+        UserInvitationService invitationService)
     {
         _setupService = setupService;
         _passwordResetService = passwordResetService;
         _emailService = emailService;
+        _invitationService = invitationService;
     }
 
     [HttpGet("setup-context")]
@@ -29,10 +33,14 @@ public class AccountSetupController : ControllerBase
             return CreateBadRequest("Token is required.");
 
         var context = await _setupService.GetContextAsync(token);
-        if (context is null)
+        if (context is not null)
+            return Ok(new InitialPasswordSetupContextResponse(context.Email, false));
+
+        var invitationEmail = await _invitationService.GetSetupContextEmailAsync(token);
+        if (invitationEmail is null)
             return CreateBadRequest("This password setup link is invalid or expired.");
 
-        return Ok(new InitialPasswordSetupContextResponse(context.Email));
+        return Ok(new InitialPasswordSetupContextResponse(invitationEmail, true));
     }
 
     [HttpPost("set-initial-password")]
@@ -46,12 +54,32 @@ public class AccountSetupController : ControllerBase
             return CreateBadRequest("Password must be at least 8 characters.");
 
         var result = await _setupService.SetInitialPasswordAsync(body.Token, body.Password);
-        if (result == InitialPasswordSetupResult.InvalidToken)
-            return CreateBadRequest("This password setup link is invalid or expired.");
+        if (result == InitialPasswordSetupResult.Success)
+            return Ok(new MessageResponse("Password set successfully. You can now sign in."));
         if (result == InitialPasswordSetupResult.AlreadyCompleted)
             return CreateBadRequest("This account has already been set up.");
 
+        // Try invitation token if not found in access-request setup
+        var inviteResult = await _invitationService.AcceptAsync(body.Token, body.Password);
+        if (inviteResult == UserInvitationAcceptResult.InvalidToken)
+            return CreateBadRequest("This password setup link is invalid or expired.");
+        if (inviteResult == UserInvitationAcceptResult.AlreadyCompleted)
+            return CreateBadRequest("This account has already been set up.");
+
         return Ok(new MessageResponse("Password set successfully. You can now sign in."));
+    }
+
+    [HttpPost("set-invitee-name")]
+    public async Task<IActionResult> SetInviteeName([FromBody] SetInviteeNameRequest body)
+    {
+        if (string.IsNullOrWhiteSpace(body.Email))
+            return CreateBadRequest("Email is required.");
+
+        if (string.IsNullOrWhiteSpace(body.FirstName) || string.IsNullOrWhiteSpace(body.LastName))
+            return CreateBadRequest("First name and last name are required.");
+
+        await _invitationService.SetInviteeNameAsync(body.Email.Trim(), body.FirstName.Trim(), body.LastName.Trim());
+        return Ok(new MessageResponse("Name updated successfully."));
     }
 
     [HttpPost("forgot-password")]
@@ -120,6 +148,13 @@ public sealed class ResetPasswordRequest
     public string Password { get; set; } = null!;
 }
 
-public sealed record InitialPasswordSetupContextResponse(string Email);
+public sealed record InitialPasswordSetupContextResponse(string Email, bool IsInvitation = false);
+
+public sealed class SetInviteeNameRequest
+{
+    public string Email { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+}
 
 public sealed record MessageResponse(string Message);

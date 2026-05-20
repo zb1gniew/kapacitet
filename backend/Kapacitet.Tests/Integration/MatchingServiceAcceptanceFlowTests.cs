@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Npgsql;
 using Resend;
 using Testcontainers.PostgreSql;
 
@@ -38,8 +39,7 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
             await _postgres.StartAsync();
             _connectionString = _postgres.GetConnectionString();
 
-            await using var db = CreateDbContext();
-            await db.Database.MigrateAsync();
+            await MigrateWhenDatabaseReadyAsync();
         }
         catch (Exception ex) when (IsDockerUnavailable(ex))
         {
@@ -61,6 +61,34 @@ public class MatchingServiceAcceptanceFlowTests : IAsyncLifetime
             .UseNpgsql(_connectionString)
             .Options;
         return new AppDbContext(options);
+    }
+
+    private async Task MigrateWhenDatabaseReadyAsync()
+    {
+        const int maxAttempts = 10;
+        PostgresException? lastException = null;
+
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await using var db = CreateDbContext();
+                await db.Database.MigrateAsync();
+                return;
+            }
+            catch (PostgresException ex) when (ex.SqlState == "57P03" && attempt < maxAttempts)
+            {
+                lastException = ex;
+                await Task.Delay(TimeSpan.FromSeconds(attempt));
+            }
+        }
+
+        if (lastException is not null)
+        {
+            throw lastException;
+        }
+
+        throw new InvalidOperationException("Database did not become ready for migrations.");
     }
 
     private MatchingService CreateMatchingService(bool devMode = true, IResend? resend = null)

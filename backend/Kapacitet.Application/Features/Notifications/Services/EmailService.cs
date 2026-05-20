@@ -1,3 +1,4 @@
+using Kapacitet.Domain.Enums;
 using Kapacitet.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -70,6 +71,40 @@ public class EmailService
             """;
 
         await SendAsync(toEmail, subject, Wrap(danish, english));
+    // ── Trigger 1b: User invited ──────────────────────────────────────────────
+    public async Task SendInvitationEmailAsync(string toEmail, string companyName, UserRole role, string setupToken)
+    {
+        var setupUrl = $"{_options.AppUrl.TrimEnd('/')}/?setupToken={Uri.EscapeDataString(setupToken)}";
+        var roleLabel = role == UserRole.Manager ? "Manager" : "Viewer";
+        var subject = $"Du er inviteret til {H(companyName)} på KapacitetNet / You've been invited to {H(companyName)} on KapacitetNet";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Du er inviteret!</h2>
+            <p style="margin:0 0 16px;color:#374151;">Du er inviteret til at deltage i <strong>{H(companyName)}</strong> på KapacitetNet som <strong>{H(roleLabel)}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Klik på knappen nedenfor for at oprette din adgangskode og logge ind:</p>
+            {Btn("Accepter invitation", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">Dette opsætningslink er knyttet til <strong>{H(toEmail)}</strong> og udløber om 48 timer.</p>
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">You've been invited!</h2>
+            <p style="margin:0 0 16px;color:#374151;">You have been invited to join <strong>{H(companyName)}</strong> on KapacitetNet as <strong>{H(roleLabel)}</strong>.</p>
+            <p style="margin:0 0 24px;color:#374151;">Click the button below to set your password and sign in:</p>
+            {Btn("Accept invitation", setupUrl)}
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">This setup link is tied to <strong>{H(toEmail)}</strong> and expires in 48 hours.</p>
+            """;
+
+        var textBody = $"""
+            Du er inviteret til at deltage i {companyName} på KapacitetNet som {roleLabel}.
+            Acceptér invitationen og opret din adgangskode her:
+            {setupUrl}
+
+            You have been invited to join {companyName} on KapacitetNet as {roleLabel}.
+            Accept the invitation and set your password here:
+            {setupUrl}
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english), textBody);
     }
 
     // ── Trigger 2: Password reset ─────────────────────────────────────────────
@@ -360,7 +395,7 @@ public class EmailService
     }
 
     // ── Shared send ───────────────────────────────────────────────────────────
-    private async Task SendAsync(string to, string subject, string htmlBody)
+    private async Task SendAsync(string to, string subject, string htmlBody, string? textBody = null)
     {
         if (_options.DevMode)
         {
@@ -375,6 +410,7 @@ public class EmailService
             From = $"{_options.FromName} <{_options.FromAddress}>",
             Subject = subject,
             HtmlBody = htmlBody,
+            TextBody = textBody,
         };
         message.To.Add(to);
 

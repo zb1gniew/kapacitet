@@ -69,3 +69,14 @@ nunit-*.xml
 # Claude
 
 .claude
+
+# Local tooling and export artifacts
+.postman/
+postman/globals/
+.vercel/
+handin-source/
+frontend/.next/
+frontend/node_modules/
+frontend/coverage/
+frontend/playwright-report/
+frontend/*.tsbuildinfo

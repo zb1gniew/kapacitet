@@ -269,7 +269,7 @@ export function SettingsCompanyInformationCard({
             <Label label={t("CVR number")} />
             <Input value={draft.cvr} disabled />
             <p className="text-[11px] leading-4 text-neutral-500">
-              {t("Company registration number — cannot be changed")}
+              {t("Company registration number - cannot be changed")}
             </p>
           </div>
         ) : null}

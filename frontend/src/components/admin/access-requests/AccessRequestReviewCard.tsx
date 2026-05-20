@@ -1,7 +1,7 @@
 import { CheckBadgeIcon, EmailIcon, MapPinIcon } from "@/components/auth/icons";
 import type { AccessRequest } from "@/types/admin";
 import type { TranslateFn } from "@/types/i18n";
-import { CATEGORY_LABELS } from "@/constants/categories";
+import { getCategoryLabel } from "@/constants/categories";
 import { AccessRequestStatusBadge } from "./AccessRequestStatusBadge";
 import { formatAccessRequestDate, formatAccessRequestDateTime } from "./utils";
 
@@ -90,12 +90,7 @@ export function AccessRequestReviewCard({
               value={
                 request.categories.length > 0
                   ? request.categories
-                      .map((k) =>
-                        t(
-                          CATEGORY_LABELS[k as keyof typeof CATEGORY_LABELS] ??
-                            k,
-                        ),
-                      )
+                      .map((category) => t(getCategoryLabel(category)))
                       .join(", ")
                   : "—"
               }
