@@ -5,6 +5,8 @@ namespace Kapacitet.Application.Features.CapacityRequests.DTOs;
 
 public class UpdateCapacityRequestDto : IValidatableObject
 {
+    private const int MaxWorkerQuantity = 100;
+
     [Required]
     public DateTime StartDate { get; set; }
 
@@ -50,6 +52,10 @@ public class UpdateCapacityRequestDto : IValidatableObject
         if (Quantity <= 0)
             yield return new ValidationResult(
                 "Quantity must be greater than zero",
+                [nameof(Quantity)]);
+        else if (Quantity > MaxWorkerQuantity)
+            yield return new ValidationResult(
+                $"Quantity must be less than or equal to {MaxWorkerQuantity}",
                 [nameof(Quantity)]);
 
         if (!string.IsNullOrWhiteSpace(ExperienceLevel) &&

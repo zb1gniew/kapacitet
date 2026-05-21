@@ -318,12 +318,20 @@ export function CompanyListingReviewScreen({
                   <div className="mt-4 grid gap-3 xl:grid-cols-2">
                     <DetailCard
                       label={t("Skills")}
-                      value={listing.skills.join(", ") || t("Not specified")}
+                      value={
+                        listing.skills.length > 0
+                          ? listing.skills.map((skill) => t(skill)).join(", ")
+                          : t("Not specified")
+                      }
                     />
                     <DetailCard
                       label={t("Certificates")}
                       value={
-                        listing.certificates.join(", ") || t("Not specified")
+                        listing.certificates.length > 0
+                          ? listing.certificates
+                              .map((certificate) => t(certificate))
+                              .join(", ")
+                          : t("Not specified")
                       }
                     />
                   </div>

@@ -18,6 +18,7 @@ import { useWorkflowCatalog } from "@/hooks/useWorkflowCatalog";
 import {
   DEFAULT_CAPACITY_REQUEST_DRAFT,
   EXPERIENCE_LEVEL_OPTIONS,
+  MAX_WORKER_QUANTITY,
   getCapacityRequestDraftStorageKey,
   isWorkerDetailsStepComplete,
 } from "@/lib/workflows/payloads";
@@ -94,6 +95,8 @@ export function RequestCapacityWorkersStep2Screen({
             <input
               type="number"
               inputMode="numeric"
+              min={1}
+              max={MAX_WORKER_QUANTITY}
               value={draft.quantity}
               onChange={(event) => setField("quantity", event.target.value)}
               placeholder={t("e.g., 3")}

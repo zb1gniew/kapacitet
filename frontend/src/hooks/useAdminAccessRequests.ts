@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { AccessRequest } from "@/types/admin";
 
 export function useAdminAccessRequests() {
+  const { t } = useLocalizedScreen();
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -20,7 +22,9 @@ export function useAdminAccessRequests() {
         throw new Error(
           errorBody?.message ||
             errorBody?.detail ||
-            `Unable to load admin data (${response.status})`,
+            t("Unable to load admin data ({{response.status}})", {
+              "response.status": response.status,
+            }),
         );
       }
 
@@ -32,12 +36,12 @@ export function useAdminAccessRequests() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Unable to load admin data right now.",
+          : t("Unable to load admin data right now."),
       );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchRequests();

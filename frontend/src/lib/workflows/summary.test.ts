@@ -27,8 +27,8 @@ describe("workflow summary helpers", () => {
     );
 
     expect(sections[0]?.rows[1]?.valueKey).toBe("Mid-level (3-7 years)");
-    expect(sections[0]?.rows[2]?.valueKey).toBe("Roofing");
-    expect(sections[1]?.rows[3]?.valueKey).toBe("75 km");
+    expect(sections[0]?.rows[2]?.valueKeys).toEqual(["Roofing"]);
+    expect(sections[1]?.rows[3]?.valueText).toBe("75 km");
   });
 
   it("builds a request summary and falls back to not specified defaults", () => {

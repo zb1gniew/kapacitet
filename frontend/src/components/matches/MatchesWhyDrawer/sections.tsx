@@ -187,7 +187,7 @@ export function SkillsSection({ offer, t }: SectionProps) {
               key={skill}
               className="rounded-full border border-[#bbf7d0] bg-[#f0fdf4] px-3 py-1 text-xs font-semibold text-[#166534]"
             >
-              {skill}
+              {t(skill)}
             </span>
           ))}
         </div>
@@ -224,7 +224,7 @@ export function CertificatesSection({ offer, t }: SectionProps) {
               className="inline-flex items-center gap-1 rounded-full border border-[#fde68a] bg-[#fffbeb] px-3 py-1 text-xs font-semibold text-[#854d0e]"
             >
               <CheckBadgeIcon className="h-3 w-3" />
-              {certificate}
+              {t(certificate)}
             </span>
           ))}
         </div>

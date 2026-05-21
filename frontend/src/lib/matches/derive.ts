@@ -19,24 +19,8 @@ function parseTimestamp(value?: string | null) {
   return Number.isNaN(timestamp) ? null : timestamp;
 }
 
-function getPrimarySkill(skills: string[], t: TranslateFn) {
-  return skills.find((skill) => skill.trim().length > 0) ?? t("Workers");
-}
-
-function pluralizeSkill(skill: string, quantity: number) {
-  if (quantity === 1 || !skill) {
-    return skill;
-  }
-
-  if (/[^aeiou]y$/i.test(skill)) {
-    return `${skill.slice(0, -1)}ies`;
-  }
-
-  if (/(s|x|z|ch|sh)$/i.test(skill)) {
-    return `${skill}es`;
-  }
-
-  return `${skill}s`;
+function getPrimarySkill(skills: string[]) {
+  return skills.find((skill) => skill.trim().length > 0);
 }
 
 export function deriveMatchesSummary(
@@ -156,8 +140,9 @@ export function formatDateRange(
 }
 
 export function formatMatchTitle(t: TranslateFn, offer: MatchOfferResponse) {
-  const skill = getPrimarySkill(offer.skills, t);
-  return `${offer.offeredQuantity} ${pluralizeSkill(skill, offer.offeredQuantity)}`;
+  const primarySkill = getPrimarySkill(offer.skills);
+  const translatedSkill = primarySkill ? t(primarySkill) : t("Workers");
+  return `${offer.offeredQuantity} ${translatedSkill}`;
 }
 
 export function formatRelativeTime(t: TranslateFn, isoDate: string) {

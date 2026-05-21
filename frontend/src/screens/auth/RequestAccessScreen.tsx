@@ -178,7 +178,8 @@ export function RequestAccessScreen() {
             </h3>
             <p className="mt-1 text-sm leading-[22.75px] tracking-[-0.1504px]">
               {t(
-                `Your request has been recorded and is awaiting platform review. Reference ID: ${submittedRequestId}.`,
+                "Your request has been recorded and is awaiting platform review. Reference ID: {{submittedRequestId}}.",
+                { submittedRequestId },
               )}
             </p>
           </aside>

@@ -21,11 +21,29 @@ function getEventClasses(type: AuditTimelineEvent["type"]) {
   }
 }
 
+function getEventSource(event: AuditTimelineEvent) {
+  const actor = event.actor?.trim();
+
+  switch (event.type) {
+    case "Submission":
+      return "Request form";
+    case "Provisioning":
+      return actor || "Provisioning workflow";
+    case "Approval":
+    case "Rejection":
+      return actor || "Admin review";
+    default:
+      return actor || null;
+  }
+}
+
 export function AuditTimelineEventCard({
   event,
   t,
   highlighted = false,
 }: AuditTimelineEventCardProps) {
+  const eventSource = getEventSource(event);
+
   return (
     <article
       id={`audit-event-${event.id}`}
@@ -39,7 +57,7 @@ export function AuditTimelineEventCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <h3 className="text-lg font-semibold tracking-[-0.3125px] text-neutral-900">
-              {event.summary}
+              {t(event.summary, event.summaryValues)}
             </h3>
             <span
               className={`inline-flex rounded-[10px] border px-2.5 py-1 text-[11px] font-semibold ${getEventClasses(
@@ -51,7 +69,7 @@ export function AuditTimelineEventCard({
           </div>
 
           <p className="mt-3 text-sm leading-[22.75px] tracking-[-0.1504px] text-neutral-700">
-            {event.detail}
+            {t(event.detail, event.detailValues)}
           </p>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
@@ -71,14 +89,16 @@ export function AuditTimelineEventCard({
                 {event.contactEmail}
               </p>
             </div>
-            <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 sm:col-span-2 2xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
-                {t("Actor")}
-              </p>
-              <p className="mt-1 break-all text-[13px] font-medium leading-5 text-neutral-900">
-                {event.actor ?? t("system")}
-              </p>
-            </div>
+            {eventSource ? (
+              <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3 sm:col-span-2 2xl:col-span-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
+                  {t("Source")}
+                </p>
+                <p className="mt-1 break-all text-[13px] font-medium leading-5 text-neutral-900">
+                  {t(eventSource)}
+                </p>
+              </div>
+            ) : null}
             <div className="min-w-0 rounded-[12px] border border-neutral-200 bg-[#fafafa] px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">
                 {t("Timestamp")}

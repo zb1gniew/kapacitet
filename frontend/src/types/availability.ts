@@ -10,7 +10,9 @@ export type AvailabilityStepDefinition = {
 
 export type AvailabilitySummaryRow = {
   labelKey: string;
-  valueKey: string;
+  valueKey?: string;
+  valueKeys?: string[];
+  valueText?: string;
 };
 
 export type AvailabilitySummarySection = {

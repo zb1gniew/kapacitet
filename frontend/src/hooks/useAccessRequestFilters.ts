@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { COMPANY_CATEGORIES } from "@/constants/categories";
+import { SUPPORTED_CITIES } from "@/constants/cities";
 import type {
   AccessRequestAdvancedFilters,
   SavedAccessRequestView,
@@ -24,12 +26,21 @@ const DEFAULT_ADVANCED_FILTERS: AccessRequestAdvancedFilters = {
 const SAVED_VIEWS_STORAGE_KEY =
   "kapacitet.admin.access-requests.saved-views.v1";
 
-function getStartOfDayTimestamp(value: string) {
-  return new Date(`${value}T00:00:00`).getTime();
+function padDateSegment(value: number) {
+  return value.toString().padStart(2, "0");
 }
 
-function getEndOfDayTimestamp(value: string) {
-  return new Date(`${value}T23:59:59.999`).getTime();
+function getLocalDateKey(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return [
+    date.getFullYear(),
+    padDateSegment(date.getMonth() + 1),
+    padDateSegment(date.getDate()),
+  ].join("-");
 }
 
 type UseAccessRequestFiltersArgs = {
@@ -55,25 +66,9 @@ export function useAccessRequestFilters({
     SavedAccessRequestView[]
   >(SAVED_VIEWS_STORAGE_KEY, []);
 
-  const industryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          requests.flatMap((request) =>
-            request.categories.filter((category) => category.trim().length > 0),
-          ),
-        ),
-      ).sort((left, right) => left.localeCompare(right)),
-    [requests],
-  );
+  const industryOptions = useMemo(() => [...COMPANY_CATEGORIES], []);
 
-  const locationOptions = useMemo(
-    () =>
-      Array.from(new Set(requests.map((request) => request.location))).sort(
-        (left, right) => left.localeCompare(right),
-      ),
-    [requests],
-  );
+  const locationOptions = useMemo(() => [...SUPPORTED_CITIES], []);
 
   const reviewerOptions = useMemo(
     () =>
@@ -155,21 +150,21 @@ export function useAccessRequestFilters({
           return false;
         }
 
-        const referenceTime = new Date(referenceValue).getTime();
-        if (Number.isNaN(referenceTime)) {
+        const referenceDateKey = getLocalDateKey(referenceValue);
+        if (!referenceDateKey) {
           return false;
         }
 
         if (
           advancedFilters.fromDate &&
-          referenceTime < getStartOfDayTimestamp(advancedFilters.fromDate)
+          referenceDateKey < advancedFilters.fromDate
         ) {
           return false;
         }
 
         if (
           advancedFilters.toDate &&
-          referenceTime > getEndOfDayTimestamp(advancedFilters.toDate)
+          referenceDateKey > advancedFilters.toDate
         ) {
           return false;
         }
