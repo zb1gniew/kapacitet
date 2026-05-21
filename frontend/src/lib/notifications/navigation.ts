@@ -9,6 +9,7 @@ type ParsedNotificationMetadata = {
   matchId?: number;
   matchOfferId?: number;
   requestId?: number;
+  accessRequestId?: number;
 };
 
 export function parseNotificationMetadata(
@@ -34,6 +35,10 @@ function appendQuery(path: string, key: string, value: number) {
 export function getNotificationActionLabel(notification: NotificationResponse) {
   const metadata = parseNotificationMetadata(notification.metadata);
 
+  if (notification.type === "NewAccessRequest") {
+    return "Review request";
+  }
+
   if (metadata.agreementId) {
     return "Go to agreement";
   }
@@ -51,6 +56,10 @@ export function getNotificationActionLabel(notification: NotificationResponse) {
 
 export function getNotificationHref(notification: NotificationResponse) {
   const metadata = parseNotificationMetadata(notification.metadata);
+
+  if (notification.type === "NewAccessRequest") {
+    return APP_ROUTES.adminAccessRequests;
+  }
 
   if (metadata.agreementId) {
     return appendQuery(APP_ROUTES.matches, "agreementId", metadata.agreementId);

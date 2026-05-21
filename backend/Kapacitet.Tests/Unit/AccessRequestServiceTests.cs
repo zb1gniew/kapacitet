@@ -61,12 +61,18 @@ public class AccessRequestServiceTests
             keycloakClient,
             NullLogger<InitialPasswordSetupService>.Instance);
 
+        var notificationService = new NotificationService(
+            db,
+            emailService,
+            NullLogger<NotificationService>.Instance);
+
         return new AccessRequestService(
             db,
             keycloakClient,
             NullLogger<AccessRequestService>.Instance,
             emailService,
-            initialPasswordSetupService);
+            initialPasswordSetupService,
+            notificationService);
     }
 
     private static SubmitAccessRequestDto CreateSubmitDto() => new()

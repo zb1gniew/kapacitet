@@ -6,5 +6,6 @@ public enum NotificationType
     SupplierConfirmationRequest,
     UpcomingCooperation,
     NetworkEscalation,
-    MatchDeadline  // reserved for future use
+    MatchDeadline,  // reserved for future use
+    NewAccessRequest
 }

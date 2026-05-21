@@ -5,11 +5,15 @@ namespace Kapacitet.Application.Features.Matching.Services;
 
 public sealed class MatchEvaluationService
 {
-    private const int SkillWeight = 20;
-    private const int CertificateWeight = 25;
-    private const int DateWeight = 15;
+    private const int SkillWeight = 15;
+    private const int CertificateWeight = 15;
+    private const int DateWeight = 30;
     private const int LocationWeight = 10;
     private const int QuantityWeight = 30;
+
+    // Availability may start/end up to this many days outside the request window
+    // and still qualify as a match (with a reduced date score).
+    public const int DateToleranceDays = 2;
 
     public MatchEvaluationResult? Evaluate(
         CapacityRequest request,
@@ -27,7 +31,7 @@ public sealed class MatchEvaluationService
             return null;
         }
 
-        if (!CoversRequestPeriod(request, availability))
+        if (!DatePeriodsAlignWithinTolerance(request, availability))
         {
             return null;
         }
@@ -83,17 +87,26 @@ public sealed class MatchEvaluationService
             RequiredSkillCount = requestSkillIds.Count,
             MatchedCertificateCount = matchedCertificateCount,
             RequiredCertificateCount = requestCertificateIds.Count,
-            CoversFullPeriod = true,
+            CoversFullPeriod = CoversRequestPeriodStrict(request, availability),
             IsPartial = offeredQuantity < requestRemainingQuantity,
             Explanation = BuildExplanation(request, score, locationAssessment, offeredQuantity, requestRemainingQuantity),
             Score = score
         };
     }
 
-    private static bool CoversRequestPeriod(CapacityRequest request, AvailabilityDeclaration availability)
+    // Passes when availability overlaps the request within ±DateToleranceDays on each end.
+    // e.g. avail 21 May–28 May still matches a request 23 May–30 May (2-day shortfall at end).
+    private static bool DatePeriodsAlignWithinTolerance(CapacityRequest request, AvailabilityDeclaration availability)
     {
-        return availability.StartDate <= request.StartDate &&
-               availability.EndDate >= request.EndDate;
+        return availability.StartDate.Date <= request.StartDate.Date.AddDays(DateToleranceDays) &&
+               availability.EndDate.Date >= request.EndDate.Date.AddDays(-DateToleranceDays);
+    }
+
+    // Strict check — availability must fully contain the request period.
+    private static bool CoversRequestPeriodStrict(CapacityRequest request, AvailabilityDeclaration availability)
+    {
+        return availability.StartDate.Date <= request.StartDate.Date &&
+               availability.EndDate.Date >= request.EndDate.Date;
     }
 
     private static int ScaleCoverageScore(int matchedCount, int requiredCount, int maxScore)
@@ -109,11 +122,30 @@ public sealed class MatchEvaluationService
 
     private static int CalculateDateScore(CapacityRequest request, AvailabilityDeclaration availability)
     {
-        var requestedDays = Math.Max(1, (request.EndDate.Date - request.StartDate.Date).Days + 1);
-        var leadingSlack = Math.Max(0, (request.StartDate.Date - availability.StartDate.Date).Days);
-        var trailingSlack = Math.Max(0, (availability.EndDate.Date - request.EndDate.Date).Days);
-        var slackDays = leadingSlack + trailingSlack;
-        var alignment = requestedDays / (double)(requestedDays + slackDays);
+        var requestStart = request.StartDate.Date;
+        var requestEnd   = request.EndDate.Date;
+        var availStart   = availability.StartDate.Date;
+        var availEnd     = availability.EndDate.Date;
+
+        var requestedDays = Math.Max(1, (requestEnd - requestStart).Days + 1);
+
+        // Days of the request period NOT covered by availability (under-coverage penalty).
+        var missedAtStart = Math.Max(0, (availStart - requestStart).Days);
+        var missedAtEnd   = Math.Max(0, (requestEnd - availEnd).Days);
+        var missedDays    = missedAtStart + missedAtEnd;
+
+        // Extra days availability extends beyond the request (over-coverage penalty).
+        var leadingSlack  = Math.Max(0, (requestStart - availStart).Days);
+        var trailingSlack = Math.Max(0, (availEnd - requestEnd).Days);
+        var slackDays     = leadingSlack + trailingSlack;
+
+        // Penalise under-coverage fully, but cap over-coverage slack to at most requestedDays.
+        // Without the cap a standing year-long availability gets DateScore ≈ 1 for a 1-week
+        // request, even though it can cover the period perfectly.
+        // Cap ensures the floor for over-coverage alone is 50 % of max (requestedDays / 2·requestedDays).
+        var coveredDays  = requestedDays - missedDays;
+        var cappedSlack  = Math.Min(slackDays, requestedDays);
+        var alignment    = coveredDays / (double)(requestedDays + cappedSlack);
 
         return Math.Max(1, (int)Math.Round(alignment * DateWeight, MidpointRounding.AwayFromZero));
     }

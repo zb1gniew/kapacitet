@@ -73,8 +73,8 @@ public sealed class MatchingGenerationService
                 r.Company.Status == CompanyStatus.Active &&
                 r.CompanyId != availability.CompanyId &&
                 r.ResourceType == availability.ResourceType &&
-                r.StartDate >= availability.StartDate &&
-                r.EndDate <= availability.EndDate)
+                r.StartDate.Date >= availability.StartDate.Date.AddDays(-MatchEvaluationService.DateToleranceDays) &&
+                r.EndDate.Date <= availability.EndDate.Date.AddDays(MatchEvaluationService.DateToleranceDays))
             .Select(r => r.Id)
             .ToListAsync();
 

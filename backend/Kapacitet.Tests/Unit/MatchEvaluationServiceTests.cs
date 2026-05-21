@@ -183,8 +183,8 @@ public class MatchEvaluationServiceTests
     {
         var result = _svc.Evaluate(BaseRequest(), BaseAvailability(), 5, 5);
         result.Should().NotBeNull();
-        result!.Score.SkillScore.Should().Be(20,  "no required skills → full skill weight");
-        result.Score.CertificateScore.Should().Be(25, "no required certs → full cert weight");
+        result!.Score.SkillScore.Should().Be(15, "no required skills → full skill weight");
+        result.Score.CertificateScore.Should().Be(15, "no required certs → full cert weight");
     }
 
     [Fact]
@@ -203,6 +203,80 @@ public class MatchEvaluationServiceTests
         avail.EndDate = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
         var result = _svc.Evaluate(BaseRequest(), avail, 5, 5);
         result.Should().NotBeNull();
-        result!.Score.DateScore.Should().Be(15, "zero slack days → alignment = 1 → max date score");
+        result!.Score.DateScore.Should().Be(30, "zero slack days → alignment = 1 → max date score");
+    }
+
+    // ── Date tolerance (±2 days) ─────────────────────────────────────────────
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityEndsExactlyAtToleranceBoundary_ReturnsMatchWithReducedDateScore()
+    {
+        // Avail 21 May – 28 May, Request 23 May – 30 May: ends 2 days early (= boundary).
+        var request = BaseRequest();
+        request.StartDate = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
+        request.EndDate   = new DateTime(2026, 5, 30, 0, 0, 0, DateTimeKind.Utc);
+        var avail = BaseAvailability();
+        avail.StartDate = new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc);
+        avail.EndDate   = new DateTime(2026, 5, 28, 0, 0, 0, DateTimeKind.Utc);
+
+        var result = _svc.Evaluate(request, avail, 5, 5);
+
+        result.Should().NotBeNull("avail ends exactly 2 days early — within tolerance");
+        result!.Score.DateScore.Should().BeLessThan(30, "partial date coverage → reduced date score");
+        result.CoversFullPeriod.Should().BeFalse("availability does not fully cover the request period");
+    }
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityEndsOneDayPastTolerance_ReturnsNull()
+    {
+        // Avail ends 3 days before request end — exceeds ±2 day tolerance.
+        var request = BaseRequest();
+        request.StartDate = new DateTime(2026, 5, 23, 0, 0, 0, DateTimeKind.Utc);
+        request.EndDate   = new DateTime(2026, 5, 30, 0, 0, 0, DateTimeKind.Utc);
+        var avail = BaseAvailability();
+        avail.StartDate = new DateTime(2026, 5, 21, 0, 0, 0, DateTimeKind.Utc);
+        avail.EndDate   = new DateTime(2026, 5, 27, 0, 0, 0, DateTimeKind.Utc); // 3 days short
+
+        _svc.Evaluate(request, avail, 5, 5).Should().BeNull("3-day shortfall exceeds tolerance");
+    }
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityStartsExactlyAtToleranceBoundary_ReturnsMatchWithReducedDateScore()
+    {
+        // Avail starts 2 days after request start — exactly at boundary.
+        var request = BaseRequest();
+        request.StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+        request.EndDate   = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
+        var avail = BaseAvailability();
+        avail.StartDate = new DateTime(2026, 5, 3, 0, 0, 0, DateTimeKind.Utc); // 2 days late
+        avail.EndDate   = new DateTime(2026, 5, 31, 0, 0, 0, DateTimeKind.Utc);
+
+        var result = _svc.Evaluate(request, avail, 5, 5);
+
+        result.Should().NotBeNull("avail starts exactly 2 days late — within tolerance");
+        result!.Score.DateScore.Should().BeLessThan(30, "partial date coverage → reduced date score");
+        result.CoversFullPeriod.Should().BeFalse();
+    }
+
+    // ── Date score over-coverage cap ─────────────────────────────────────────
+
+    [Fact]
+    public void Evaluate_WhenAvailabilityIsYearLong_ShortRequestGetsAtLeastHalfOfDateWeight()
+    {
+        // A year-long standing availability for a 7-day request should not get
+        // a near-zero date score. The cappedSlack formula ensures minimum 50 % of DateWeight.
+        var request = BaseRequest();
+        request.StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+        request.EndDate   = new DateTime(2026, 5, 7, 0, 0, 0, DateTimeKind.Utc);
+
+        var avail = BaseAvailability();
+        avail.StartDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        avail.EndDate   = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+
+        var result = _svc.Evaluate(request, avail, 5, 5);
+
+        result.Should().NotBeNull();
+        result!.Score.DateScore.Should().BeGreaterThanOrEqualTo(15,
+            "capped slack ensures year-long availability scores ≥ 50 % of DateWeight (15/30) for a short request");
     }
 }
