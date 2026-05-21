@@ -100,22 +100,45 @@ const severityConfig = {
   },
 } as const;
 
-// Map hint ID + flow to the i18n key prefix.
-// Hints shared between flows use a generic prefix; flow-specific ones use req_ / avail_.
-const FLOW_SPECIFIC_IDS = new Set(["no-matches", "match-count", "radius"]);
+const REQUEST_HINT_IDS = new Set([
+  "no-matches",
+  "match-count",
+  "radius",
+  "cert-bottleneck",
+  "cert-all",
+  "skill-bottleneck",
+  "skill-rarity",
+  "experience-level",
+  "date-partial",
+  "date-extend",
+  "quantity",
+  "urgency",
+]);
+
+const AVAILABILITY_HINT_IDS = new Set([
+  "no-matches",
+  "match-count",
+  "radius",
+  "cert-opportunity",
+  "skill-opportunity",
+  "date-coverage",
+  "quantity-demand",
+]);
 
 function hintKey(hint: WorkflowHint, flow: "request" | "availability"): string {
   const base = hint.id.replace(/-/g, "_");
-  if (FLOW_SPECIFIC_IDS.has(hint.id)) {
-    return `hint_${flow === "request" ? "req" : "avail"}_${base}`;
+  if (hint.id === "match-count" && hint.params?.strong) {
+    return `hint_${flow === "request" ? "req" : "avail"}_${base}_strong`;
+  }
+  if (flow === "request" && REQUEST_HINT_IDS.has(hint.id)) {
+    return `hint_req_${base}`;
+  }
+  if (flow === "availability" && AVAILABILITY_HINT_IDS.has(hint.id)) {
+    return `hint_avail_${base}`;
   }
   // short-window has two variants: "very short" (<4 days) and "tight" (4-6 days)
   if (hint.id === "short-window" && hint.params?.minBetter !== undefined) {
     return "hint_short_window_very";
-  }
-  // skill-rarity belongs to the request flow but uses a generic prefix
-  if (hint.id === "skill-rarity") {
-    return "hint_req_skill_rarity";
   }
   return `hint_${base}`;
 }
@@ -127,6 +150,17 @@ function renderHintMessage(
 ): string {
   const params = hint.params ?? {};
   const key = hintKey(hint, flow);
+  const translatedParams = Object.fromEntries(
+    Object.entries(params).map(([paramKey, value]) => {
+      if (
+        (paramKey === "certName" || paramKey === "skillName") &&
+        typeof value === "string"
+      ) {
+        return [paramKey, t(value, { defaultValue: value })];
+      }
+      return [paramKey, value];
+    }),
+  );
 
   // i18next uses `count` for plural resolution — map the primary numeric param to `count`
   // when the hint doesn't already include it
@@ -140,7 +174,11 @@ function renderHintMessage(
           : {};
 
   // i18next returns the key itself when not found — use a sentinel to detect that
-  const translated = t(key, { defaultValue: "\x00", ...params, ...countParam });
+  const translated = t(key, {
+    defaultValue: "\x00",
+    ...translatedParams,
+    ...countParam,
+  });
   return translated === "\x00" ? hint.message : translated;
 }
 

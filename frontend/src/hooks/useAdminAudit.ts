@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { AuditTimelineEvent } from "@/types/admin";
 
 export function useAdminAudit() {
+  const { t } = useLocalizedScreen();
   const [events, setEvents] = useState<AuditTimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -20,7 +22,9 @@ export function useAdminAudit() {
         throw new Error(
           errorBody?.message ||
             errorBody?.detail ||
-            `Unable to load audit data (${response.status})`,
+            t("Unable to load audit data ({{response.status}})", {
+              "response.status": response.status,
+            }),
         );
       }
 
@@ -32,12 +36,12 @@ export function useAdminAudit() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Unable to load audit data right now.",
+          : t("Unable to load audit data right now."),
       );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchAudit();

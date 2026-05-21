@@ -38,6 +38,15 @@ const requests: AccessRequest[] = [
     reviewedBy: "Admin Two",
     provisionedCompanyId: 88,
   },
+  {
+    id: 4,
+    name: "Legacy Co",
+    categories: ["old_industry"],
+    location: "Warsaw",
+    contactEmail: "legacy@test.local",
+    status: "Pending",
+    createdAt: "2026-05-06T08:00:00Z",
+  },
 ];
 
 describe("useAccessRequestFilters", () => {
@@ -99,12 +108,13 @@ describe("useAccessRequestFilters", () => {
     expect(
       result.current.filteredRequests.map((request) => request.id),
     ).toEqual([2]);
-    expect(result.current.industryOptions).toEqual([
-      "construction",
-      "electrical",
-      "painting",
-    ]);
-    expect(result.current.locationOptions).toEqual(["Aarhus", "Odense"]);
+    expect(result.current.industryOptions).toContain("construction");
+    expect(result.current.industryOptions).toContain("electrical");
+    expect(result.current.industryOptions).toContain("painting");
+    expect(result.current.industryOptions).not.toContain("old_industry");
+    expect(result.current.locationOptions).toContain("Aarhus");
+    expect(result.current.locationOptions).toContain("Odense");
+    expect(result.current.locationOptions).not.toContain("Warsaw");
     expect(result.current.reviewerOptions).toEqual(["Admin One", "Admin Two"]);
   });
 
@@ -119,7 +129,7 @@ describe("useAccessRequestFilters", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.filteredRequests).toHaveLength(3);
+      expect(result.current.filteredRequests).toHaveLength(4);
     });
 
     act(() => {
@@ -136,9 +146,64 @@ describe("useAccessRequestFilters", () => {
       result.current.handleClearFilters();
     });
 
-    expect(result.current.filteredRequests).toHaveLength(3);
+    expect(result.current.filteredRequests).toHaveLength(4);
     expect(result.current.advancedFilters.search).toBe("");
     expect(result.current.activeSavedViewId).toBeNull();
+  });
+
+  it("filters by submitted and reviewed calendar dates inclusively", async () => {
+    const { result } = renderHook(() =>
+      useAccessRequestFilters({
+        requests: [
+          {
+            id: 11,
+            name: "Same Day Submitted",
+            categories: ["construction"],
+            location: "Aarhus",
+            contactEmail: "same-day@test.local",
+            status: "Pending",
+            createdAt: "2026-05-04T00:15:00Z",
+          },
+          {
+            id: 12,
+            name: "Next Day Submitted",
+            categories: ["construction"],
+            location: "Odense",
+            contactEmail: "next-day@test.local",
+            status: "Approved",
+            createdAt: "2026-05-05T09:00:00Z",
+            reviewedAt: "2026-05-06T18:30:00Z",
+            reviewedBy: "Admin Three",
+          },
+        ],
+        currentActiveTab: "All",
+        t: (key) => key,
+        setToastMessage: vi.fn(),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.filteredRequests).toHaveLength(2);
+    });
+
+    act(() => {
+      result.current.handleAdvancedFilterChange("fromDate", "2026-05-04");
+      result.current.handleAdvancedFilterChange("toDate", "2026-05-04");
+    });
+
+    expect(
+      result.current.filteredRequests.map((request) => request.id),
+    ).toEqual([11]);
+
+    act(() => {
+      result.current.handleAdvancedFilterChange("dateField", "Reviewed");
+      result.current.handleAdvancedFilterChange("fromDate", "2026-05-06");
+      result.current.handleAdvancedFilterChange("toDate", "2026-05-06");
+    });
+
+    expect(
+      result.current.filteredRequests.map((request) => request.id),
+    ).toEqual([12]);
   });
 
   it("saves, applies, updates, and deletes saved views", async () => {
@@ -224,7 +289,7 @@ describe("useAccessRequestFilters", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.filteredRequests).toHaveLength(3);
+      expect(result.current.filteredRequests).toHaveLength(4);
     });
 
     act(() => {

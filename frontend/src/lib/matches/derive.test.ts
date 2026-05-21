@@ -169,7 +169,7 @@ describe("matches derive helpers", () => {
     );
     expect(
       formatMatchTitle(t, match({ offeredQuantity: 2, skills: ["Company"] })),
-    ).toBe("2 Companies");
+    ).toBe("2 Company");
     expect(formatRelativeTime(t, "2026-04-28T11:59:30.000Z")).toBe("Just now");
     expect(formatRelativeTime(t, "2026-04-28T10:00:00.000Z")).toBe(
       "2 hours ago",

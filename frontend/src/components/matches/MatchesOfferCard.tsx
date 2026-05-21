@@ -170,7 +170,7 @@ export function MatchesOfferCard({
             className="inline-flex items-center gap-1 rounded-[8px] border border-[#b9f8cf] bg-[#f0fdf4] px-2 py-1 text-xs font-medium text-[#016630]"
           >
             <CheckBadgeIcon className="h-3 w-3" />
-            {certificate}
+            {t(certificate)}
           </span>
         ))}
       </div>

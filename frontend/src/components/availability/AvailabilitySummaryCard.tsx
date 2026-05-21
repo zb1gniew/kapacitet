@@ -48,7 +48,12 @@ export function AvailabilitySummaryCard({
                 {t(row.labelKey)}
               </p>
             ) : null}
-            <p className="font-medium text-neutral-900">{t(row.valueKey)}</p>
+            <p className="font-medium text-neutral-900">
+              {row.valueText ??
+                (row.valueKeys
+                  ? row.valueKeys.map((valueKey) => t(valueKey)).join(", ")
+                  : t(row.valueKey ?? ""))}
+            </p>
           </div>
         ))}
       </div>

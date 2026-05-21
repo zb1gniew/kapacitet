@@ -26,7 +26,8 @@ export function buildAvailabilitySummarySections(
       rows: [
         {
           labelKey: "Quantity:",
-          valueKey: payload ? String(payload.quantity) : "Not specified",
+          valueText: payload ? String(payload.quantity) : undefined,
+          valueKey: payload ? undefined : "Not specified",
         },
         {
           labelKey: "Experience level:",
@@ -34,15 +35,14 @@ export function buildAvailabilitySummarySections(
         },
         {
           labelKey: "Skill/Trade:",
-          valueKey:
-            skillLabels.length > 0 ? skillLabels.join(", ") : "Not specified",
+          valueKeys: skillLabels.length > 0 ? skillLabels : undefined,
+          valueKey: skillLabels.length > 0 ? undefined : "Not specified",
         },
         {
           labelKey: "Certificates:",
-          valueKey:
-            certificateLabels.length > 0
-              ? certificateLabels.join(", ")
-              : "Not specified",
+          valueKeys:
+            certificateLabels.length > 0 ? certificateLabels : undefined,
+          valueKey: certificateLabels.length > 0 ? undefined : "Not specified",
         },
       ],
     },
@@ -53,21 +53,23 @@ export function buildAvailabilitySummarySections(
       rows: [
         {
           labelKey: "Start date:",
-          valueKey: payload?.startDate || "Not specified",
+          valueText: payload?.startDate || undefined,
+          valueKey: payload?.startDate ? undefined : "Not specified",
         },
         {
           labelKey: "End date:",
-          valueKey: payload?.endDate || "Not specified",
+          valueText: payload?.endDate || undefined,
+          valueKey: payload?.endDate ? undefined : "Not specified",
         },
         {
           labelKey: "Location:",
-          valueKey: payload?.locationCity || "Not specified",
+          valueText: payload?.locationCity || undefined,
+          valueKey: payload?.locationCity ? undefined : "Not specified",
         },
         {
           labelKey: "Radius:",
-          valueKey: payload
-            ? `${payload.locationRadiusKm} km`
-            : "Not specified",
+          valueText: payload ? `${payload.locationRadiusKm} km` : undefined,
+          valueKey: payload ? undefined : "Not specified",
         },
       ],
     },
@@ -95,7 +97,8 @@ export function buildCapacityRequestSummarySections(
       rows: [
         {
           labelKey: "Number of workers:",
-          valueKey: payload ? String(payload.quantity) : "Not specified",
+          valueText: payload ? String(payload.quantity) : undefined,
+          valueKey: payload ? undefined : "Not specified",
         },
         {
           labelKey: "Preferred experience level:",
@@ -103,15 +106,14 @@ export function buildCapacityRequestSummarySections(
         },
         {
           labelKey: "Trade/Skill:",
-          valueKey:
-            skillLabels.length > 0 ? skillLabels.join(", ") : "Not specified",
+          valueKeys: skillLabels.length > 0 ? skillLabels : undefined,
+          valueKey: skillLabels.length > 0 ? undefined : "Not specified",
         },
         {
           labelKey: "Certificates:",
-          valueKey:
-            certificateLabels.length > 0
-              ? certificateLabels.join(", ")
-              : "Not specified",
+          valueKeys:
+            certificateLabels.length > 0 ? certificateLabels : undefined,
+          valueKey: certificateLabels.length > 0 ? undefined : "Not specified",
         },
       ],
     },
@@ -122,21 +124,23 @@ export function buildCapacityRequestSummarySections(
       rows: [
         {
           labelKey: "Start date:",
-          valueKey: payload?.startDate || "Not specified",
+          valueText: payload?.startDate || undefined,
+          valueKey: payload?.startDate ? undefined : "Not specified",
         },
         {
           labelKey: "End date:",
-          valueKey: payload?.endDate || "Not specified",
+          valueText: payload?.endDate || undefined,
+          valueKey: payload?.endDate ? undefined : "Not specified",
         },
         {
           labelKey: "Location:",
-          valueKey: payload?.locationCity || "Not specified",
+          valueText: payload?.locationCity || undefined,
+          valueKey: payload?.locationCity ? undefined : "Not specified",
         },
         {
           labelKey: "Radius:",
-          valueKey: payload
-            ? `${payload.locationRadiusKm} km`
-            : "Not specified",
+          valueText: payload ? `${payload.locationRadiusKm} km` : undefined,
+          valueKey: payload ? undefined : "Not specified",
         },
         {
           labelKey: "Urgency:",

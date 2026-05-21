@@ -10,6 +10,7 @@ namespace Kapacitet.Application.Features.CapacityRequests.Services;
 
 public class CapacityRequestService
 {
+    private const int MaxWorkflowDateOffsetYears = 100;
     private readonly AppDbContext _db;
     private readonly MatchingService _matchingService;
 
@@ -227,11 +228,30 @@ public class CapacityRequestService
 
     private static void ValidateDateRange(DateTime startDate, DateTime endDate)
     {
-        if (startDate.Date < DateTime.UtcNow.Date)
+        var today = DateTime.UtcNow.Date;
+        var maxDate = today.AddYears(MaxWorkflowDateOffsetYears);
+
+        if (startDate.Date < today)
         {
             throw new ValidationException(new Dictionary<string, string[]>
             {
                 ["startDate"] = ["Start date cannot be in the past."]
+            });
+        }
+
+        if (startDate.Date > maxDate)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["startDate"] = [$"Start date cannot be more than {MaxWorkflowDateOffsetYears} years from now."]
+            });
+        }
+
+        if (endDate.Date > maxDate)
+        {
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["endDate"] = [$"End date cannot be more than {MaxWorkflowDateOffsetYears} years from now."]
             });
         }
 

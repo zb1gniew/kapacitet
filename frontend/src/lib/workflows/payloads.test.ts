@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type { WorkflowCatalog } from "@/lib/backend/catalog";
 import {
+  MAX_WORKFLOW_DATE_OFFSET_YEARS,
+  MAX_WORKER_QUANTITY,
   buildAvailabilityCreatePayload,
   buildCapacityRequestCreatePayload,
   createStoredDraft,
+  getMaxWorkflowDateString,
   getAvailabilityDraftStorageKey,
   getCapacityRequestDraftStorageKey,
   getWorkerPeriodStepErrors,
@@ -47,6 +50,13 @@ describe("workflow payload helpers", () => {
         certificateIds: [10],
       }),
     ).toBe(false);
+    expect(
+      isWorkerDetailsStepComplete({
+        quantity: String(MAX_WORKER_QUANTITY + 1),
+        skillIds: [1],
+        certificateIds: [10],
+      }),
+    ).toBe(false);
   });
 
   it("returns worker period errors for invalid dates and locations", () => {
@@ -61,6 +71,28 @@ describe("workflow payload helpers", () => {
       "Select an end date.",
       "Please select a city from the suggestions.",
     ]);
+  });
+
+  it("rejects dates more than 100 years from now", () => {
+    const today = new Date();
+    const tooFar = new Date(today);
+    tooFar.setUTCFullYear(
+      tooFar.getUTCFullYear() + MAX_WORKFLOW_DATE_OFFSET_YEARS + 1,
+    );
+    const tooFarString = tooFar.toISOString().slice(0, 10);
+
+    expect(
+      getWorkerPeriodStepErrors({
+        startDate: tooFarString,
+        endDate: tooFarString,
+        locationCity: "Aarhus",
+      }),
+    ).toEqual([
+      `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+      `End date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+      "End date must be after the start date.",
+    ]);
+    expect(getMaxWorkflowDateString(today)).not.toBe("");
   });
 
   it("builds an availability payload for a valid draft", () => {
@@ -178,5 +210,72 @@ describe("workflow payload helpers", () => {
         a: 0,
       })._clientKey,
     ).toBe("client-key");
+  });
+
+  it("rejects worker quantities above the supported maximum", () => {
+    const startDate = futureDate(10);
+    const endDate = futureDate(19);
+
+    const invalid = buildCapacityRequestCreatePayload(
+      {
+        quantity: String(MAX_WORKER_QUANTITY + 1),
+        experienceLevel: "",
+        skillIds: [2],
+        certificateIds: [10],
+        startDate,
+        endDate,
+        locationCity: "Odense",
+        locationRadiusKm: 50,
+        urgency: "normal",
+      },
+      catalog,
+      "draft-4",
+    );
+
+    expect(invalid).toEqual({
+      ok: false,
+      errors: [`Worker quantity cannot exceed ${MAX_WORKER_QUANTITY}.`],
+      fieldErrors: {
+        quantity: [`Worker quantity cannot exceed ${MAX_WORKER_QUANTITY}.`],
+      },
+    });
+  });
+
+  it("returns structured field errors for dates beyond the maximum horizon", () => {
+    const tooFar = new Date();
+    tooFar.setUTCFullYear(
+      tooFar.getUTCFullYear() + MAX_WORKFLOW_DATE_OFFSET_YEARS + 1,
+    );
+    const tooFarString = tooFar.toISOString().slice(0, 10);
+
+    const invalid = buildAvailabilityCreatePayload(
+      {
+        quantity: "4",
+        experienceLevel: "mid",
+        skillIds: [1],
+        certificateIds: [10],
+        startDate: tooFarString,
+        endDate: tooFarString,
+        locationCity: "Copenhagen",
+        locationRadiusKm: 75,
+      },
+      catalog,
+      "draft-5",
+    );
+
+    expect(invalid).toEqual({
+      ok: false,
+      errors: [
+        `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+        `End date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+        "End date must be after the start date.",
+      ],
+      fieldErrors: {
+        startDate: [
+          `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+        ],
+        endDate: ["End date must be after the start date."],
+      },
+    });
   });
 });

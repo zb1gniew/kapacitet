@@ -8,6 +8,8 @@ import type {
 
 export const WORKFLOW_DRAFT_VERSION = 2;
 export const EXPERIENCE_LEVEL_OPTIONS = ["junior", "mid", "senior"] as const;
+export const MAX_WORKER_QUANTITY = 100;
+export const MAX_WORKFLOW_DATE_OFFSET_YEARS = 100;
 type ExperienceLevelOption = (typeof EXPERIENCE_LEVEL_OPTIONS)[number];
 
 export const DEFAULT_AVAILABILITY_DRAFT: AvailabilityDraft = {
@@ -70,6 +72,14 @@ function parseQuantity(value: string) {
   return Number.isFinite(quantity) ? quantity : NaN;
 }
 
+export function getMaxWorkflowDateString(from = new Date()) {
+  const maxDate = new Date(from);
+  maxDate.setUTCFullYear(
+    maxDate.getUTCFullYear() + MAX_WORKFLOW_DATE_OFFSET_YEARS,
+  );
+  return maxDate.toISOString().split("T")[0];
+}
+
 export function isWorkerDetailsStepComplete(
   draft: Pick<
     AvailabilityDraft | CapacityRequestDraft,
@@ -81,6 +91,7 @@ export function isWorkerDetailsStepComplete(
   return (
     Number.isInteger(quantity) &&
     quantity > 0 &&
+    quantity <= MAX_WORKER_QUANTITY &&
     draft.skillIds.length > 0 &&
     draft.certificateIds.length > 0
   );
@@ -95,15 +106,24 @@ export function getWorkerPeriodStepErrors(
   const errors: string[] = [];
   const locationCity = normalizeInput(draft.locationCity);
   const today = new Date().toISOString().split("T")[0];
+  const maxDate = getMaxWorkflowDateString();
 
   if (!draft.startDate) {
     errors.push("Select a start date.");
   } else if (draft.startDate < today) {
     errors.push("Start date cannot be in the past.");
+  } else if (draft.startDate > maxDate) {
+    errors.push(
+      `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    );
   }
 
   if (!draft.endDate) {
     errors.push("Select an end date.");
+  } else if (draft.endDate > maxDate) {
+    errors.push(
+      `End date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    );
   }
 
   if (draft.startDate && draft.endDate && draft.endDate <= draft.startDate) {
@@ -148,6 +168,11 @@ function validateSharedDraftFields(
   if (!Number.isInteger(quantity) || quantity <= 0) {
     errors.push("Enter a valid worker quantity greater than zero.");
     fieldErrors.quantity = ["Enter a valid worker quantity greater than zero."];
+  } else if (quantity > MAX_WORKER_QUANTITY) {
+    errors.push(`Worker quantity cannot exceed ${MAX_WORKER_QUANTITY}.`);
+    fieldErrors.quantity = [
+      `Worker quantity cannot exceed ${MAX_WORKER_QUANTITY}.`,
+    ];
   }
 
   if (draft.skillIds.length === 0) {
@@ -173,6 +198,7 @@ function validateSharedDraftFields(
   }
 
   const today = new Date().toISOString().split("T")[0];
+  const maxDate = getMaxWorkflowDateString();
 
   if (!draft.startDate) {
     errors.push("Select a start date.");
@@ -180,11 +206,25 @@ function validateSharedDraftFields(
   } else if (draft.startDate < today) {
     errors.push("Start date cannot be in the past.");
     fieldErrors.startDate = ["Start date cannot be in the past."];
+  } else if (draft.startDate > maxDate) {
+    errors.push(
+      `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    );
+    fieldErrors.startDate = [
+      `Start date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    ];
   }
 
   if (!draft.endDate) {
     errors.push("Select an end date.");
     fieldErrors.endDate = ["Select an end date."];
+  } else if (draft.endDate > maxDate) {
+    errors.push(
+      `End date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    );
+    fieldErrors.endDate = [
+      `End date cannot be more than ${MAX_WORKFLOW_DATE_OFFSET_YEARS} years from now.`,
+    ];
   }
 
   if (draft.startDate && draft.endDate && draft.endDate <= draft.startDate) {

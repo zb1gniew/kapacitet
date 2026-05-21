@@ -84,6 +84,7 @@ export function deriveAuditTimelineEvents(
           contactEmail: request.contactEmail,
           summary: "Access request submitted",
           detail: `${request.name} submitted a new company access request.`,
+          detailValues: { name: request.name },
         },
       ];
 
@@ -98,6 +99,7 @@ export function deriveAuditTimelineEvents(
           actor: request.reviewedBy,
           summary: "Access request approved",
           detail: `${request.name} was approved for platform onboarding.`,
+          detailValues: { name: request.name },
           provisionedCompanyId: request.provisionedCompanyId,
         });
       }
@@ -115,6 +117,9 @@ export function deriveAuditTimelineEvents(
           detail: request.rejectionReason
             ? `Rejected with note: ${request.rejectionReason}`
             : `${request.name} was rejected during review.`,
+          detailValues: request.rejectionReason
+            ? { "request.rejectionReason": request.rejectionReason }
+            : { name: request.name },
         });
       }
 
@@ -133,6 +138,9 @@ export function deriveAuditTimelineEvents(
           actor: request.reviewedBy,
           summary: "Company linked to approved request",
           detail: `Provisioned company ID ${request.provisionedCompanyId} is linked to the approved request.`,
+          detailValues: {
+            "request.provisionedCompanyId": request.provisionedCompanyId,
+          },
           provisionedCompanyId: request.provisionedCompanyId,
         });
       }

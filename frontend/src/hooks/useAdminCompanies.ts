@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocalizedScreen } from "@/hooks/useLocalizedScreen";
 import type { CompanyRegistryRecord } from "@/types/admin";
 
 export function useAdminCompanies() {
+  const { t } = useLocalizedScreen();
   const [records, setRecords] = useState<CompanyRegistryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -20,7 +22,9 @@ export function useAdminCompanies() {
         throw new Error(
           errorBody?.message ||
             errorBody?.detail ||
-            `Unable to load company registry (${response.status})`,
+            t("Unable to load company registry ({{response.status}})", {
+              "response.status": response.status,
+            }),
         );
       }
 
@@ -32,12 +36,12 @@ export function useAdminCompanies() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Unable to load company registry right now.",
+          : t("Unable to load company registry right now."),
       );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void fetchCompanies();

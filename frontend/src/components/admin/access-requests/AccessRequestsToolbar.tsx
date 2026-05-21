@@ -1,5 +1,6 @@
 "use client";
 
+import { getCategoryLabel } from "@/constants/categories";
 import type {
   AccessRequestAdvancedFilters,
   AccessRequestDateField,
@@ -110,7 +111,7 @@ export function AccessRequestsToolbar({
               <option value="">{t("All industries")}</option>
               {industries.map((industry) => (
                 <option key={industry} value={industry}>
-                  {industry}
+                  {t(getCategoryLabel(industry))}
                 </option>
               ))}
             </select>

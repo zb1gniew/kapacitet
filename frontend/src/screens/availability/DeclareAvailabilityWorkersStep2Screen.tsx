@@ -17,6 +17,7 @@ import { useWorkflowCatalog } from "@/hooks/useWorkflowCatalog";
 import {
   DEFAULT_AVAILABILITY_DRAFT,
   EXPERIENCE_LEVEL_OPTIONS,
+  MAX_WORKER_QUANTITY,
   getAvailabilityDraftStorageKey,
   isWorkerDetailsStepComplete,
 } from "@/lib/workflows/payloads";
@@ -89,6 +90,8 @@ export function DeclareAvailabilityWorkersStep2Screen({
             <input
               type="number"
               inputMode="numeric"
+              min={1}
+              max={MAX_WORKER_QUANTITY}
               value={draft.quantity}
               onChange={(event) => setField("quantity", event.target.value)}
               placeholder={t("e.g., 3")}

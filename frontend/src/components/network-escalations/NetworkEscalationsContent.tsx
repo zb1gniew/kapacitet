@@ -383,7 +383,7 @@ export function NetworkEscalationsContent({
                               key={skill}
                               className="rounded-full bg-[#eff6ff] px-2.5 py-1 text-xs font-medium text-[#1d4ed8]"
                             >
-                              {skill}
+                              {t(skill)}
                             </span>
                           ))
                         ) : (
@@ -402,7 +402,7 @@ export function NetworkEscalationsContent({
                               key={cert}
                               className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700"
                             >
-                              {cert}
+                              {t(cert)}
                             </span>
                           ))
                         ) : (

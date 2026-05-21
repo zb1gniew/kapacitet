@@ -64,6 +64,8 @@ export type AuditTimelineEvent = {
   actor?: string;
   summary: string;
   detail: string;
+  summaryValues?: Record<string, string | number>;
+  detailValues?: Record<string, string | number>;
   provisionedCompanyId?: number;
 };
 

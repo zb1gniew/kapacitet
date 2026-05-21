@@ -91,6 +91,23 @@ public class AvailabilityDeclarationServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_WhenStartDateMoreThanOneHundredYearsAhead_ThrowsValidationException()
+    {
+        var db = TestDbFactory.Create();
+        SeedCatalog(db);
+        var service = CreateService(db);
+        var dto = CreateDto();
+        dto.StartDate = DateTime.UtcNow.Date.AddYears(101);
+        dto.EndDate = dto.StartDate.AddDays(1);
+
+        var act = async () => await service.CreateAsync(dto, 1);
+
+        var exception = await act.Should().ThrowAsync<ValidationException>();
+        exception.Which.FieldErrors.Should().ContainKey("startDate");
+        exception.Which.FieldErrors["startDate"].Should().Contain("Start date cannot be more than 100 years from now.");
+    }
+
+    [Fact]
     public async Task CreateAsync_WhenCertificateIdsUnknown_ThrowsValidationException()
     {
         var db = TestDbFactory.Create();
