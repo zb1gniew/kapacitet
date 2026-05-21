@@ -37,6 +37,7 @@ type Props = {
 type NotificationFilter = "all" | NotificationType;
 
 const NOTIFICATION_TYPE_ORDER: NotificationType[] = [
+  "NewAccessRequest",
   "SupplierConfirmationRequest",
   "NewMatch",
   "UpcomingCooperation",
@@ -49,6 +50,8 @@ function getNotificationTypeLabel(
   type: NotificationType,
 ) {
   switch (type) {
+    case "NewAccessRequest":
+      return t("Access requests");
     case "SupplierConfirmationRequest":
       return t("Confirmation requests");
     case "NewMatch":
@@ -85,6 +88,7 @@ export function NotificationPanel({
         return counts;
       },
       {
+        NewAccessRequest: 0,
         SupplierConfirmationRequest: 0,
         NewMatch: 0,
         UpcomingCooperation: 0,

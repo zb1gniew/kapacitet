@@ -3,7 +3,8 @@ export type NotificationType =
   | "SupplierConfirmationRequest"
   | "UpcomingCooperation"
   | "NetworkEscalation"
-  | "MatchDeadline";
+  | "MatchDeadline"
+  | "NewAccessRequest";
 
 export type NotificationResponse = {
   id: number;

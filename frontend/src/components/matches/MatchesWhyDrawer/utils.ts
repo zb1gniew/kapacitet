@@ -2,10 +2,10 @@ import type { MatchOfferResponse } from "@/types/api-matches";
 import type { TranslateFn } from "@/types/i18n";
 
 export const SCORE_LIMITS = {
-  date: 15,
+  date: 30,
   location: 10,
-  skills: 20,
-  certificates: 25,
+  skills: 15,
+  certificates: 15,
   quantity: 30,
 } as const;
 

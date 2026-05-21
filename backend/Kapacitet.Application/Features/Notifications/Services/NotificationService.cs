@@ -25,8 +25,15 @@ public class NotificationService
 
     public async Task<List<NotificationDto>> GetForCompanyAsync(int companyId, CancellationToken ct = default)
     {
+        // Platform admin companies only receive admin-specific notifications.
+        // Exclude all company-level matching and network notification types so
+        // platform admins never see them in their bell dropdown.
+        var platformAdminTypesOnly = await IsPlatformAdminCompanyAsync(companyId);
+
         return await _db.Notifications
             .Where(n => n.CompanyId == companyId)
+            .Where(n => !platformAdminTypesOnly ||
+                        n.Type == NotificationType.NewAccessRequest)
             .OrderByDescending(n => n.CreatedAt)
             .Select(n => new NotificationDto
             {
@@ -214,6 +221,36 @@ public class NotificationService
             $"network escalation outreach for company {recipientCompanyId}, request {requestId}");
     }
 
+    // Called by AccessRequestService when a new company submits an access request.
+    public async Task NotifyPlatformAdminsOfNewAccessRequestAsync(int accessRequestId, string companyName)
+    {
+        var platformAdmins = await _db.PlatformAdminPreferences
+            .Include(p => p.User)
+            .Select(p => new { p.User.Email, p.User.CompanyId })
+            .ToListAsync();
+
+        foreach (var admin in platformAdmins)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                CompanyId = admin.CompanyId,
+                Type = NotificationType.NewAccessRequest,
+                Title = "New access request",
+                Body = $"{companyName} is awaiting approval.",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                Metadata = $"{{\"accessRequestId\":{accessRequestId}}}"
+            });
+
+            await TrySendEmailAsync(
+                () => _emailService.SendNewAccessRequestNotificationEmailAsync(admin.Email, companyName),
+                $"new access request notification for platform admin {admin.Email}, request {accessRequestId}");
+        }
+
+        if (platformAdmins.Count > 0)
+            await _db.SaveChangesAsync();
+    }
+
     public async Task SendAgreementConfirmedEmailBestEffortAsync(
         int requesterCompanyId,
         int supplierCompanyId,
@@ -232,11 +269,23 @@ public class NotificationService
     }
 
     // Default to true if company has no preferences row yet.
+    // Platform admin companies are always excluded from matching/network in-app notifications.
     private async Task<bool> IsInAppEnabledAsync(int companyId, Func<NotificationPreferences, bool> selector)
     {
+        if (await IsPlatformAdminCompanyAsync(companyId))
+            return false;
+
         var prefs = await _db.NotificationPreferences
             .FirstOrDefaultAsync(p => p.CompanyId == companyId);
         return prefs == null || selector(prefs);
+    }
+
+    // A company is a "platform admin company" when at least one of its users has
+    // PlatformAdminPreferences — i.e. is a platform-level administrator.
+    private async Task<bool> IsPlatformAdminCompanyAsync(int companyId)
+    {
+        return await _db.PlatformAdminPreferences
+            .AnyAsync(p => p.User.CompanyId == companyId);
     }
 
     private async Task TrySendEmailAsync(Func<Task> sendAsync, string context)

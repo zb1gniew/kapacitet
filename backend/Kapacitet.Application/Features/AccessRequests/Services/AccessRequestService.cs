@@ -21,19 +21,22 @@ public class AccessRequestService
     private readonly ILogger<AccessRequestService> _logger;
     private readonly EmailService _emailService;
     private readonly InitialPasswordSetupService _initialPasswordSetupService;
+    private readonly NotificationService _notificationService;
 
     public AccessRequestService(
         AppDbContext db,
         KeycloakAdminClient keycloakClient,
         ILogger<AccessRequestService> logger,
         EmailService emailService,
-        InitialPasswordSetupService initialPasswordSetupService)
+        InitialPasswordSetupService initialPasswordSetupService,
+        NotificationService notificationService)
     {
         _db = db;
         _keycloakClient = keycloakClient;
         _logger = logger;
         _emailService = emailService;
         _initialPasswordSetupService = initialPasswordSetupService;
+        _notificationService = notificationService;
     }
 
     public async Task<AccessRequestDto> SubmitAsync(SubmitAccessRequestDto dto)
@@ -115,6 +118,18 @@ public class AccessRequestService
         _logger.LogInformation(
             "Access request submitted: RequestId={RequestId}, Email={Email}, CompanyName={CompanyName}",
             accessRequest.Id, accessRequest.ContactEmail, accessRequest.Name);
+
+        // Best-effort — notify platform admins that a new company is awaiting approval.
+        try
+        {
+            await _notificationService.NotifyPlatformAdminsOfNewAccessRequestAsync(
+                accessRequest.Id, accessRequest.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to notify platform admins of new access request {RequestId}", accessRequest.Id);
+        }
 
         return MapToDto(accessRequest);
     }

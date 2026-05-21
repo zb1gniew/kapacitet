@@ -420,10 +420,35 @@ public class EmailService
         _logger.LogInformation("Email sent to {To} — Subject: {Subject}", to, subject);
     }
 
+    // ── Trigger 6: Platform admin — new access request submitted ─────────────
+    public async Task SendNewAccessRequestNotificationEmailAsync(string toEmail, string companyName)
+    {
+        var adminUrl = $"{_options.AppUrl.TrimEnd('/')}/admin/access-requests";
+        var subject = "Ny adgangsanmodning afventer godkendelse / New access request awaiting approval";
+
+        var danish = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">Ny anmodning afventer</h2>
+            <p style="margin:0 0 16px;color:#374151;"><strong>{H(companyName)}</strong> har indsendt en anmodning om adgang til KapacitetNet og afventer din godkendelse.</p>
+            {Btn("Gennemgå anmodning", adminUrl)}
+            """;
+
+        var english = $"""
+            <h2 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#0f2033;">New request pending</h2>
+            <p style="margin:0 0 16px;color:#374151;"><strong>{H(companyName)}</strong> has submitted an access request to KapacitetNet and is awaiting your approval.</p>
+            {Btn("Review request", adminUrl)}
+            """;
+
+        await SendAsync(toEmail, subject, Wrap(danish, english));
+    }
+
     private async Task<string?> GetCompanyAdminEmailAsync(int companyId)
     {
+        // Exclude platform admins — they have PlatformAdminPreferences and should
+        // never receive company-level matching or network notifications.
         return await _db.Users
-            .Where(u => u.CompanyId == companyId && u.Role == Domain.Enums.UserRole.Admin)
+            .Where(u => u.CompanyId == companyId
+                     && u.Role == Domain.Enums.UserRole.Admin
+                     && !_db.PlatformAdminPreferences.Any(p => p.UserId == u.Id))
             .Select(u => u.Email)
             .FirstOrDefaultAsync();
     }
@@ -432,6 +457,10 @@ public class EmailService
         int companyId,
         Func<Domain.Entities.NotificationPreferences, bool> selector)
     {
+        // Platform admin companies are excluded from all matching/network email notifications.
+        if (await _db.PlatformAdminPreferences.AnyAsync(p => p.User.CompanyId == companyId))
+            return false;
+
         var prefs = await _db.NotificationPreferences
             .FirstOrDefaultAsync(p => p.CompanyId == companyId);
         return prefs == null || selector(prefs);
