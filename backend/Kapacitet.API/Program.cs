@@ -430,9 +430,10 @@ static void ValidateProductionConfiguration(IConfiguration configuration)
     }
 
     var adminPassword = configuration["KeycloakAdmin:AdminPassword"];
-    if (string.Equals(adminPassword, "admin", StringComparison.Ordinal))
+    if (string.IsNullOrWhiteSpace(adminPassword) ||
+        string.Equals(adminPassword, "admin", StringComparison.Ordinal))
     {
-        issues.Add("KeycloakAdmin:AdminPassword still uses the development default.");
+        issues.Add("KeycloakAdmin:AdminPassword is missing or still uses the development default.");
     }
 
     var connectionString = configuration.GetConnectionString("DefaultConnection");
