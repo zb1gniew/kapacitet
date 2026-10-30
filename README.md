@@ -19,6 +19,7 @@ This repository contains the full application stack, including the web frontend,
 - [Verification](#verification)
 - [Operational notes](#operational-notes)
 - [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Product overview
 
@@ -311,3 +312,7 @@ docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-com
 - Re-run `docker compose -f infrastructure/docker-compose.yml -f infrastructure/docker-compose.dev.yml exec caddy caddy trust`
 - Restart the browser
 - Make sure you are opening `https://localhost`, not `http://localhost`
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
