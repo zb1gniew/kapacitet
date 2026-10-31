@@ -4,6 +4,10 @@ Kapacitet is a capacity coordination platform for verified companies. It allows 
 
 This repository contains the full application stack, including the web frontend, backend API, local infrastructure, identity configuration, and helper scripts for local setup.
 
+## Demo
+
+![Application Demo](assets/demo.gif)
+
 ## Contents
 
 - [Product overview](#product-overview)
